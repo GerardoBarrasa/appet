@@ -5,7 +5,7 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
 	<?php Metas::getMetas();?>
-	<?php Tools::->loadBootstrap('css');?>
+	<?php Tools::loadBootstrap('css');?>
 	<link rel="stylesheet" type="text/css" href="<?=_ASSETS_._ADMIN_;?>metismenu.min.css">
 	<link rel="stylesheet" type="text/css" href="<?=_ASSETS_._ADMIN_;?>icons.css">
 	<link rel="stylesheet" type="text/css" href="<?=_ASSETS_._ADMIN_;?>style.css">
