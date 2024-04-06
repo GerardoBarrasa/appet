@@ -27,7 +27,7 @@
                                     <!-- Form principal -->
                                     <div class="col-12">
                                         <div class="row">
-                                        <input type="hidden" name="id_usuario_admin" id="id_usuario_admin" value="<?=!empty($usuario) ? $usuario->id_usuario_admin : ''?>">
+                                        <input type="hidden" name="id" id="id" value="<?=!empty($usuario) ? $usuario->id : ''?>">
 
                                             <div class="col-12 col-sm-6 col-md-4">
                                                 <div class="form-group">
@@ -58,9 +58,9 @@
 
                                     <div class="col-12 d-flex justify-content-end align-items-center">
                                         <div class="justify-self-end">
-                                            <?php if( !empty($usuario) && isset($usuario->id_usuario_admin) ) : ?>
+                                            <?php if( !empty($usuario) && isset($usuario->id) ) : ?>
                                                 <button type="submit" name="submitUpdateUsuarioAdmin" class="btn btn-primary  waves-effect waves-light">Actualizar</button>
-                                                <button type="button" class="btn btn-danger  waves-effect waves-light" onClick="confirmarEliminacion( <?= $usuario->id_usuario_admin ?>, 'Admin', () => window.history.back() )">Eliminar</button>
+                                                <button type="button" class="btn btn-danger  waves-effect waves-light" onClick="confirmarEliminacion( <?= $usuario->id ?>, 'Admin', () => window.history.back() )">Eliminar</button>
                                             <?php else: ?>
                                                 <button type="submit" name="submitCrearUsuarioAdmin" class="btn btn-primary  waves-effect waves-light">Crear</button>
                                             <?php endif; ?>

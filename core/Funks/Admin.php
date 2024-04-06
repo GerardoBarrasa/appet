@@ -42,9 +42,9 @@ class Admin
 		);
 	}
 
-	public static function getUsuarioById($id_usuario_admin)
+	public static function getUsuarioById($id)
 	{
-		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios_admin WHERE id_usuario_admin=".(int)$id_usuario_admin);
+		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios_admin WHERE id=".(int)$id);
 	}
 
 	public static function actualizarUsuario()
@@ -59,7 +59,7 @@ class Admin
 		if( !empty($password) && strlen($password) > 0 )
 			$updUsuario['password'] = Tools::md5($password);
 
-		return Bd::getInstance()->update('usuarios_admin', $updUsuario, "id_usuario_admin = ".(int)Tools::getValue('id_usuario_admin'));
+		return Bd::getInstance()->update('usuarios_admin', $updUsuario, "id = ".(int)Tools::getValue('id'));
 	}
 
 	public static function crearUsuario()
@@ -76,6 +76,6 @@ class Admin
 
 	public static function eliminarRegistro( $id )
 	{
-		return Bd::getInstance()->query("DELETE FROM usuarios_admin WHERE id_usuario_admin = ".(int)$id);
+		return Bd::getInstance()->query("DELETE FROM usuarios_admin WHERE id = ".(int)$id);
 	}
 }
