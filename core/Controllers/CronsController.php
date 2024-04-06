@@ -20,11 +20,11 @@ class CronsController
 		{
 			$cantidad = Configuracion::get('cronjob_email_cantidad');
 
-			$emailIdsToSend = Bd::getInstance()->fetchObject("SELECT id_email FROM emails_cache WHERE enviado = 0 AND error = 0 ORDER BY id_email ASC LIMIT 0,".$cantidad);
+			$emailIdsToSend = Bd::getInstance()->fetchObject("SELECT id FROM emails_cache WHERE enviado = 0 AND error = 0 ORDER BY id ASC LIMIT 0,".$cantidad);
 
 			if( !empty($emailIdsToSend) )
 				foreach( $emailIdsToSend as $email )
-					Sendmail::sendCachedMail($email->id_email);
+					Sendmail::sendCachedMail($email->id);
 		});
 	}
 

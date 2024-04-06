@@ -103,7 +103,7 @@ class Sendmail
 
 	public static function sendCachedMail($id)
 	{
-		$emailData = Bd::getInstance()->fetchRow('SELECT * FROM emails_cache WHERE id_email = "'.(int)$id.'"', 'array');
+		$emailData = Bd::getInstance()->fetchRow('SELECT * FROM emails_cache WHERE id = "'.(int)$id.'"', 'array');
 
 		if ( $emailData )
 		{
@@ -116,13 +116,13 @@ class Sendmail
 			if( !self::send($destinatario, $asunto, $mensaje, $id_idioma) )
 			{
 				echo 'Error al enviar email a '.$destinatario.' con asunto: "'.$asunto.'"<br/>';
-				Bd::getInstance()->query('UPDATE emails_cache SET error = 1 WHERE id_email = "'.$id.'"');
+				Bd::getInstance()->query('UPDATE emails_cache SET error = 1 WHERE id = "'.$id.'"');
 				return false;
 			}
 			else
 			{
 				echo 'Email enviado a '.$destinatario.' con asunto: "'.$asunto.'"<br/>';
-				Bd::getInstance()->query('UPDATE emails_cache SET enviado = 1, date_sent = "'.Tools::datetime().'" WHERE id_email = "'.$id.'"');
+				Bd::getInstance()->query('UPDATE emails_cache SET enviado = 1, date_sent = "'.Tools::datetime().'" WHERE id = "'.$id.'"');
 				return true;	
 			}
 		}
