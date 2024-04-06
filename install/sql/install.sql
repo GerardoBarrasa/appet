@@ -1,13 +1,13 @@
--- TABLA USUARIOS_ADMIN --
-CREATE TABLE usuarios_admin (
+-- TABLA USUARIOS --
+CREATE TABLE usuarios (
 id int(10) NOT NULL,
 nombre varchar(100) NOT NULL,
 email varchar(100) NOT NULL,
 password varchar(250) NOT NULL,
 date_created datetime NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-ALTER TABLE usuarios_admin ADD PRIMARY KEY (id);
-ALTER TABLE usuarios_admin MODIFY id int(10) NOT NULL AUTO_INCREMENT;
+ALTER TABLE usuarios ADD PRIMARY KEY (id);
+ALTER TABLE usuarios MODIFY id int(10) NOT NULL AUTO_INCREMENT;
 
 -- TABLA EMAILS_CACHE --
 CREATE TABLE emails_cache (

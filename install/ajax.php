@@ -259,7 +259,7 @@ define( '_DEFAULT_LANGUAGE_', 'es' );
 
 			require_once(dirname(__FILE__).'/../core/core.php');
 
-			$sqlInsertAdmin = "INSERT INTO `usuarios_admin` (`id`, `nombre`, `email`, `password`, `date_created`) VALUES (NULL, '".$_REQUEST['admin_nombre']."', '".$_REQUEST['admin_email']."', '".Tools::md5($_REQUEST['admin_pass'])."', NOW())";
+			$sqlInsertAdmin = "INSERT INTO `usuarios` (`id`, `nombre`, `email`, `password`, `date_created`) VALUES (NULL, '".$_REQUEST['admin_nombre']."', '".$_REQUEST['admin_email']."', '".Tools::md5($_REQUEST['admin_pass'])."', NOW())";
 
 			$sqlResultAdmin = $con->query($sqlInsertAdmin);
 die('sfsdfdf');
