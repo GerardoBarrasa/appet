@@ -5,7 +5,7 @@ class Admin
 {
   	public static function login($usuario, $password)
 	{
-		$datos = Bd::getInstance()->fetchRow("SELECT * FROM usuarios_admin WHERE email='".$usuario."' AND password='".$password."'");
+		$datos = Bd::getInstance()->fetchRow("SELECT * FROM usuarios WHERE email='".$usuario."' AND password='".$password."'");
 
 		if( $datos )
 		{
@@ -32,9 +32,9 @@ class Admin
 		if($applyLimit)
 			$limit = "LIMIT $comienzo, $limite";
 
-		$listado = Bd::getInstance()->fetchObject("SELECT * FROM usuarios_admin WHERE 1=1 $search ORDER BY nombre ASC $limit");
+		$listado = Bd::getInstance()->fetchObject("SELECT * FROM usuarios WHERE 1=1 $search ORDER BY nombre ASC $limit");
 
-		$total = Bd::getInstance()->countRows("SELECT * FROM usuarios_admin WHERE 1=1 $search ORDER BY nombre ASC");
+		$total = Bd::getInstance()->countRows("SELECT * FROM usuarios WHERE 1=1 $search ORDER BY nombre ASC");
 
 		return array(
 			'listado' => $listado,
@@ -44,7 +44,7 @@ class Admin
 
 	public static function getUsuarioById($id)
 	{
-		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios_admin WHERE id=".(int)$id);
+		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios WHERE id=".(int)$id);
 	}
 
 	public static function actualizarUsuario()
@@ -59,7 +59,7 @@ class Admin
 		if( !empty($password) && strlen($password) > 0 )
 			$updUsuario['password'] = Tools::md5($password);
 
-		return Bd::getInstance()->update('usuarios_admin', $updUsuario, "id = ".(int)Tools::getValue('id'));
+		return Bd::getInstance()->update('usuarios', $updUsuario, "id = ".(int)Tools::getValue('id'));
 	}
 
 	public static function crearUsuario()
@@ -71,11 +71,11 @@ class Admin
 			'date_created' => Tools::datetime()
 		);
 
-		return Bd::getInstance()->insert('usuarios_admin', $addUsuario);
+		return Bd::getInstance()->insert('usuarios', $addUsuario);
 	}
 
 	public static function eliminarRegistro( $id )
 	{
-		return Bd::getInstance()->query("DELETE FROM usuarios_admin WHERE id = ".(int)$id);
+		return Bd::getInstance()->query("DELETE FROM usuarios WHERE id = ".(int)$id);
 	}
 }
