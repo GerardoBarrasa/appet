@@ -1,4 +1,4 @@
-<h1>Hola Mundo con Core!</h1>
+<h1>Hola Mundo con Jofran!</h1>
 
 <p>Hola Mundo!</p>
 
