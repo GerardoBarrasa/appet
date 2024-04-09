@@ -171,20 +171,6 @@ class Tools
 	}
 
 	/**
-	 * Descodifica un texto
-	 *
-	 * @deprecated
-	 * @param string $txt cadena de caracteres que queremos descodificar
-	 * @return string 
-	 */
-	public static function decodeTxt($txt)
-	{
-		$wrong = array('Ã¡','Ã©','Ã­','Ã³','Ãº','Ã±');
-		$right = array('á','é','í','ó','ú','ñ');
-		return str_replace($wrong,$right,$txt);
-	}
-
-	/**
 	 * Busca las palabras de un string en un array. Si hay una coincidencia se para la funcion y devuelve true, en caso contrario false
 	 *
 	 * @param array $array El array que contiene los strings de los cuales se va a hacer la búsqueda
@@ -725,6 +711,32 @@ class Tools
 		 }
 	}
 
+	/**
+	 * Crea paginador
+	 *
+	 * @param string|array $data String o array de datos. Hay que tenerlo en cuenta en front
+	 * @param string $type Tipo de respuesta ('success'|'error')
+	 * @param string $error Mensaje de error
+	 * @param int $codigoEstado Código HTTP
+	 */
+	private function result($data = false, $type = 'success', $error = false, $codigoEstado = 200)
+	{
+		header("Content-Type:application/json");
+		header("HTTP/1.1 $codigoEstado $type");
+
+		$response = array( 'type'  => $type );
+				
+		if( $response['type'] === 'error' )
+			$response['error'] = $error;
+		
+		if( $response['type'] === 'success' )
+			$response['data'] = $data;
+
+		echo json_encode(Tools::arrayUtf8($response));
+
+		return;
+	}
+
 
 	/*
 	|--------------------------------------------------------------------------
@@ -853,5 +865,79 @@ class Tools
 		}
 		else
 			$_SESSION['css_paths'][] = $path;
+	}
+
+	/**
+	 * Guarda un error o un success en la sesion del servidor
+	 * @param string $msg			Mensaje que irá en el toast
+	 * @param bool $success			True si es success, dejar en false si es error
+	 * @param int $timer			Timer para que desaparezca el toast
+	 * @param string $bgColor		Color de fondo del toast	
+	 */
+	public static function registerAlert($msg, $type = "error", $timer = 3000, $bgColor = false){
+		$types = ["success", "error", "warning", "info"];
+		if(in_array($type, $types)){
+			$alert = [
+				'message' => $msg,
+				'type' => $type,
+				'timer' => $timer,
+				'background' => $bgColor
+			];
+			$_SESSION['alert'] = $alert;
+		}
+	}
+
+	/**
+	 * Lee la alerta que pueda haber en la sesion servidor y pinta el script para mostrarla
+	 */
+	public static function readAlert(){
+		if(isset($_SESSION['alert'])){
+			$toast = $_SESSION['alert'];
+
+			if($toast['background']){
+				$background = $toast['background'];
+			} else{
+				switch($toast['type']){
+					case "error":
+						$background = "#f43942";
+						break;
+					case "success":
+						$background = "#79cf49";
+						break;
+					case "warning":
+						$background = "#f4c911";
+						break;
+					case "info":
+						$background = "#3fc3ee";
+						break;
+				}
+			}
+
+			$script = "<script>";
+			$script .= "
+			$(document).ready(function(){
+			swal.fire({
+				icon: '".$toast["type"]."',
+				title: '".$toast["message"]."',
+				timer: ".$toast["timer"].",
+				background: '".$background."',
+				iconColor: '#fff',
+				color: '#fff',
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				timerProgressBar: true,
+				didOpen: (toast) => {
+				  toast.onmouseenter = Swal.stopTimer;
+				  toast.onmouseleave = Swal.resumeTimer;
+				}
+			})
+			";
+			$script .= "})</script>";
+			unset($_SESSION['alert']);
+			print $script;
+		} else{
+			print '<!-- NO ALERTS -->';
+		}
 	}
 }

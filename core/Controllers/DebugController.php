@@ -1,13 +1,9 @@
 <?php
 
-class DebugController
+class DebugController extends Controllers
 {
-	var $page;
-
 	public function execute($page)
 	{
-		$this->page = $page;
-
 		Render::$layout = false;
 
 		//Debug bd
@@ -95,11 +91,16 @@ class DebugController
 			$sql = $_POST['sql'];
 			echo Bd::getInstance()->getResponse($sql);
 		});
+
+		if( !$this->getRendered() )
+		{
+			header('HTTP/1.1 404 Not Found');
+			exit;
+		}
 	}
 
-	public function add($page,$data)
+	protected function loadTraducciones()
 	{
-		if( $page == $this->page )
-			return $data();
+		return;
 	}
 }

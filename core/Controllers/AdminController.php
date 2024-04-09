@@ -1,21 +1,27 @@
 <?php
 
-class AdminController
+class AdminController extends Controllers
 {
-	var $page;
-
 	var $comienzo = 0;
 	var $limite   = 10;
 	var $pagina   = 1;
 
 	public function execute($page)
 	{
-		$this->page = $page;
+		if( !isset($_SESSION['admin_panel']) && $page != '' ){
+			header('HTTP/1.1 403 Forbidden');
+			exit;
+		}
 
 		Render::$layout = 'back-end';
 
+		Tools::registerStylesheet(_ASSETS_._ADMIN_.'bootstrap.min.css');
 		Tools::registerJavascript(_ASSETS_.'jquery/jquery.min.js', 'top');
 		Tools::registerJavascript(_ASSETS_._ADMIN_.'custom.js', 'top');
+
+		Render::$layout_data = array(
+			'idiomas' => Idiomas::getLanguagesAdminForm()
+		);
 
 		//Inicio
 		$this->add('',function()
@@ -89,9 +95,6 @@ class AdminController
 			else
 				header("Location: "._ADMIN_.'idiomas/');
 
-			$msg_success = "";
-			$msg_error = "";
-
 			//Comprobamos update/creation
 			if( isset($_REQUEST['action']) )
 			{
@@ -99,13 +102,16 @@ class AdminController
 
 				if( $result == 'ok' )
 				{
-					if($id == '0')
-						$msg_success = "Idioma creado correctamente.";
-					else
-						$msg_success = 'Idioma actualizado correctamente.';
+					if($id == '0'){
+						Tools::registerAlert("Idioma creado correctamente.", "success");
+						header("Location: "._ADMIN_.'idiomas/');
+						die;
+					} else{
+						Tools::registerAlert("Idioma actualizado correctamente.", "success");
+					}
 				}
 				else
-					$msg_error = $result;
+					Tools::registerAlert($result);
 			}
 
 			//Obtenemos los diferentes idiomas
@@ -117,8 +123,6 @@ class AdminController
 			$data = array(
 				'id' => $id,
 				'datos_idioma' => $datos_idioma,
-				'msg_success' => $msg_success,
-				'msg_error' => $msg_error,
 			);
 
 			Render::adminPage('administrar-idioma', $data);
@@ -127,6 +131,7 @@ class AdminController
 		// =================================
 		//  Traducciones
 		// =================================
+
 		$this->add('traducciones',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
@@ -136,29 +141,14 @@ class AdminController
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'footable/footable.min.js');
 
 			//Obtenemos los diferentes idiomas
-			$datos_idiomas = Idiomas::getLanguages();
+			$idiomas = Idiomas::getLanguages();
 
-			//Vamos a obtener el total de traducciones de cada idioma
-			$totalTraductions = 0;
-			if( count($datos_idiomas) > 0 )
-			{
-                foreach( $datos_idiomas as $key => $idioma )
-                {
-                	$totalTraductionsLanguage = count(Idiomas::getAllTraductionsById($idioma->id));
-                    $totalTraductionsLanguageDone = count(Idiomas::getAllTraductionsById($idioma->id, true));
-
-                    $idioma->totalTraductions = $totalTraductionsLanguage;
-                    $idioma->totalTraductionsDone = $totalTraductionsLanguageDone;
-                }
-            }
-
-			//Obtenemos los shortcodes para usar en filtros
-			$datos_traductionFor = Idiomas::getTraductionsForGrouped();
+			$porcentajeTraduccionesPorIdioma = array();
+			foreach( $idiomas as $idioma )
+				$porcentajeTraduccionesPorIdioma[$idioma->id] = Traducciones::getStatsTraduccionesByIdioma($idioma->id);
 
 			$data = array(
-				'totalTraductions' => $totalTraductions,
-				'datos_idiomas' => $datos_idiomas,
-				'datos_traductionFor' => $datos_traductionFor,
+				'porcentajeTraduccionesPorIdioma' => $porcentajeTraduccionesPorIdioma,
 				'comienzo' => $this->comienzo,
 				'pagina' => $this->pagina,
 				'limite' => $this->limite,
@@ -167,32 +157,204 @@ class AdminController
 			Render::adminPage('traducciones', $data);
 		});
 
-		$this->add('administrar-traduccion',function()
+		$this->add('traduccion',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
+				header("Location: "._DOMINIO_._ADMIN_);
+
+			Tools::registerStylesheet(_ASSETS_._ADMIN_.'select2/css/select2.min.css');
+			Tools::registerJavascript(_ASSETS_._ADMIN_.'select2/js/select2.min.js');
+
+			$traduccionId = Tools::getValue('data');
+			$traduccion = false;
+
+			if( Tools::getIsset('submitUpdateTraduccion') )
+			{
+				$traduccionId = Tools::getValue('id_traduccion');
+				$shortcode = Tools::getValue('shortcode');
+				if( !empty($shortcode) && !Traducciones::checkShortcodeExists($shortcode, $traduccionId) )
+				{
+					$textos = Tools::getValue('texto');
+					Traducciones::actualizarTraduccion($traduccionId, $shortcode, $textos);
+					Tools::registerAlert("Traducción actualizada correctamente.", "success");
+				}
+				else
+					Tools::registerAlert("Shortcode vacío o ya existe", "error");
+			}
+
+			if( Tools::getIsset('submitCrearTraduccion') )
+			{
+				$shortcode = Tools::getValue('shortcode');
+				if( !empty($shortcode) && !Traducciones::checkShortcodeExists($shortcode) )
+				{
+					$id_lang = Tools::getValue('id_idioma');
+					$texto = Tools::getValue('texto');
+					$traduccionId = Traducciones::crearTraduccion($shortcode, $id_lang, $texto);
+					Tools::registerAlert("Traducción creada correctamente.", "success");
+					header("Location: "._DOMINIO_._ADMIN_."traduccion/".(int)$traduccionId."/");
+					die;
+				}
+				else
+				{
+					Tools::registerAlert("Shortcode vacío o ya existe", "error");
+					header("Location: "._DOMINIO_._ADMIN_."traducciones/");
+					die;
+				}
+			}
+			
+			Metas::$title = "Editando traducción";
+			if( $traduccionId !== 'new' )
+				$traduccion = Traducciones::getTraduccionById($traduccionId);
+
+			$data = array(
+				'traduccion' => $traduccion
+			);
+
+			Render::adminPage('traduccion', $data);
+		});
+
+		$this->add('regenerar-cache-traducciones',function()
+		{
+			if(!isset($_SESSION['admin_panel']))
+				header("Location: "._DOMINIO_._ADMIN_);
+
+			$idiomas = Idiomas::getLanguages();
+			foreach( $idiomas as $idioma )
+			{
+				Traducciones::regenerarCacheTraduccionesByIdioma($idioma->id, _PATH_.'translations/'.$idioma->slug.'.php');
+			}
+
+			Render::$layout = false;
+			Tools::registerAlert("Caché de traducciones regenerada correctamente.", "success");
+			header("Location: "._DOMINIO_._ADMIN_."traducciones/");
+		});
+
+		// =================================
+		//  Configuración -> Páginas
+		// =================================
+		$this->add('slugs',function()
+		{
+			if(!isset($_SESSION['admin_panel']) || !empty($_SESSION['admin_panel']->id_country))
+				header("Location: "._DOMINIO_._ADMIN_);
+
+			Tools::registerStylesheet(_ASSETS_._ADMIN_.'select2/css/select2.min.css');
+			Tools::registerJavascript(_ASSETS_._ADMIN_.'select2/js/select2.min.js');
+
+			Tools::registerStylesheet(_ASSETS_._ADMIN_.'footable/footable.bootstrap.min.css');
+			Tools::registerJavascript(_ASSETS_._ADMIN_.'footable/footable.min.js');
+
+			$data = array(
+				'comienzo' => $this->comienzo,
+				'pagina'   => $this->pagina,
+				'limite'   => $this->limite,
+				'languages' => Idiomas::getLanguages(),
+				'slugsPages' => Slugs::getPagesFromSlugs(),
+				'languageDefault' => Idiomas::getDefaultLanguage()
+			);
+
+			Metas::$title = "Páginas meta";
+			Render::adminPage('slugs_admin', $data);
+		});
+
+		$this->add('administrar-slug',function()
+		{
+			if(!isset($_SESSION['admin_panel']) || !empty($_SESSION['admin_panel']->id_country))
 				header("Location: "._DOMINIO_._ADMIN_);
 			
 			//Obtenemos el data
 			if( isset($_REQUEST['data']) )
 				$id = $_REQUEST['data'];
 			else
-				header("Location: "._ADMIN_.'traducciones/');
+				header("Location: "._ADMIN_.'slugs/');
 
-			Tools::registerStylesheet(_ASSETS_._ADMIN_.'jquery-toast-plugin/jquery.toast.min.css');
-			Tools::registerJavascript(_ASSETS_._ADMIN_.'jquery-toast-plugin/jquery.toast.min.js');
+			$msg_error = 0;
+			$datos = false;
 
-			//Obtenemos los diferentes idiomas
-			$datos_idiomas = Idiomas::getLanguages();
+			if( Tools::getIsset('submitUpdateSlug') )
+			{
+				$id 				= Tools::getValue('id');
+				$slug 				= Tools::getValue('slug');
+				$mod_id				= Tools::getValue('page');
+				$id_language 		= Tools::getValue('id_language');
+				$title 				= Tools::getValue('title');
+				$description 		= Tools::getValue('description');
+				$keywords 			= Tools::getValue('keywords');
+				$status 			= Tools::getValue('status', 'active');
+				$pageName 			= '';
 
-			//Obtenemos los shortcodes para esta traduccion
-			$datos_traducciones = Idiomas::getTraductionGrouped($id);
+				//Comprobamos datos
+				if($slug != "")
+				{
+					if($mod_id != '')
+					{
+						$pageName = str_replace("-", " ", $mod_id);
+						$pageName = ucfirst($pageName);
 
-			$data = array(
-				'datos_idiomas' => $datos_idiomas,
-				'datos_traducciones' => $datos_traducciones,
-			);
+						if($id_language != '')
+						{
+							if($title != '')
+							{
+								$slug = Tools::urlAmigable($slug);
 
-			Render::adminPage('administrar-traduccion', $data);
+								//Comprobamos si el slug, para el idioma es único.
+								if(Slugs::checkIfSlugIsAvailable($slug, $id_language, $id))
+								{
+									//Comprobamos si tiene ya creado para ese MOD_ID en ese idioma.
+									if(Slugs::checkIfPageIsAvailableForLanguage($mod_id, $id_language, $id)){
+										Tools::registerAlert("Página actualizada correctamente", "success");
+									}
+									else{
+										Tools::registerAlert("La página seleccionada <strong>".$pageName."</strong> ya está siendo usado para este idioma.");
+										$msg_error++;
+									}
+								}
+								else{
+									Tools::registerAlert("El slug indicado <strong>".$pageName."</strong> ya está siendo usado y no puede ser usado.");
+									$msg_error++;
+								}
+							}else{
+								Tools::registerAlert("Indica el title del slug, este aparecerá en la pestaña del navegador y ayuda a nivel SEO.");
+								$msg_error++;
+							}
+						} else{
+							Tools::registerAlert("Debes seleccionar el idioma al que pertenece este slug.");
+							$msg_error++;
+						}
+					} else{
+						Tools::registerAlert("Selecciona la página a la que pertenece el slug.");
+						$msg_error++;
+					}
+				}else{
+					Tools::registerAlert("Debes indicar el slug.");
+					$msg_error++;
+				}
+
+				if($msg_error == 0)
+				{
+					$data['id_language'] 			= $id_language;
+					$data['slug'] 					= $slug;
+					$data['title'] 					= $title;
+					$data['description'] 			= $description;
+					$data['keywords'] 				= $keywords;
+					$data['status'] 				= $status;
+					$data['update_date']			= Tools::datetime();
+
+					Bd::getInstance()->update('slugs', $data, "id = '".$id."'");
+				}
+			}
+
+			if( $id !== 'new' ){
+				$datos = Slugs::getById($id);
+				Metas::$title = "Slug: $datos->slug";
+			}			
+
+			$data = [
+				'datos' => $datos,
+				'slugsPages' => Slugs::getPagesFromSlugs(),
+				'languages' => Idiomas::getLanguages(),
+			];
+
+			Render::adminPage('slug_admin', $data);
 		});
 
 		// =================================
@@ -222,18 +384,17 @@ class AdminController
 
 			$usuarioId 		= Tools::getValue('data');
 			$usuario 		= false;
-			$alert_user = "";
 			
-			if( Tools::getIsset('submitUpdateUsuarioAdmin') ){
-				$alert_user = "El usuario ha sido modificado satisfactoriamente";
-				Admin::actualizarUsuario();			
+			if( Tools::getIsset('submitUpdateUsuarioAdmin') )
+			{
+				Admin::actualizarUsuario();
+				Tools::registerAlert("El usuario ha sido modificado satisfactoriamente", "success");
 			}
 
 			if( Tools::getIsset('submitCrearUsuarioAdmin') )
 			{
-				$alert_user = "El usuario ha sido creado";
 				Admin::crearUsuario();
-				header("Location: ". _DOMINIO_ . _ADMIN_ . 'usuarios-admin/');
+				Tools::registerAlert("El usuario ha sido creado", "success");
 			}
 			
 			Metas::$title = "Nuevo usuario";
@@ -243,9 +404,7 @@ class AdminController
 			}
 
 			$data = array(
-				'usuario' => $usuario,
-				'alert_user' => $alert_user,
-				'countries' => Country::adminGetCountries()
+				'usuario' => $usuario
 			);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'select2/css/select2.min.css');
@@ -712,12 +871,21 @@ class AdminController
 
 			Render::adminPage('maps-vector');
 		});
+
+		$this->add('404',function()
+		{
+			Render::adminPage('404');
+		});
+
+		if( !$this->getRendered() )
+		{
+			header('Location: ' . _DOMINIO_._ADMIN_.'404/');
+			exit;
+		}
 	}
 
-	public function add($page,$data)
+	protected function loadTraducciones()
 	{
-		if( $page == $this->page )
-			return $data();
+		$this->loadTraduccionesAdmin();
 	}
 }
-?>

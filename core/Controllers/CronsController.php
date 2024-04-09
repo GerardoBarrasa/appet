@@ -1,13 +1,9 @@
 <?php
 
-class CronsController
+class CronsController extends Controllers
 {
-	var $page;
-
 	public function execute($page)
 	{
-		$this->page = $page;
-
 		if( Tools::getValue('token') != _CRONJOB_TOKEN_ )
 		{
 			echo "Go away!";
@@ -20,17 +16,22 @@ class CronsController
 		{
 			$cantidad = Configuracion::get('cronjob_email_cantidad');
 
-			$emailIdsToSend = Bd::getInstance()->fetchObject("SELECT id FROM emails_cache WHERE enviado = 0 AND error = 0 ORDER BY id ASC LIMIT 0,".$cantidad);
+			$emailIdsToSend = Bd::getInstance()->fetchObject("SELECT id_email FROM emails_cache WHERE enviado = 0 AND error = 0 ORDER BY id_email ASC LIMIT 0,".$cantidad);
 
 			if( !empty($emailIdsToSend) )
 				foreach( $emailIdsToSend as $email )
-					Sendmail::sendCachedMail($email->id);
+					Sendmail::sendCachedMail($email->id_email);
 		});
+
+		if( !$this->getRendered() )
+		{
+			header('HTTP/1.1 404 Not Found');
+			exit;
+		}
 	}
 
-	public function add($page,$data)
+	protected function loadTraducciones()
 	{
-		if ( $page == $this->page )
-			return $data();
+		return;
 	}
 }

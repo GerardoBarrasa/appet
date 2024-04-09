@@ -11,6 +11,7 @@
 	<?php include(_INCLUDES_.'stylesheets.php'); ?>
 	<script type="text/javascript">
 		const dominio = "<?=_DOMINIO_;?>";
+		const static_token = "<?=!empty($_SESSION['token']) ? $_SESSION['token'] : '';?>";
 	</script>
 	<?php include(_INCLUDES_.'javascript_top.php'); ?>
 </head>

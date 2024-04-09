@@ -42,8 +42,10 @@ class Bd
 
 	public function connect()
 	{
-		$this->link = new mysqli($this->server, $this->user, $this->password) or Debug::mlog(time(),'','Error al conectar con base de datos');
-		$this->link->select_db($this->database) or Debug::mlog(time(),'','Error seleccionando base de datos');
+		$this->link = new mysqli($this->server, $this->user, $this->password, $this->database) or Debug::mlog(time(),'','Error al conectar con base de datos');
+		if( $this->link->connect_error )
+			die('Error al conectar con base de datos. '.$this->link->connect_error);
+
         mysqli_set_charset($this->link, 'utf8');
         mysqli_report(MYSQLI_REPORT_OFF);
 		return $this->link;

@@ -1,13 +1,9 @@
 <?php
 
-class DefaultController
+class DefaultController extends Controllers
 {
-	var $page;
-
 	public function execute($page)
 	{
-		$this->page = $page;
-
 		//Layout por defecto
 		Render::$layout = 'front-end';
 		Tools::registerJavascript(_ASSETS_.'jquery/jquery.min.js');
@@ -19,17 +15,21 @@ class DefaultController
 		}
 
 		Render::$layout_data = array(
-			'page_name' => $this->page == '' ? 'home' : $this->page,
+			'page_name' => $page == '' ? 'home' : $page,
 			'idiomas' => $idiomas
 		);
 
-		if( _MULTI_LANGUAGE_ )
-			Idiomas::loadPageTranslations($this->page,'',$_SESSION['lang']);
+		if( !empty($metaData = Slugs::getPageDataByModId(($page == '' ? 'home' : $page))) )
+		{
+			Metas::$title = (isset($metaData->title)) ? $metaData->title : _TITULO_;
+			Metas::$description = (isset($metaData->description)) ? $metaData->description : _TITULO_;
+		}
+		else
+			header('Location:'._DOMINIO_.$_SESSION['lang']."/");
 
 		//Pagina de inicio
 		$this->add('',function()
 		{
-			Metas::$title = "Bienvenido a CORE!";
 			$mpc = new Miprimeraclase;
 			$datos_idiomas = Idiomas::getLanguages();
 
@@ -41,11 +41,31 @@ class DefaultController
 
 			Render::page('home',$data);
 		});
-	}
 
-	public function add($page,$data)
-	{
-		if ( $page == $this->page )
-			return $data();
+		//Pagina de inicio
+		$this->add('test',function()
+		{
+			$mpc = new Miprimeraclase;
+			$datos_idiomas = Idiomas::getLanguages();
+
+			//Array de datos a enviar a la página
+			$data = array(
+				'datos_idiomas' => $datos_idiomas,
+				'test' => $mpc->getMessage(),
+			);
+
+			Render::page('home',$data);
+		});
+
+		$this->add('404',function()
+		{
+			Render::page('404');
+		});
+
+		if( !$this->getRendered() )
+		{
+			header('Location: ' . _DOMINIO_.$_SESSION['lang'].'/404/');
+			exit;
+		}
 	}
 }

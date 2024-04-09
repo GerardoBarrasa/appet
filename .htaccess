@@ -1,6 +1,12 @@
 #Options -MultiViews
 RewriteEngine on
 
+#Redireccion trailing slash. NO FUNCIONA EN LOCALHOST
+RewriteCond %{REQUEST_URI} /+[^\.]+$
+RewriteCond %{REQUEST_URI} !/ajax/
+RewriteCond %{REQUEST_URI} !/cronjob/
+RewriteRule ^(.+[^/])$ %{REQUEST_URI}/ [R=301,L]
+
 #--------------------------------------------
 #           Instalador
 #--------------------------------------------
@@ -15,12 +21,19 @@ RewriteRule ^debug/([a-zA-Z0-9-]+)/([a-zA-Z0-9-]+)/$ index.php?controller=debug&
 #--------------------------------------------
 #           Ajax
 #--------------------------------------------
-RewriteRule ^ajax/([a-zA-Z0-9-]+)/$ index.php?controller=ajax&mod=$1
+RewriteRule ^ajax/([a-zA-Z0-9-]+)/?$ index.php?controller=ajax&mod=$1
+RewriteRule ^ajax/([a-zA-Z0-9-]+)/([a-zA-Z0-9-._]+)/?$ index.php?controller=ajax&mod=$1&token=$2
+
+#--------------------------------------------
+#           Admin Ajax
+#--------------------------------------------
+RewriteRule ^adminajax/([a-zA-Z0-9-]+)/?$ index.php?controller=adminajax&mod=$1
+RewriteRule ^adminajax/([a-zA-Z0-9-]+)/([a-zA-Z0-9-._]+)/?$ index.php?controller=adminajax&mod=$1&token=$2
 
 #--------------------------------------------
 #           Cronjobs
 #--------------------------------------------
-RewriteRule ^cronjob/([a-zA-Z0-9-._]+)/([a-zA-Z0-9-._]+)/$ index.php?controller=crons&mod=$1&token=$2
+RewriteRule ^cronjob/([a-zA-Z0-9-._]+)/([a-zA-Z0-9-._]+)/?$ index.php?controller=crons&mod=$1&token=$2
 
 #--------------------------------------------
 #           Admin
