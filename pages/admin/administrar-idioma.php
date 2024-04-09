@@ -20,26 +20,6 @@
                                 Idioma <span class="text-primary"><small><?=!empty($datos_idioma) ? $datos_idioma->id : ''?></small></span> 
                             </h1>
 
-                            <?php
-                                if(isset($msg_success) && $msg_success != ''){
-                                    ?>
-                                        <div class="alert alert-success">
-                                            <i class="mdi mdi-check-circle"></i>
-                                            <?=$msg_success?>
-                                        </div>
-                                    <?php
-                                }
-
-                                if(isset($msg_error) && $msg_error != ''){
-                                    ?>
-                                        <div class="alert alert-danger">
-                                            <i class="mdi mdi-alert-circle"></i>
-                                            <?=$msg_error?>
-                                        </div>
-                                    <?php
-                                }
-                            ?>
-
                             <form method="post" action="<?=_DOMINIO_._ADMIN_?>administrar-idioma/<?=$id?>/" id="form_update_idioma" name="form_update_idioma" enctype="multipart/form-data">
                                 <div class="row">
 

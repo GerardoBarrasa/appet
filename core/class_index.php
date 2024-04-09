@@ -15,10 +15,6 @@
   array (
     'path' => 'App/Configuracion.php'
   ),
-  'Validate' => 
-  array (
-    'path' => 'App/Validate.php'
-  ),
   'Idiomas' => 
   array (
     'path' => 'App/Idiomas.php'
@@ -26,6 +22,10 @@
   'Slugs' => 
   array (
     'path' => 'App/Slugs.php'
+  ),
+  'Traducciones' => 
+  array (
+    'path' => 'App/Traducciones.php'
   ),
   'Metas' => 
   array (
@@ -54,6 +54,10 @@
   'AjaxController' => 
   array (
     'path' => 'Controllers/AjaxController.php'
+  ),
+  'AdminajaxController' => 
+  array (
+    'path' => 'Controllers/AdminajaxController.php'
   ),
   'ApiController' => 
   array (

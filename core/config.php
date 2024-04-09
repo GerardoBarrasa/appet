@@ -8,7 +8,7 @@ if( !file_exists(_PATH_.'core/settings.php') )
 		die('Error: El directorio de instalación no existe.');
 }
 
-require_once(_PATH_.'core/settings.php');
+require_once('settings.php');
 
 /* Configuración */
 date_default_timezone_set('Europe/Madrid');

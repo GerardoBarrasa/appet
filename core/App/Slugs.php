@@ -4,7 +4,7 @@ class Slugs
 {
 	public static function getPagesFromSlugs()
 	{
-        return Bd::getInstance()->fetchObject("SELECT DISTINCT(page) FROM slugs ORDER BY page ASC");
+        return Bd::getInstance()->fetchObject("SELECT DISTINCT(mod_id) FROM slugs ORDER BY mod_id ASC");
     }
 
     //Funcion que devuelve los slugs filtrados
@@ -20,7 +20,7 @@ class Slugs
 
         $wherePage = '';
         if($filter_page != '')
-            $wherePage = " AND page = '".$filter_page."'";
+            $wherePage = " AND mod_id = '".$filter_page."'";
 
         $whereLang = '';
         if($filter_id_language != '')
@@ -30,6 +30,10 @@ class Slugs
                 $whereLang = " AND id_language = '".$lang->id."'";
         }
 
+        $whereBusqueda = '';
+        if( $filter_busqueda != '' )
+            $whereBusqueda = " AND (slug LIKE '%".$filter_busqueda."%' OR title LIKE '%".$filter_busqueda."%' OR description LIKE '%".$filter_busqueda."%')";
+
         if($applyLimit)
             $limit = "LIMIT $comienzo, $limite";
         else
@@ -38,7 +42,8 @@ class Slugs
         $datos = Bd::getInstance()->fetchObject("
             SELECT *
             FROM slugs
-            WHERE slug LIKE '%".$filter_busqueda."%'
+            WHERE 1=1
+            ".$whereBusqueda."
             ".$wherePage."
             ".$whereLang."
             ORDER BY creation_date DESC
@@ -96,6 +101,34 @@ class Slugs
 			return false;
 	}
 
+    //Funcion que devuelve los datos de una pagina segun el MOD_ID
+    public static function getPageDataByModId($mod_id)
+    {
+        //Buscamos la pagina solo si existe idioma session
+        if(isset($_SESSION['lang']))
+        {
+            //Buscamos la pagina
+            $datos = Bd::getInstance()->fetchRow('
+                SELECT *
+                FROM slugs
+                WHERE status = "active"
+                AND mod_id = "'.$mod_id.'"
+                AND id_language = (
+                    SELECT id
+                    FROM idiomas
+                    WHERE slug = "'.$_SESSION['lang'].'"
+                )
+            ');
+
+            if(!empty($datos))
+                return $datos;
+            else
+                return false;
+        }
+        else
+            return false;
+    }
+
 	public static function getById($id)
 	{
         return Bd::getInstance()->fetchRow("
@@ -135,7 +168,7 @@ class Slugs
         $sql = "
             SELECT id
             FROM slugs
-            WHERE page = '".$page."'
+            WHERE mod_id = '".$page."'
             AND id_language = '".$id_language."'
             ".$where."
         ";
@@ -144,17 +177,6 @@ class Slugs
             return false;
         else
             return true;
-    }
-
-    //Funcion que sirve para obtener el MOD_ID de una pagina seleccionada.
-    public static function getModFromPage($page)
-    {
-        $datos = Bd::getInstance()->fetchObject("SELECT DISTINCT(mod_id) FROM slugs WHERE page = '".$page."' LIMIT 1");
-
-        if(count($datos) == '1')
-            return $datos[0]->mod_id;
-        else
-            return false;
     }
 
     public static function getModBySlug($slug)

@@ -1,5 +1,4 @@
 <?php
-namespace Funks;
 
 class Admin
 {
@@ -20,7 +19,7 @@ class Admin
 		unset($_SESSION['admin_panel']);
 	}
 
-	public function getUsuariosWithFiltros($comienzo, $limite, $applyLimit=true)
+	public static function getUsuariosWithFiltros($comienzo, $limite, $applyLimit=true)
 	{
 		$busqueda = Tools::getValue('busqueda', '');
 		$search = "";

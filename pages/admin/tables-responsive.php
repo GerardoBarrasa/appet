@@ -34,50 +34,50 @@
 							<tr class="gradeX">
 								<td class="text-center">1</td>
 								<td><strong>Test Name</strong></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
 							</tr>
 							<tr class="gradeX">
 								<td class="text-center">1</td>
 								<td><strong>Test Name</strong></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
 							</tr>
 							<tr class="gradeX">
 								<td class="text-center">1</td>
 								<td><strong>Test Name</strong></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
 							</tr>
 							<tr class="gradeX">
 								<td class="text-center">1</td>
 								<td><strong>Test Name</strong></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
 							</tr>
 							<tr class="gradeX">
 								<td class="text-center">1</td>
 								<td><strong>Test Name</strong></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
 							</tr>
 							<tr class="gradeX">
 								<td class="text-center">1</td>
 								<td><strong>Test Name</strong></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
 							</tr>
 							<tr class="gradeX">
 								<td class="text-center">1</td>
 								<td><strong>Test Name</strong></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
 							</tr>
 							<tr class="gradeX">
 								<td class="text-center">1</td>
 								<td><strong>Test Name</strong></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
-								<td class="text-center"><?=Tools::->fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
+								<td class="text-center"><?=Tools::fecha(date('Y-m-d H:i:s'))?></td>
 							</tr>
 						</tbody>
 					</table>

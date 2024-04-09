@@ -10,6 +10,7 @@
 	<link rel="stylesheet" type="text/css" href="<?=_ASSETS_._ADMIN_;?>icons.css">
 	<link rel="stylesheet" type="text/css" href="<?=_ASSETS_._ADMIN_;?>style.css">
 	<link rel="stylesheet" type="text/css" href="<?=_ASSETS_._ADMIN_;?>custom.css">
+	<link rel="stylesheet" type="text/css" href="<?=_ASSETS_._ADMIN_;?>sweetalert2.min.css">
 	<script type="text/javascript" src="<?=_ASSETS_;?>jquery/jquery.min.js"></script>
 </head>
 
@@ -80,7 +81,7 @@
 		<script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>metismenu.min.js"></script>
 		<script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>jquery.slimscroll.js"></script>
 		<script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>waves.min.js"></script>
-		<script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>sweetalert2.min.js"></script>
+		<script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>sweetalert2.all.min.js"></script>
 
 		<script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>app.js"></script>
 	</body>

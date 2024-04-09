@@ -8,11 +8,11 @@
     <?php Metas::getMetas();?>
 
     <?php include(_INCLUDES_._ADMIN_.'stylesheets.php'); ?>
-    <link href="<?=_ASSETS_._ADMIN_;?>sweetalert2.min.css" rel="stylesheet" type="text/css"/>
     <link href="<?=_ASSETS_._ADMIN_;?>metismenu.min.css" rel="stylesheet" type="text/css" />
     <link href="<?=_ASSETS_._ADMIN_;?>icons.css" rel="stylesheet" type="text/css" />
     <link href="<?=_ASSETS_._ADMIN_;?>style.css" rel="stylesheet" type="text/css" />
     <link href="<?=_ASSETS_._ADMIN_;?>custom.css" rel="stylesheet" type="text/css" />
+	<link href="<?=_ASSETS_._ADMIN_;?>sweetalert2.min.css" rel="stylesheet" type="text/css" />
 	<style>
     	<?php $mainColor = '#1b82ec';?>
     	.custom-checkbox .custom-control-input:checked ~ .custom-control-label::before{ background-color: <?=$mainColor;?> !important; }
@@ -70,6 +70,7 @@
     </style>
     <script type="text/javascript">
     	const dominio = "<?=_DOMINIO_;?>";
+    	const static_token = "<?=!empty($_SESSION['token']) ? $_SESSION['token'] : '';?>";
     </script>
     <?php include(_INCLUDES_._ADMIN_.'javascript_top.php'); ?>
 </head>
@@ -98,11 +99,11 @@
     <script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>metismenu.min.js"></script>
     <script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>jquery.slimscroll.js"></script>
     <script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>waves.min.js"></script>
-    <script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>sweetalert2.min.js"></script>
+    <script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>sweetalert2.all.min.js"></script>
 
     <?php include(_INCLUDES_._ADMIN_.'javascript_bottom.php'); ?>
 
     <script type="text/javascript" src="<?=_ASSETS_._ADMIN_;?>app.js"></script>
-	
+	<?php Tools::readAlert(); ?>
 </body>
 </html>

@@ -19,7 +19,19 @@
                                 Usuario <span class="text-primary"><small><?=!empty($usuario) ? $usuario->nombre : ''?></small></span>
                             </h1>
 
-                            <p class="mb-3"><span class="bold text-primary">Miembro desde:&nbsp;</span><?=!empty($usuario) ? Tools::->fechaConHora($usuario->date_created) : '';?></p>
+                            <p class="mb-3"><span class="bold text-primary">Miembro desde:&nbsp;</span><?=!empty($usuario) ? Tools::fechaConHora($usuario->date_created) : '';?></p>
+
+                            <?php
+                                if( !empty($alert_user) )
+                                {
+                                    ?>
+                                        <div class="alert alert-success">
+                                            <i class="mdi mdi-check-circle"></i>
+                                            <?=$alert_user?>
+                                        </div>
+                                    <?php
+                                }
+                            ?>
 
                             <form method="post">
                                 <div class="row">

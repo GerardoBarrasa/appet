@@ -16,7 +16,7 @@ class Sendmail
 		$mensaje = '
 			<div style="width:100%; height:100%; background-color:#f0f0f0; text-align:center; font-size:12px; color:#333;">
 				<br /><br />
-				'.Idiomas::getTranslation('email-footer-automatic', 'email', $id_lang).'
+				'.Traducciones::getTextoByShortcodeIdioma('email-footer-automatic', $id_lang).'
 				<br /><br />
 				<div style="border:1px solid #ccc; background-color:#fff; padding:26px; width:860px; color:#333; font-size:14px; line-height:22px; text-align:left; margin:0 auto;">
 				<center><a href="'._DOMINIO_.'"><img src="'._ASSETS_.'img/logo.png" alt="logo"></a></center>
@@ -24,7 +24,7 @@ class Sendmail
 					'.$mensaje.'
 					<br /><br />
 					<div style="border-top:1px solid #ccc; padding-top:24px; font-size:12px; color:#666;">
-						'.Idiomas::getTranslation('email-footer-automatic-2', 'email', $id_lang).' '._TITULO_.'. <a href="'.Slugs::getCurrentSlugByModId('politica-privacidad').'" style="color: #D8A109;">'.Idiomas::getTranslation('email-footer-privacy', 'email', $id_lang).'</a>
+						'.Traducciones::getTextoByShortcodeIdioma('email-footer-automatic-2', $id_lang).' '._TITULO_.'. <a href="'.Slugs::getCurrentSlugByModId('politica-privacidad').'" style="color: #D8A109;">'.Traducciones::getTextoByShortcodeIdioma('email-footer-privacy', $id_lang).'</a>
 					</div>
 				</div>
 				<br /><br />
@@ -103,7 +103,7 @@ class Sendmail
 
 	public static function sendCachedMail($id)
 	{
-		$emailData = Bd::getInstance()->fetchRow('SELECT * FROM emails_cache WHERE id = "'.(int)$id.'"', 'array');
+		$emailData = Bd::getInstance()->fetchRow('SELECT * FROM emails_cache WHERE id_email = "'.(int)$id.'"', 'array');
 
 		if ( $emailData )
 		{
@@ -116,13 +116,13 @@ class Sendmail
 			if( !self::send($destinatario, $asunto, $mensaje, $id_idioma) )
 			{
 				echo 'Error al enviar email a '.$destinatario.' con asunto: "'.$asunto.'"<br/>';
-				Bd::getInstance()->query('UPDATE emails_cache SET error = 1 WHERE id = "'.$id.'"');
+				Bd::getInstance()->query('UPDATE emails_cache SET error = 1 WHERE id_email = "'.$id.'"');
 				return false;
 			}
 			else
 			{
 				echo 'Email enviado a '.$destinatario.' con asunto: "'.$asunto.'"<br/>';
-				Bd::getInstance()->query('UPDATE emails_cache SET enviado = 1, date_sent = "'.Tools::datetime().'" WHERE id = "'.$id.'"');
+				Bd::getInstance()->query('UPDATE emails_cache SET enviado = 1, date_sent = "'.Tools::datetime().'" WHERE id_email = "'.$id.'"');
 				return true;	
 			}
 		}

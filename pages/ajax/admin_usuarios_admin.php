@@ -19,7 +19,7 @@ if($total > 0)
 					<tr class="gradeX" <?= $key == 0 ? "data-expanded='true'" : '' ?> >
 						<td><?=$usuario->nombre?></td>
 						<td><?=$usuario->email?></td>
-						<td class="text-center"><?=!empty($usuario) ? Tools::->fechaConHora($usuario->date_created) : '';?></td>
+						<td class="text-center"><?=!empty($usuario) ? Tools::fechaConHora($usuario->date_created) : '';?></td>
 						<td align="right">
 							<a href="<?= _DOMINIO_ . _ADMIN_ . 'usuario-admin/' . $usuario->id . '/' ?>" type="button" class="btn btn-primary waves-effect waves-light"  data-toggle="tooltip" title="Editar usuario">
 								<i class="fas fa-pencil-alt text-light"></i>
@@ -61,7 +61,7 @@ else
 	</div>
 	<div class="col-sm-6">
 		<div class="dataTables_paginate paging_bootstrap">
-			<?php Tools::->getPaginador($pagina, $limite, 'Admin', 'getUsuariosWithFiltros', 'ajax_get_usuarios_admin', '', '', 'end'); ?>
+			<?php Tools::getPaginador($pagina, $limite, 'Admin', 'getUsuariosWithFiltros', 'ajax_get_usuarios_admin', '', '', 'end'); ?>
 		</div>
 	</div>
 </div>

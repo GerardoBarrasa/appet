@@ -12,6 +12,13 @@
 				</li>
 
 				<li>
+					<a href="javascript:void(0);" class="waves-effect"><i class="ion-ios7-cog"></i><span> Configuración <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span> </span></a>
+					<ul class="submenu">
+						<li><a href="<?=_DOMINIO_._ADMIN_;?>slugs/" class="waves-effect">Páginas</a></li>
+					</ul>
+				</li>
+
+				<li>
 					<a href="<?=_DOMINIO_._ADMIN_;?>usuarios-admin/" class="waves-effect"><i class="mdi mdi-account-key"></i><span> Usuarios admin </span></a>
 				</li>
 
