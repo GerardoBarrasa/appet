@@ -1,510 +1,831 @@
+<div class="container-fluid">
+<!-- Info boxes -->
 <div class="row">
-	<div class="col-sm-12">
-		<div class="page-title-box">
-			<h4 class="page-title">Dashboard</h4>
-			<ol class="breadcrumb">
-				<li class="breadcrumb-item active">Welcome to Agroxa Dashboard</li>
-			</ol>
-		</div>
-	</div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon bg-info elevation-1"><i class="fas fa-cog"></i></span>
+
+            <div class="info-box-content">
+                <span class="info-box-text">Trafico CPU</span>
+                <span class="info-box-number">
+                                  99
+                                  <small>%</small>
+                                </span>
+            </div>
+            <!-- /.info-box-content -->
+        </div>
+        <!-- /.info-box -->
+    </div>
+    <!-- /.col -->
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box mb-3">
+            <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-thumbs-up"></i></span>
+
+            <div class="info-box-content">
+                <span class="info-box-text">Likes</span>
+                <span class="info-box-number">41,410</span>
+            </div>
+            <!-- /.info-box-content -->
+        </div>
+        <!-- /.info-box -->
+    </div>
+    <!-- /.col -->
+
+    <!-- fix for small devices only -->
+    <div class="clearfix hidden-md-up"></div>
+
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box mb-3">
+            <span class="info-box-icon bg-success elevation-1"><i class="fas fa-shopping-cart"></i></span>
+
+            <div class="info-box-content">
+                <span class="info-box-text">Sales</span>
+                <span class="info-box-number">760</span>
+            </div>
+            <!-- /.info-box-content -->
+        </div>
+        <!-- /.info-box -->
+    </div>
+    <!-- /.col -->
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box mb-3">
+            <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-users"></i></span>
+
+            <div class="info-box-content">
+                <span class="info-box-text">New Members</span>
+                <span class="info-box-number">2,000</span>
+            </div>
+            <!-- /.info-box-content -->
+        </div>
+        <!-- /.info-box -->
+    </div>
+    <!-- /.col -->
 </div>
-<!-- end row -->
+<!-- /.row -->
 
-<div class="page-content-wrapper">
-	<div class="row">
-		<div class="col-xl-3 col-md-6">
-			<div class="card bg-primary mini-stat position-relative">
-				<div class="card-body">
-					<div class="mini-stat-desc">
-						<h6 class="text-uppercase verti-label text-white-50">Orders</h6>
-						<div class="text-white">
-							<h6 class="text-uppercase mt-0 text-white-50">Orders</h6>
-							<h3 class="mb-3 mt-0">1,587</h3>
-							<div class="">
-								<span class="badge badge-light text-info"> +11% </span> <span class="ml-2">From previous period</span>
-							</div>
-						</div>
-						<div class="mini-stat-icon">
-							<i class="mdi mdi-cube-outline display-2"></i>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-xl-3 col-md-6">
-			<div class="card bg-primary mini-stat position-relative">
-				<div class="card-body">
-					<div class="mini-stat-desc">
-						<h6 class="text-uppercase verti-label text-white-50">Revenue</h6>
-						<div class="text-white">
-							<h6 class="text-uppercase mt-0 text-white-50">Revenue</h6>
-							<h3 class="mb-3 mt-0">$46,785</h3>
-							<div class="">
-								<span class="badge badge-light text-danger"> -29% </span> <span class="ml-2">From previous period</span>
-							</div>
-						</div>
-						<div class="mini-stat-icon">
-							<i class="mdi mdi-buffer display-2"></i>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-xl-3 col-md-6">
-			<div class="card bg-primary mini-stat position-relative">
-				<div class="card-body">
-					<div class="mini-stat-desc">
-						<h6 class="text-uppercase verti-label text-white-50">Av. Price</h6>
-						<div class="text-white">
-							<h6 class="text-uppercase mt-0 text-white-50">Average Price</h6>
-							<h3 class="mb-3 mt-0">15.9</h3>
-							<div class="">
-								<span class="badge badge-light text-primary"> 0% </span> <span class="ml-2">From previous period</span>
-							</div>
-						</div>
-						<div class="mini-stat-icon">
-							<i class="mdi mdi-tag-text-outline display-2"></i>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-xl-3 col-md-6">
-			<div class="card bg-primary mini-stat position-relative">
-				<div class="card-body">
-					<div class="mini-stat-desc">
-						<h6 class="text-uppercase verti-label text-white-50">Pr. Sold</h6>
-						<div class="text-white">
-							<h6 class="text-uppercase mt-0 text-white-50">Product Sold</h6>
-							<h3 class="mb-3 mt-0">1890</h3>
-							<div class="">
-								<span class="badge badge-light text-info"> +89% </span> <span class="ml-2">From previous period</span>
-							</div>
-						</div>
-						<div class="mini-stat-icon">
-							<i class="mdi mdi-briefcase-check display-2"></i>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- end row -->
-	
-	<div class="row">
-		<div class="col-xl-4">
-			<div class="card m-b-20">
-				<div class="card-body">
-					<h4 class="mt-0 header-title mb-3">Inbox</h4>
-					<div class="inbox-wid">
-						<a href="#" class="text-dark">
-							<div class="inbox-item">
-								<div class="inbox-item-img float-left mr-3"><img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" class="thumb-md rounded-circle" alt=""></div>
-								<h6 class="inbox-item-author mt-0 mb-1">Irene</h6>
-								<p class="inbox-item-text text-muted mb-0">Hey! there I'm available...</p>
-								<p class="inbox-item-date text-muted">13:40 PM</p>
-							</div>
-						</a>
-						<a href="#" class="text-dark">
-							<div class="inbox-item">
-								<div class="inbox-item-img float-left mr-3"><img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" class="thumb-md rounded-circle" alt=""></div>
-								<h6 class="inbox-item-author mt-0 mb-1">Jennifer</h6>
-								<p class="inbox-item-text text-muted mb-0">I've finished it! See you so...</p>
-								<p class="inbox-item-date text-muted">13:34 PM</p>
-							</div>
-						</a>
-						<a href="#" class="text-dark">
-							<div class="inbox-item">
-								<div class="inbox-item-img float-left mr-3"><img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" class="thumb-md rounded-circle" alt=""></div>
-								<h6 class="inbox-item-author mt-0 mb-1">Richard</h6>
-								<p class="inbox-item-text text-muted mb-0">This theme is awesome!</p>
-								<p class="inbox-item-date text-muted">13:17 PM</p>
-							</div>
-						</a>
-						<a href="#" class="text-dark">
-							<div class="inbox-item">
-								<div class="inbox-item-img float-left mr-3"><img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" class="thumb-md rounded-circle" alt=""></div>
-								<h6 class="inbox-item-author mt-0 mb-1">Martin</h6>
-								<p class="inbox-item-text text-muted mb-0">Nice to meet you</p>
-								<p class="inbox-item-date text-muted">12:20 PM</p>
-							</div>
-						</a>
-						<a href="#" class="text-dark">
-							<div class="inbox-item">
-								<div class="inbox-item-img float-left mr-3"><img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" class="thumb-md rounded-circle" alt=""></div>
-								<h6 class="inbox-item-author mt-0 mb-1">Sean</h6>
-								<p class="inbox-item-text text-muted mb-0">Hey! there I'm available...</p>
-								<p class="inbox-item-date text-muted">11:47 AM</p>
-							</div>
-						</a>
-						
-					</div>  
-				</div>
-			</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Monthly Recap Report</h5>
 
-		</div>
-		<div class="col-xl-4">
-			<div class="card">
-				<div class="card-body">
-					<h4 class="mt-0 header-title mb-5">Recent Activity Feed</h4>
-					<div>
-						<ul class="nav nav-pills nav-justified recent-activity-tab mb-4" id="recent-activity-tab" role="tablist">
-							<li class="nav-item">
-								<a class="nav-link active" id="activity1-tab" data-toggle="pill" href="#activity1" role="tab" aria-controls="activity1" aria-selected="true">21 Sep</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" id="activity2-tab" data-toggle="pill" href="#activity2" role="tab" aria-controls="activity2" aria-selected="false">22 Sep</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" id="activity3-tab" data-toggle="pill" href="#activity3" role="tab" aria-controls="activity3" aria-selected="false">23 Sep</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" id="activity4-tab" data-toggle="pill" href="#activity4" role="tab" aria-controls="activity4" aria-selected="false">24 Sep</a>
-							</li>
-						</ul>
-						<div class="tab-content">
-							<div class="tab-pane show active" id="activity1" role="tabpanel" aria-labelledby="activity1-tab">
-								<div class="p-3">
-									<div class="text-muted">
-										<p>21 Sep, 2018</p>
-										<h6 class="text-dark">Responded to need “Volunteer Activities”</h6>
-										<p>Aenean vulputate eleifend tellus</p>
-										<p>Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus Nullam quis ante.</p>
-										<a href="#" class="text-primary">Read More...</a>
-									</div>
-								</div>
-							</div>
-							<div class="tab-pane" id="activity2" role="tabpanel" aria-labelledby="activity2-tab">
-								<div class="p-3">
-									<div class="text-muted">
-										<p>22 Sep, 2018</p>
-										<h6 class="text-dark">Added an interest “Volunteer Activities”</h6>
-										<p>Neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur velit sed quia non tempora incidunt.</p>
-										<p>Ut enim ad minima veniam quis nostrum</p>
-										<a href="#" class="text-primary">Read More...</a>
-									</div>
-								</div>
-							</div>
-							<div class="tab-pane" id="activity3" role="tabpanel" aria-labelledby="activity3-tab">
-								<div class="p-3">
-									<div class="text-muted">
-										<p>23 Sep, 2018</p>
-										<h6 class="text-dark">Joined the group “Boardsmanship Forum”</h6>
-										<p>Nemo enim voluptatem quia voluptas</p>
-										<p>Donec pede justo fringilla vel aliquet nec vulputate eget arcu. In enim justo rhoncus ut imperdiet a venenatis vitae. </p>
-										<a href="#" class="text-primary">Read More...</a>
-									</div>
-								</div>
-							</div>
-							<div class="tab-pane" id="activity4" role="tabpanel" aria-labelledby="activity4-tab">
-								<div class="p-3">
-									<div class="text-muted">
-										<p>24 Sep, 2018</p>
-										<h6 class="text-dark">Attending the event “Some New Event”</h6>
-										<p>At vero eos et accusamus et iusto odio</p>
-										<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium </p>
-										<a href="#" class="text-primary">Read More...</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-xl-4">
-			<div class="card">
-				<div class="card-body">
-					<h4 class="mt-0 header-title mb-4">Top product sales</h4>
-					<div class="table-responsive">
-						<table class="table table-hover mb-0">
-							<tbody>
-								<tr>
-									<td>
-										<h6 class="mt-0">Computers</h6>
-										<p class="text-muted mb-0">The languages only differ</p>
-									</td>
-									<td>
-										<div>
-											<span class="peity-pie" data-peity='{ "fill": ["#1b82ec", "#f2f2f2"]}' data-width="54" data-height="54">70/100</span>
-										</div>
-									</td>
-									<td>
-										<h6 class="mt-0">70%</h6>
-										<p class="text-muted mb-0">Sales</p>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<h6 class="mt-0">Laptops</h6>
-										<p class="text-muted mb-0">Maecenas tempus tellus</p>
-									</td>
-									<td>
-										<div>
-											<span class="peity-donut" data-peity='{ "fill": ["#f5b225", "#f2f2f2"], "innerRadius": 20, "radius": 32 }' data-width="54" data-height="54">9,4</span>
-										</div>
-									</td>
-									<td>
-										<h6 class="mt-0">84%</h6>
-										<p class="text-muted mb-0">Sales</p>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<h6 class="mt-0">Ipad</h6>
-										<p class="text-muted mb-0">Donec pede justo</p>
-									</td>
-									<td>
-										<div>
-											<span class="peity-pie" data-peity='{ "fill": ["#1b82ec", "#f2f2f2"]}' data-width="54" data-height="54">62/100</span>
-										</div>
-									</td>
-									<td>
-										<h6 class="mt-0">62%</h6>
-										<p class="text-muted mb-0">Sales</p>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<h6 class="mt-0">Mobile</h6>
-										<p class="text-muted mb-0">Aenean leo ligula</p>
-									</td>
-									<td>
-										<div>
-											<span class="peity-donut" data-peity='{ "fill": ["#f5b225", "#f2f2f2"], "innerRadius": 20, "radius": 32 }' data-width="54" data-height="54">20,4</span>
-										</div>
-									</td>
-									<td>
-										<h6 class="mt-0">89%</h6>
-										<p class="text-muted mb-0">Sales</p>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-tool dropdown-toggle" data-toggle="dropdown">
+                            <i class="fas fa-wrench"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right" role="menu">
+                            <a href="<?=_ASSETS_._ADMIN_;?>#" class="dropdown-item">Action</a>
+                            <a href="<?=_ASSETS_._ADMIN_;?>#" class="dropdown-item">Another action</a>
+                            <a href="<?=_ASSETS_._ADMIN_;?>#" class="dropdown-item">Something else here</a>
+                            <a class="dropdown-divider"></a>
+                            <a href="<?=_ASSETS_._ADMIN_;?>#" class="dropdown-item">Separated link</a>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="text-center">
+                            <strong>Sales: 1 Jan, 2014 - 30 Jul, 2014</strong>
+                        </p>
 
-	</div>
-	<!-- end row -->
+                        <div class="chart">
+                            <!-- Sales Chart Canvas -->
+                            <canvas id="salesChart" height="180" style="height: 180px;"></canvas>
+                        </div>
+                        <!-- /.chart-responsive -->
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-md-4">
+                        <p class="text-center">
+                            <strong>Goal Completion</strong>
+                        </p>
 
-	<div class="row">
-		<div class="col-xl-6">
-			<div class="card">
-				<div class="card-body">
-					<h4 class="mt-0 header-title mb-4">Latest Trasaction</h4>
-					<div class="table-responsive">
-						<table class="table table-hover mb-0">
-							<thead>
-							  <tr>
-								<th scope="col">(#) Id</th>
-								<th scope="col">Name</th>
-								<th scope="col">Date</th>
-								<th scope="col">Amount</th>
-								<th scope="col" colspan="2">Status</th>
-							  </tr>
-							</thead>
-							<tbody>
-							  <tr>
-								<th scope="row">#15236</th>
-								<td>
-									<div>
-										<img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" alt="" class="thumb-md rounded-circle mr-2"> Jeanette James
-									</div>
-								</td>
-								<td>14/8/2018</td>
-								<td>$104</td>
-								<td><span class="badge badge-success">Delivered</span></td>
-								<td>
-									<div>
-										<a href="#" class="btn btn-primary btn-sm">Edit</a>
-									</div>
-								</td>
-							  </tr>
-							  <tr>
-								<th scope="row">#15237</th>
-								<td>
-									<div>
-										<img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" alt="" class="thumb-md rounded-circle mr-2"> Christopher Taylor
-									</div>
-								</td>
-								<td>15/8/2018</td>
-								<td>$112</td>
-								<td><span class="badge badge-warning">Pending</span></td>
-								<td>
-									<div>
-										<a href="#" class="btn btn-primary btn-sm">Edit</a>
-									</div>
-								</td>
-							  </tr>
-							  <tr>
-								<th scope="row">#15238</th>
-								<td>
-									<div>
-										<img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" alt="" class="thumb-md rounded-circle mr-2"> Edward Vazquez
-									</div>
-								</td>
-								<td>15/8/2018</td>
-								<td>$116</td>
-								<td><span class="badge badge-success">Delivered</span></td>
-								<td>
-									<div>
-										<a href="#" class="btn btn-primary btn-sm">Edit</a>
-									</div>
-								</td>
-							  </tr>
-							  <tr>
-								<th scope="row">#15239</th>
-								<td>
-									<div>
-										<img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" alt="" class="thumb-md rounded-circle mr-2"> Michael Flannery
-									</div>
-								</td>
-								<td>16/8/2018</td>
-								<td>$109</td>
-								<td><span class="badge badge-primary">Cancel</span></td>
-								<td>
-									<div>
-										<a href="#" class="btn btn-primary btn-sm">Edit</a>
-									</div>
-								</td>
-							  </tr>
-							  <tr>
-								<th scope="row">#15240</th>
-								<td>
-									<div>
-										<img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" alt="" class="thumb-md rounded-circle mr-2"> Jamie Fishbourne
-									</div>
-								</td>
-								<td>17/8/2018</td>
-								<td>$120</td>
-								<td><span class="badge badge-success">Delivered</span></td>
-								<td>
-									<div>
-										<a href="#" class="btn btn-primary btn-sm">Edit</a>
-									</div>
-								</td>
-							  </tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-xl-6">
-			<div class="card">
-				<div class="card-body">
-					<h4 class="mt-0 header-title mb-4">Latest Order</h4>
-					<div class="table-responsive order-table">
-						<table class="table table-hover mb-0">
-							<thead>
-								<tr>
-								<th scope="col">(#) Id</th>
-								<th scope="col">Name</th>
-								<th scope="col">Date/Time</th>
-								<th scope="col">Amount</th>
-								<th scope="col" colspan="2">Status</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<th scope="row">#14562</th>
-									<td>
-										<div>
-											<img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" alt="" class="thumb-md rounded-circle mr-2"> Matthew Drapeau
-										</div>
-									</td>
-									<td>17/8/2018
-										<p class="font-13 text-muted mb-0">8:26AM</p>
-									</td>
-									<td>$104</td>
-									<td><span class="badge badge-success badge-pill"><i class="mdi mdi-checkbox-blank-circle text-success"></i> Delivered</span></td>
-									<td>
-										<div>
-											<a href="#" class="btn btn-primary btn-sm">Edit</a>
-										</div>
-									</td>
-								</tr>
-								<tr>
-									<th scope="row">#14563</th>
-									<td>
-										<div>
-											<img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" alt="" class="thumb-md rounded-circle mr-2"> Ralph Shockey
-										</div>
-									</td>
-									<td>18/8/2018
-										<p class="font-13 text-muted mb-0">10:18AM</p>
-									</td>
-									<td>$112</td>
-									<td><span class="badge badge-warning badge-pill"><i class="mdi mdi-checkbox-blank-circle text-warning"></i> Pending</span></td>
-									<td>
-										<div>
-											<a href="#" class="btn btn-primary btn-sm">Edit</a>
-										</div>
-									</td>
-								</tr>
-								<tr>
-									<th scope="row">#14564</th>
-									<td>
-										<div>
-											<img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" alt="" class="thumb-md rounded-circle mr-2"> Alexander Pierson
-										</div>
-									</td>
-									<td>18//8/2018
-										<p class="font-13 text-muted mb-0">12:36PM</p>
-									</td>
-									<td>$116</td>
-									<td><span class="badge badge-success badge-pill"><i class="mdi mdi-checkbox-blank-circle text-success"></i> Delivered</span></td>
-									<td>
-										<div>
-											<a href="#" class="btn btn-primary btn-sm">Edit</a>
-										</div>
-									</td>
-								</tr>
-								<tr>
-									<th scope="row">#14565</th>
-									<td>
-										<div>
-											<img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" alt="" class="thumb-md rounded-circle mr-2"> Robert Rankin
-										</div>
-									</td>
-									<td>19/8/2018
-										<p class="font-13 text-muted mb-0">11:47AM</p>
-									</td>
-									<td>$109</td>
-									<td><span class="badge badge-primary badge-pill"><i class="mdi mdi-checkbox-blank-circle text-primary"></i> Cancel</span></td>
-									<td>
-										<div>
-											<a href="#" class="btn btn-primary btn-sm">Edit</a>
-										</div>
-									</td>
-								</tr>
-								<tr>
-									<th scope="row">#14566</th>
-									<td>
-										<div>
-											<img src="<?=_ASSETS_._ADMIN_;?>images/demo/user.jpg" alt="" class="thumb-md rounded-circle mr-2"> Myrna Shields
-										</div>
-									</td>
-									<td>20/8/2018
-										<p class="font-13 text-muted mb-0">02:52PM</p>
-									</td>
-									<td>$120</td>
-									<td><span class="badge badge-success badge-pill"><i class="mdi mdi-checkbox-blank-circle text-success"></i> Delivered</span></td>
-									<td>
-										<div>
-											<a href="#" class="btn btn-primary btn-sm">Edit</a>
-										</div>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+                        <div class="progress-group">
+                            Add Products to Cart
+                            <span class="float-right"><b>160</b>/200</span>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-primary" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <!-- /.progress-group -->
 
+                        <div class="progress-group">
+                            Complete Purchase
+                            <span class="float-right"><b>310</b>/400</span>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-danger" style="width: 75%"></div>
+                            </div>
+                        </div>
+
+                        <!-- /.progress-group -->
+                        <div class="progress-group">
+                            <span class="progress-text">Visit Premium Page</span>
+                            <span class="float-right"><b>480</b>/800</span>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-success" style="width: 60%"></div>
+                            </div>
+                        </div>
+
+                        <!-- /.progress-group -->
+                        <div class="progress-group">
+                            Send Inquiries
+                            <span class="float-right"><b>250</b>/500</span>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-warning" style="width: 50%"></div>
+                            </div>
+                        </div>
+                        <!-- /.progress-group -->
+                    </div>
+                    <!-- /.col -->
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- ./card-body -->
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-sm-3 col-6">
+                        <div class="description-block border-right">
+                            <span class="description-percentage text-success"><i class="fas fa-caret-up"></i> 17%</span>
+                            <h5 class="description-header">$35,210.43</h5>
+                            <span class="description-text">TOTAL REVENUE</span>
+                        </div>
+                        <!-- /.description-block -->
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-sm-3 col-6">
+                        <div class="description-block border-right">
+                            <span class="description-percentage text-warning"><i class="fas fa-caret-left"></i> 0%</span>
+                            <h5 class="description-header">$10,390.90</h5>
+                            <span class="description-text">TOTAL COST</span>
+                        </div>
+                        <!-- /.description-block -->
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-sm-3 col-6">
+                        <div class="description-block border-right">
+                            <span class="description-percentage text-success"><i class="fas fa-caret-up"></i> 20%</span>
+                            <h5 class="description-header">$24,813.53</h5>
+                            <span class="description-text">TOTAL PROFIT</span>
+                        </div>
+                        <!-- /.description-block -->
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-sm-3 col-6">
+                        <div class="description-block">
+                            <span class="description-percentage text-danger"><i class="fas fa-caret-down"></i> 18%</span>
+                            <h5 class="description-header">1200</h5>
+                            <span class="description-text">GOAL COMPLETIONS</span>
+                        </div>
+                        <!-- /.description-block -->
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.card-footer -->
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.col -->
 </div>
-<!-- end page content-->
+<!-- /.row -->
+
+<!-- Main row -->
+<div class="row">
+    <!-- Left col -->
+    <div class="col-md-8">
+        <!-- MAP & BOX PANE -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">US-Visitors Report</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body p-0">
+                <div class="d-md-flex">
+                    <div class="p-1 flex-fill" style="overflow: hidden">
+                        <!-- Map will be created here -->
+                        <div id="world-map-markers" style="height: 325px; overflow: hidden">
+                            <div class="map"></div>
+                        </div>
+                    </div>
+                    <div class="card-pane-right bg-success pt-2 pb-2 pl-4 pr-4">
+                        <div class="description-block mb-4">
+                            <div class="sparkbar pad" data-color="#fff">90,70,90,70,75,80,70</div>
+                            <h5 class="description-header">8390</h5>
+                            <span class="description-text">Visits</span>
+                        </div>
+                        <!-- /.description-block -->
+                        <div class="description-block mb-4">
+                            <div class="sparkbar pad" data-color="#fff">90,50,90,70,61,83,63</div>
+                            <h5 class="description-header">30%</h5>
+                            <span class="description-text">Referrals</span>
+                        </div>
+                        <!-- /.description-block -->
+                        <div class="description-block">
+                            <div class="sparkbar pad" data-color="#fff">90,50,90,70,61,83,63</div>
+                            <h5 class="description-header">70%</h5>
+                            <span class="description-text">Organic</span>
+                        </div>
+                        <!-- /.description-block -->
+                    </div><!-- /.card-pane-right -->
+                </div><!-- /.d-md-flex -->
+            </div>
+            <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+        <div class="row">
+            <div class="col-md-6">
+                <!-- DIRECT CHAT -->
+                <div class="card direct-chat direct-chat-warning">
+                    <div class="card-header">
+                        <h3 class="card-title">Direct Chat</h3>
+
+                        <div class="card-tools">
+                            <span title="3 New Messages" class="badge badge-warning">3</span>
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" title="Contacts" data-widget="chat-pane-toggle">
+                                <i class="fas fa-comments"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <!-- Conversations are loaded here -->
+                        <div class="direct-chat-messages">
+                            <!-- Message. Default to the left -->
+                            <div class="direct-chat-msg">
+                                <div class="direct-chat-infos clearfix">
+                                    <span class="direct-chat-name float-left">Alexander Pierce</span>
+                                    <span class="direct-chat-timestamp float-right">23 Jan 2:00 pm</span>
+                                </div>
+                                <!-- /.direct-chat-infos -->
+                                <img class="direct-chat-img" src="<?=_ASSETS_._ADMIN_;?>dist/img/user1-128x128.jpg" alt="message user image">
+                                <!-- /.direct-chat-img -->
+                                <div class="direct-chat-text">
+                                    Is this template really for free? That's unbelievable!
+                                </div>
+                                <!-- /.direct-chat-text -->
+                            </div>
+                            <!-- /.direct-chat-msg -->
+
+                            <!-- Message to the right -->
+                            <div class="direct-chat-msg right">
+                                <div class="direct-chat-infos clearfix">
+                                    <span class="direct-chat-name float-right">Sarah Bullock</span>
+                                    <span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>
+                                </div>
+                                <!-- /.direct-chat-infos -->
+                                <img class="direct-chat-img" src="<?=_ASSETS_._ADMIN_;?>dist/img/user3-128x128.jpg" alt="message user image">
+                                <!-- /.direct-chat-img -->
+                                <div class="direct-chat-text">
+                                    You better believe it!
+                                </div>
+                                <!-- /.direct-chat-text -->
+                            </div>
+                            <!-- /.direct-chat-msg -->
+
+                            <!-- Message. Default to the left -->
+                            <div class="direct-chat-msg">
+                                <div class="direct-chat-infos clearfix">
+                                    <span class="direct-chat-name float-left">Alexander Pierce</span>
+                                    <span class="direct-chat-timestamp float-right">23 Jan 5:37 pm</span>
+                                </div>
+                                <!-- /.direct-chat-infos -->
+                                <img class="direct-chat-img" src="<?=_ASSETS_._ADMIN_;?>dist/img/user1-128x128.jpg" alt="message user image">
+                                <!-- /.direct-chat-img -->
+                                <div class="direct-chat-text">
+                                    Working with AdminLTE on a great new app! Wanna join?
+                                </div>
+                                <!-- /.direct-chat-text -->
+                            </div>
+                            <!-- /.direct-chat-msg -->
+
+                            <!-- Message to the right -->
+                            <div class="direct-chat-msg right">
+                                <div class="direct-chat-infos clearfix">
+                                    <span class="direct-chat-name float-right">Sarah Bullock</span>
+                                    <span class="direct-chat-timestamp float-left">23 Jan 6:10 pm</span>
+                                </div>
+                                <!-- /.direct-chat-infos -->
+                                <img class="direct-chat-img" src="<?=_ASSETS_._ADMIN_;?>dist/img/user3-128x128.jpg" alt="message user image">
+                                <!-- /.direct-chat-img -->
+                                <div class="direct-chat-text">
+                                    I would love to.
+                                </div>
+                                <!-- /.direct-chat-text -->
+                            </div>
+                            <!-- /.direct-chat-msg -->
+
+                        </div>
+                        <!--/.direct-chat-messages-->
+
+                        <!-- Contacts are loaded here -->
+                        <div class="direct-chat-contacts">
+                            <ul class="contacts-list">
+                                <li>
+                                    <a href="<?=_ASSETS_._ADMIN_;?>#">
+                                        <img class="contacts-list-img" src="<?=_ASSETS_._ADMIN_;?>dist/img/user1-128x128.jpg" alt="User Avatar">
+
+                                        <div class="contacts-list-info">
+                              <span class="contacts-list-name">
+                                Count Dracula
+                                <small class="contacts-list-date float-right">2/28/2015</small>
+                              </span>
+                                            <span class="contacts-list-msg">How have you been? I was...</span>
+                                        </div>
+                                        <!-- /.contacts-list-info -->
+                                    </a>
+                                </li>
+                                <!-- End Contact Item -->
+                                <li>
+                                    <a href="<?=_ASSETS_._ADMIN_;?>#">
+                                        <img class="contacts-list-img" src="<?=_ASSETS_._ADMIN_;?>dist/img/user7-128x128.jpg" alt="User Avatar">
+
+                                        <div class="contacts-list-info">
+                              <span class="contacts-list-name">
+                                Sarah Doe
+                                <small class="contacts-list-date float-right">2/23/2015</small>
+                              </span>
+                                            <span class="contacts-list-msg">I will be waiting for...</span>
+                                        </div>
+                                        <!-- /.contacts-list-info -->
+                                    </a>
+                                </li>
+                                <!-- End Contact Item -->
+                                <li>
+                                    <a href="<?=_ASSETS_._ADMIN_;?>#">
+                                        <img class="contacts-list-img" src="<?=_ASSETS_._ADMIN_;?>dist/img/user3-128x128.jpg" alt="User Avatar">
+
+                                        <div class="contacts-list-info">
+                              <span class="contacts-list-name">
+                                Nadia Jolie
+                                <small class="contacts-list-date float-right">2/20/2015</small>
+                              </span>
+                                            <span class="contacts-list-msg">I'll call you back at...</span>
+                                        </div>
+                                        <!-- /.contacts-list-info -->
+                                    </a>
+                                </li>
+                                <!-- End Contact Item -->
+                                <li>
+                                    <a href="<?=_ASSETS_._ADMIN_;?>#">
+                                        <img class="contacts-list-img" src="<?=_ASSETS_._ADMIN_;?>dist/img/user5-128x128.jpg" alt="User Avatar">
+
+                                        <div class="contacts-list-info">
+                              <span class="contacts-list-name">
+                                Nora S. Vans
+                                <small class="contacts-list-date float-right">2/10/2015</small>
+                              </span>
+                                            <span class="contacts-list-msg">Where is your new...</span>
+                                        </div>
+                                        <!-- /.contacts-list-info -->
+                                    </a>
+                                </li>
+                                <!-- End Contact Item -->
+                                <li>
+                                    <a href="<?=_ASSETS_._ADMIN_;?>#">
+                                        <img class="contacts-list-img" src="<?=_ASSETS_._ADMIN_;?>dist/img/user6-128x128.jpg" alt="User Avatar">
+
+                                        <div class="contacts-list-info">
+                              <span class="contacts-list-name">
+                                John K.
+                                <small class="contacts-list-date float-right">1/27/2015</small>
+                              </span>
+                                            <span class="contacts-list-msg">Can I take a look at...</span>
+                                        </div>
+                                        <!-- /.contacts-list-info -->
+                                    </a>
+                                </li>
+                                <!-- End Contact Item -->
+                                <li>
+                                    <a href="<?=_ASSETS_._ADMIN_;?>#">
+                                        <img class="contacts-list-img" src="<?=_ASSETS_._ADMIN_;?>dist/img/user8-128x128.jpg" alt="User Avatar">
+
+                                        <div class="contacts-list-info">
+                              <span class="contacts-list-name">
+                                Kenneth M.
+                                <small class="contacts-list-date float-right">1/4/2015</small>
+                              </span>
+                                            <span class="contacts-list-msg">Never mind I found...</span>
+                                        </div>
+                                        <!-- /.contacts-list-info -->
+                                    </a>
+                                </li>
+                                <!-- End Contact Item -->
+                            </ul>
+                            <!-- /.contacts-list -->
+                        </div>
+                        <!-- /.direct-chat-pane -->
+                    </div>
+                    <!-- /.card-body -->
+                    <div class="card-footer">
+                        <form action="#" method="post">
+                            <div class="input-group">
+                                <input type="text" name="message" placeholder="Type Message ..." class="form-control">
+                                <span class="input-group-append">
+                          <button type="button" class="btn btn-warning">Send</button>
+                        </span>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- /.card-footer-->
+                </div>
+                <!--/.direct-chat -->
+            </div>
+            <!-- /.col -->
+
+            <div class="col-md-6">
+                <!-- USERS LIST -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Latest Members</h3>
+
+                        <div class="card-tools">
+                            <span class="badge badge-danger">8 New Members</span>
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body p-0">
+                        <ul class="users-list clearfix">
+                            <li>
+                                <img src="<?=_ASSETS_._ADMIN_;?>dist/img/user1-128x128.jpg" alt="User Image">
+                                <a class="users-list-name" href="<?=_ASSETS_._ADMIN_;?>#">Alexander Pierce</a>
+                                <span class="users-list-date">Today</span>
+                            </li>
+                            <li>
+                                <img src="<?=_ASSETS_._ADMIN_;?>dist/img/user8-128x128.jpg" alt="User Image">
+                                <a class="users-list-name" href="<?=_ASSETS_._ADMIN_;?>#">Norman</a>
+                                <span class="users-list-date">Yesterday</span>
+                            </li>
+                            <li>
+                                <img src="<?=_ASSETS_._ADMIN_;?>dist/img/user7-128x128.jpg" alt="User Image">
+                                <a class="users-list-name" href="<?=_ASSETS_._ADMIN_;?>#">Jane</a>
+                                <span class="users-list-date">12 Jan</span>
+                            </li>
+                            <li>
+                                <img src="<?=_ASSETS_._ADMIN_;?>dist/img/user6-128x128.jpg" alt="User Image">
+                                <a class="users-list-name" href="<?=_ASSETS_._ADMIN_;?>#">John</a>
+                                <span class="users-list-date">12 Jan</span>
+                            </li>
+                            <li>
+                                <img src="<?=_ASSETS_._ADMIN_;?>dist/img/user2-160x160.jpg" alt="User Image">
+                                <a class="users-list-name" href="<?=_ASSETS_._ADMIN_;?>#">Alexander</a>
+                                <span class="users-list-date">13 Jan</span>
+                            </li>
+                            <li>
+                                <img src="<?=_ASSETS_._ADMIN_;?>dist/img/user5-128x128.jpg" alt="User Image">
+                                <a class="users-list-name" href="<?=_ASSETS_._ADMIN_;?>#">Sarah</a>
+                                <span class="users-list-date">14 Jan</span>
+                            </li>
+                            <li>
+                                <img src="<?=_ASSETS_._ADMIN_;?>dist/img/user4-128x128.jpg" alt="User Image">
+                                <a class="users-list-name" href="<?=_ASSETS_._ADMIN_;?>#">Nora</a>
+                                <span class="users-list-date">15 Jan</span>
+                            </li>
+                            <li>
+                                <img src="<?=_ASSETS_._ADMIN_;?>dist/img/user3-128x128.jpg" alt="User Image">
+                                <a class="users-list-name" href="<?=_ASSETS_._ADMIN_;?>#">Nadia</a>
+                                <span class="users-list-date">15 Jan</span>
+                            </li>
+                        </ul>
+                        <!-- /.users-list -->
+                    </div>
+                    <!-- /.card-body -->
+                    <div class="card-footer text-center">
+                        <a href="<?=_ASSETS_._ADMIN_;?>javascript:">View All Users</a>
+                    </div>
+                    <!-- /.card-footer -->
+                </div>
+                <!--/.card -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+
+        <!-- TABLE: LATEST ORDERS -->
+        <div class="card">
+            <div class="card-header border-transparent">
+                <h3 class="card-title">Latest Orders</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table m-0">
+                        <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Item</th>
+                            <th>Status</th>
+                            <th>Popularity</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td><a href="<?=_ASSETS_._ADMIN_;?>pages/examples/invoice.html">OR9842</a></td>
+                            <td>Call of Duty IV</td>
+                            <td><span class="badge badge-success">Shipped</span></td>
+                            <td>
+                                <div class="sparkbar" data-color="#00a65a" data-height="20">90,80,90,-70,61,-83,63</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><a href="<?=_ASSETS_._ADMIN_;?>pages/examples/invoice.html">OR1848</a></td>
+                            <td>Samsung Smart TV</td>
+                            <td><span class="badge badge-warning">Pending</span></td>
+                            <td>
+                                <div class="sparkbar" data-color="#f39c12" data-height="20">90,80,-90,70,61,-83,68</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><a href="<?=_ASSETS_._ADMIN_;?>pages/examples/invoice.html">OR7429</a></td>
+                            <td>iPhone 6 Plus</td>
+                            <td><span class="badge badge-danger">Delivered</span></td>
+                            <td>
+                                <div class="sparkbar" data-color="#f56954" data-height="20">90,-80,90,70,-61,83,63</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><a href="<?=_ASSETS_._ADMIN_;?>pages/examples/invoice.html">OR7429</a></td>
+                            <td>Samsung Smart TV</td>
+                            <td><span class="badge badge-info">Processing</span></td>
+                            <td>
+                                <div class="sparkbar" data-color="#00c0ef" data-height="20">90,80,-90,70,-61,83,63</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><a href="<?=_ASSETS_._ADMIN_;?>pages/examples/invoice.html">OR1848</a></td>
+                            <td>Samsung Smart TV</td>
+                            <td><span class="badge badge-warning">Pending</span></td>
+                            <td>
+                                <div class="sparkbar" data-color="#f39c12" data-height="20">90,80,-90,70,61,-83,68</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><a href="<?=_ASSETS_._ADMIN_;?>pages/examples/invoice.html">OR7429</a></td>
+                            <td>iPhone 6 Plus</td>
+                            <td><span class="badge badge-danger">Delivered</span></td>
+                            <td>
+                                <div class="sparkbar" data-color="#f56954" data-height="20">90,-80,90,70,-61,83,63</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><a href="<?=_ASSETS_._ADMIN_;?>pages/examples/invoice.html">OR9842</a></td>
+                            <td>Call of Duty IV</td>
+                            <td><span class="badge badge-success">Shipped</span></td>
+                            <td>
+                                <div class="sparkbar" data-color="#00a65a" data-height="20">90,80,90,-70,61,-83,63</div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.table-responsive -->
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <a href="<?=_ASSETS_._ADMIN_;?>javascript:void(0)" class="btn btn-sm btn-info float-left">Place New Order</a>
+                <a href="<?=_ASSETS_._ADMIN_;?>javascript:void(0)" class="btn btn-sm btn-secondary float-right">View All Orders</a>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.col -->
+
+    <div class="col-md-4">
+        <!-- Info Boxes Style 2 -->
+        <div class="info-box mb-3 bg-warning">
+            <span class="info-box-icon"><i class="fas fa-tag"></i></span>
+
+            <div class="info-box-content">
+                <span class="info-box-text">Inventory</span>
+                <span class="info-box-number">5,200</span>
+            </div>
+            <!-- /.info-box-content -->
+        </div>
+        <!-- /.info-box -->
+        <div class="info-box mb-3 bg-success">
+            <span class="info-box-icon"><i class="far fa-heart"></i></span>
+
+            <div class="info-box-content">
+                <span class="info-box-text">Mentions</span>
+                <span class="info-box-number">92,050</span>
+            </div>
+            <!-- /.info-box-content -->
+        </div>
+        <!-- /.info-box -->
+        <div class="info-box mb-3 bg-danger">
+            <span class="info-box-icon"><i class="fas fa-cloud-download-alt"></i></span>
+
+            <div class="info-box-content">
+                <span class="info-box-text">Downloads</span>
+                <span class="info-box-number">114,381</span>
+            </div>
+            <!-- /.info-box-content -->
+        </div>
+        <!-- /.info-box -->
+        <div class="info-box mb-3 bg-info">
+            <span class="info-box-icon"><i class="far fa-comment"></i></span>
+
+            <div class="info-box-content">
+                <span class="info-box-text">Direct Messages</span>
+                <span class="info-box-number">163,921</span>
+            </div>
+            <!-- /.info-box-content -->
+        </div>
+        <!-- /.info-box -->
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Browser Usage</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="chart-responsive">
+                            <canvas id="pieChart" height="150"></canvas>
+                        </div>
+                        <!-- ./chart-responsive -->
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-md-4">
+                        <ul class="chart-legend clearfix">
+                            <li><i class="far fa-circle text-danger"></i> Chrome</li>
+                            <li><i class="far fa-circle text-success"></i> IE</li>
+                            <li><i class="far fa-circle text-warning"></i> FireFox</li>
+                            <li><i class="far fa-circle text-info"></i> Safari</li>
+                            <li><i class="far fa-circle text-primary"></i> Opera</li>
+                            <li><i class="far fa-circle text-secondary"></i> Navigator</li>
+                        </ul>
+                    </div>
+                    <!-- /.col -->
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer p-0">
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item">
+                        <a href="<?=_ASSETS_._ADMIN_;?>#" class="nav-link">
+                            United States of America
+                            <span class="float-right text-danger">
+                        <i class="fas fa-arrow-down text-sm"></i>
+                        12%</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?=_ASSETS_._ADMIN_;?>#" class="nav-link">
+                            India
+                            <span class="float-right text-success">
+                        <i class="fas fa-arrow-up text-sm"></i> 4%
+                      </span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?=_ASSETS_._ADMIN_;?>#" class="nav-link">
+                            China
+                            <span class="float-right text-warning">
+                        <i class="fas fa-arrow-left text-sm"></i> 0%
+                      </span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.footer -->
+        </div>
+        <!-- /.card -->
+
+        <!-- PRODUCT LIST -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recently Added Products</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body p-0">
+                <ul class="products-list product-list-in-card pl-2 pr-2">
+                    <li class="item">
+                        <div class="product-img">
+                            <img src="<?=_ASSETS_._ADMIN_;?>dist/img/default-150x150.png" alt="Product Image" class="img-size-50">
+                        </div>
+                        <div class="product-info">
+                            <a href="<?=_ASSETS_._ADMIN_;?>javascript:void(0)" class="product-title">Samsung TV
+                                <span class="badge badge-warning float-right">$1800</span></a>
+                            <span class="product-description">
+                        Samsung 32" 1080p 60Hz LED Smart HDTV.
+                      </span>
+                        </div>
+                    </li>
+                    <!-- /.item -->
+                    <li class="item">
+                        <div class="product-img">
+                            <img src="<?=_ASSETS_._ADMIN_;?>dist/img/default-150x150.png" alt="Product Image" class="img-size-50">
+                        </div>
+                        <div class="product-info">
+                            <a href="<?=_ASSETS_._ADMIN_;?>javascript:void(0)" class="product-title">Bicycle
+                                <span class="badge badge-info float-right">$700</span></a>
+                            <span class="product-description">
+                        26" Mongoose Dolomite Men's 7-speed, Navy Blue.
+                      </span>
+                        </div>
+                    </li>
+                    <!-- /.item -->
+                    <li class="item">
+                        <div class="product-img">
+                            <img src="<?=_ASSETS_._ADMIN_;?>dist/img/default-150x150.png" alt="Product Image" class="img-size-50">
+                        </div>
+                        <div class="product-info">
+                            <a href="<?=_ASSETS_._ADMIN_;?>javascript:void(0)" class="product-title">
+                                Xbox One <span class="badge badge-danger float-right">
+                        $350
+                      </span>
+                            </a>
+                            <span class="product-description">
+                        Xbox One Console Bundle with Halo Master Chief Collection.
+                      </span>
+                        </div>
+                    </li>
+                    <!-- /.item -->
+                    <li class="item">
+                        <div class="product-img">
+                            <img src="<?=_ASSETS_._ADMIN_;?>dist/img/default-150x150.png" alt="Product Image" class="img-size-50">
+                        </div>
+                        <div class="product-info">
+                            <a href="<?=_ASSETS_._ADMIN_;?>javascript:void(0)" class="product-title">PlayStation 4
+                                <span class="badge badge-success float-right">$399</span></a>
+                            <span class="product-description">
+                        PlayStation 4 500GB Console (PS4)
+                      </span>
+                        </div>
+                    </li>
+                    <!-- /.item -->
+                </ul>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer text-center">
+                <a href="<?=_ASSETS_._ADMIN_;?>javascript:void(0)" class="uppercase">View All Products</a>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.col -->
+</div>
+<!-- /.row -->
+</div>

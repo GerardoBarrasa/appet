@@ -8,7 +8,7 @@ class AdminController extends Controllers
 
 	public function execute($page)
 	{
-		if( !isset($_SESSION['admin_panel']) && $page != '' ){
+		if( !isset($_SESSION['admin_panel']) && $page != '' && $page != 'register' && $page != 'login' && $page != 'forgot-password' ){
 			header('HTTP/1.1 403 Forbidden');
 			exit;
 		}
@@ -35,6 +35,62 @@ class AdminController extends Controllers
 				//Comprobamos datos de acceso
 				if( isset($_REQUEST['btn-login']) )
 				{
+
+					//Obtenemos valores del login
+					$usuario 	= Tools::getValue('usuario');
+					$password	= Tools::md5(Tools::getValue('password'));
+
+					if(Admin::login($usuario, $password))
+						header('Location:'._DOMINIO_."admin/");
+					else
+						$mensajeError = "Usuario y/o contrase&ntilde;a incorrectos.";
+				}
+
+				//Guardamos variables para enviar a la pagina
+				$data = array(
+					'mensajeError' => $mensajeError,
+
+				);
+
+				//Metas Config
+				Metas::$title = "&iexcl;Con&eacute;ctate!";
+
+				//Renderizamos pagina admin
+				Render::actionPage('login', $data);
+			}
+			else
+			{
+				Metas::$title = "Inicio";
+				Render::adminPage('home');
+			}
+		});
+
+        $this->add('login',function()
+        {
+            //Comprobamos si existe la sesion de admin
+            if( !isset($_SESSION['admin_panel']) )
+            {
+                header('Location:'._DOMINIO_."admin/");
+            }
+            else
+            {
+                Metas::$title = "Inicio";
+                Render::adminPage('home');
+            }
+        });
+
+		//Inicio
+		$this->add('register',function()
+		{
+			//Comprobamos si existe la sesion de admin
+			if( !isset($_SESSION['admin_panel']) )
+			{
+				//Mensaje de error defecto
+				$mensajeError = '';
+
+				//Comprobamos datos de acceso
+				if( isset($_REQUEST['btn-register']) )
+				{
 					//Obtenemos valores del login
 					$usuario 	= Tools::getValue('usuario');
 					$password	= Tools::md5(Tools::getValue('password'));
@@ -51,10 +107,10 @@ class AdminController extends Controllers
 				);
 
 				//Metas Config
-				Metas::$title = "&iexcl;Con&eacute;ctate!";
+				Metas::$title = "&iexcl;Regístrate!";
 
 				//Renderizamos pagina admin
-				Render::showAdminPage('login', $data);
+				Render::actionPage('register');
 			}
 			else
 			{
@@ -62,6 +118,45 @@ class AdminController extends Controllers
 				Render::adminPage('home');
 			}
 		});
+
+        $this->add('forgot-password',function()
+        {
+            //Comprobamos si existe la sesion de admin
+            if( !isset($_SESSION['admin_panel']) )
+            {
+                //Mensaje de error defecto
+                $mensajeError = '';
+
+                //Comprobamos datos de acceso
+                if( isset($_REQUEST['btn-register']) )
+                {
+                    //Obtenemos valores del login
+                    $usuario 	= Tools::getValue('usuario');
+                    $password	= Tools::md5(Tools::getValue('password'));
+
+                    if(Admin::login($usuario, $password))
+                        header('Location:'._DOMINIO_."admin/");
+                    else
+                        $mensajeError = "Usuario y/o contrase&ntilde;a incorrectos.";
+                }
+
+                //Guardamos variables para enviar a la pagina
+                $data = array(
+                    'mensajeError' => $mensajeError,
+                );
+
+                //Metas Config
+                Metas::$title = "&iexcl;Recupera tu contraseña!";
+
+                //Renderizamos pagina admin
+                Render::actionPage('forgot-password');
+            }
+            else
+            {
+                Metas::$title = "Inicio";
+                Render::adminPage('home');
+            }
+        });
 
 		// =================================
 		//  Idiomas
@@ -360,7 +455,7 @@ class AdminController extends Controllers
 		// =================================
 		//  Usuarios Admin
 		// =================================
-		$this->add('usuarios-admin',function()
+		$this->add('usuarios',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
 				header("Location: "._DOMINIO_._ADMIN_);
@@ -374,7 +469,7 @@ class AdminController extends Controllers
 				'limite'   => $this->limite
 			);
 				
-			Render::adminPage('usuarios_admin', $data);
+			Render::adminPage('usuarios', $data);
 		});
 
 		$this->add('usuario-admin',function()

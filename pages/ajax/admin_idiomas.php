@@ -61,7 +61,7 @@ else
 	</div>
 	<div class="col-sm-6">
 		<div class="dataTables_paginate paging_bootstrap">
-			<?php Tools::getPaginador($pagina, $limite, 'Admin', 'getUsuariosWithFiltros', 'ajax_get_usuarios_admin', '', '', 'end'); ?>
+			<?php Tools::getPaginador($pagina, $limite, 'Admin', 'getUsuariosWithFiltros', 'ajax_get_usuarios', '', '', 'end'); ?>
 		</div>
 	</div>
 </div>

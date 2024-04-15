@@ -1,143 +1,77 @@
-<div class="left side-menu">
-	<div class="slimscroll-menu" id="remove-scroll">
-		<div id="sidebar-menu">
-			<ul class="metismenu" id="side-menu">
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="<?=_ASSETS_._ADMIN_;?>index3.html" class="brand-link">
+        <img src="<?=_ASSETS_._ADMIN_;?>dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+        <span class="brand-text font-weight-light">AdminLTE 3</span>
+    </a>
 
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="ion-ios7-world-outline"></i><span> Idiomas <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span> </span></a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>traducciones/" class="waves-effect">Traducciones</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>idiomas/" class="waves-effect">Idiomas</a></li>
-					</ul>
-				</li>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Sidebar user panel (optional) -->
+        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+            <div class="image">
+                <img src="<?=_ASSETS_._ADMIN_;?>dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+            </div>
+            <div class="info">
+                <a href="<?=_ASSETS_._ADMIN_;?>#" class="d-block">Alexander Pierce</a>
+            </div>
+        </div>
 
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="ion-ios7-cog"></i><span> Configuración <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span> </span></a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>slugs/" class="waves-effect">Páginas</a></li>
-					</ul>
-				</li>
+        <!-- SidebarSearch Form -->
+        <div class="form-inline">
+            <div class="input-group" data-widget="sidebar-search">
+                <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
+                <div class="input-group-append">
+                    <button class="btn btn-sidebar">
+                        <i class="fas fa-search fa-fw"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-				<li>
-					<a href="<?=_DOMINIO_._ADMIN_;?>usuarios-admin/" class="waves-effect"><i class="mdi mdi-account-key"></i><span> Usuarios admin </span></a>
-				</li>
-
-				<li class="menu-title">Apartados demo</li>
-
-				<li>
-					<a href="<?=_DOMINIO_._ADMIN_;?>" class="waves-effect">
-						<i class="mdi mdi-home"></i><span class="badge badge-primary float-right">3</span> <span> Dashboard </span>
-					</a>
-				</li>
-
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="mdi mdi-email"></i><span> Email <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span> </span></a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>email-inbox/">Inbox</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>email-read/">Email Read</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>email-compose/">Email Compose</a></li>
-					</ul>
-				</li>
-
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="mdi mdi-buffer"></i> <span> UI Elements <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span> </span> </a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-alerts/">Alerts</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-buttons/">Buttons</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-badge/">Badge</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-cards/">Cards</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-carousel/">Carousel</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-dropdowns/">Dropdowns</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-grid/">Grid</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-images/">Images</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-modals/">Modals</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-pagination/">Pagination</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-popover-tooltips/">Popover & Tooltips</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-progressbars/">Progress Bars</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-tabs-accordions/">Tabs & Accordions</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-typography/">Typography</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>ui-video/">Video</a></li>
-					</ul>
-				</li>
-
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="mdi mdi-black-mesa"></i> <span> Components <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span> </span> </a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>components-lightbox/">Lightbox</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>components-rangeslider/">Range Slider</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>components-session-timeout/">Session Timeout</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>components-sweet-alert/">Sweet-Alert</a></li>
-					</ul>
-				</li>
-
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="mdi mdi-clipboard"></i><span> Forms <span class="badge badge-success float-right">6</span> </span></a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>form-elements/">Form Elements</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>form-validation/">Form Validation</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>form-advanced/">Form Advanced</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>form-editors/">Form Editors</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>form-uploads/">Form File Upload</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>form-xeditable/">Form Xeditable</a></li>
-
-					</ul>
-				</li>
-
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="mdi mdi-finance"></i><span> Charts <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span> </span></a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>charts-chartist/">Chartist Chart</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>charts-chartjs/">Chartjs Chart</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>charts-flot/">Flot Chart</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>charts-c3/">C3 Chart</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>charts-morris/">Morris Chart</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>charts-other/">Jquery Knob Chart</a></li>
-					</ul>
-				</li>
-
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="mdi mdi-table-settings"></i><span> Tables <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span> </span></a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>tables-basic/">Basic Tables</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>tables-datatable/">Data Table</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>tables-responsive/">Responsive Table</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>tables-editable/">Editable Table</a></li>
-					</ul>
-				</li>
-
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="mdi mdi-album"></i> <span> Icons  <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span></span> </a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>icons-material/">Material Design</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>icons-ion/">Ion Icons</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>icons-fontawesome/">Font Awesome</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>icons-themify/">Themify Icons</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>icons-dripicons/">Dripicons</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>icons-typicons/">Typicons Icons</a></li>
-					</ul>
-				</li>
-
-				<li>
-					<a href="<?=_DOMINIO_._ADMIN_;?>calendar/" class="waves-effect"><i class="mdi mdi-calendar-check"></i><span> Calendar </span></a>
-				</li>
-
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="mdi mdi-google-maps"></i><span> Maps  <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span></span></a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>maps-google/"> Google Map</a></li>
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>maps-vector/"> Vector Map</a></li>
-					</ul>
-				</li>
-
-				<li>
-					<a href="javascript:void(0);" class="waves-effect"><i class="mdi mdi-google-pages"></i><span> Pages <span class="float-right menu-arrow"><i class="mdi mdi-plus"></i></span> </span></a>
-					<ul class="submenu">
-						<li><a href="<?=_DOMINIO_._ADMIN_;?>pages-login/">Login</a></li>
-						<!--li><a href="<?=_DOMINIO_._ADMIN_;?>pages-recoverpw/">Recover Password</a></li-->
-					</ul>
-				</li>
-			</ul>
-		</div>
-		<div class="clearfix"></div>
-	</div>
-</div>
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <li class="nav-item menu-open">
+                    <a href="<?=_DOMINIO_._ADMIN_;?>usuarios/" class="nav-link active">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>
+                            Usuarios
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item menu-open">
+                    <a href="<?=_ASSETS_._ADMIN_;?>#" class="nav-link active">
+                        <i class="nav-icon fas fa-tachometer-alt"></i>
+                        <p>
+                            Dashboard
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="<?=_ASSETS_._ADMIN_;?>./index.html" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Dashboard v1</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?=_ASSETS_._ADMIN_;?>./index2.html" class="nav-link active">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Dashboard v2</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?=_ASSETS_._ADMIN_;?>./index3.html" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Dashboard v3</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+</aside>
