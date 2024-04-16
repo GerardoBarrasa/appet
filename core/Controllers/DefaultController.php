@@ -57,6 +57,45 @@ class DefaultController extends Controllers
 			Render::page('home',$data);
 		});
 
+		//Pagina de login
+		$this->add('login',function()
+		{
+			$datos_idiomas = Idiomas::getLanguages();
+
+			//Array de datos a enviar a la página
+			$data = array(
+				'datos_idiomas' => $datos_idiomas,
+			);
+
+            Render::actionPage('login', $data);
+		});
+
+		//Pagina de login
+		$this->add('register',function()
+		{
+			$datos_idiomas = Idiomas::getLanguages();
+
+			//Array de datos a enviar a la página
+			$data = array(
+				'datos_idiomas' => $datos_idiomas,
+			);
+
+            Render::actionPage('register', $data);
+		});
+
+		//Pagina de login
+		$this->add('forgot-password',function()
+		{
+			$datos_idiomas = Idiomas::getLanguages();
+
+			//Array de datos a enviar a la página
+			$data = array(
+				'datos_idiomas' => $datos_idiomas,
+			);
+
+            Render::actionPage('forgot-password', $data);
+		});
+
 		$this->add('404',function()
 		{
 			Render::page('404');

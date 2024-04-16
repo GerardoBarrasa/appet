@@ -62,10 +62,10 @@
             <!-- /.social-auth-links -->
 <br>
             <p class="mb-1 text-center">
-                <a href="<?=_DOMINIO_._ADMIN_?>forgot-password/">I forgot my password</a>
+                <a href="<?=_DOMINIO_.$_SESSION['lang']?>/forgot-password/">I forgot my password</a>
             </p>
             <p class="mb-0 text-center">
-                <a href="<?=_DOMINIO_._ADMIN_?>register/" class="text-center">Register a new membership</a>
+                <a href="<?=_DOMINIO_.$_SESSION['lang']?>/register/" class="text-center">Register a new membership</a>
             </p>
         </div>
         <!-- /.card-body -->

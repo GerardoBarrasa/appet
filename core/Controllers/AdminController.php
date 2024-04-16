@@ -8,7 +8,7 @@ class AdminController extends Controllers
 
 	public function execute($page)
 	{
-		if( !isset($_SESSION['admin_panel']) && $page != '' && $page != 'register' && $page != 'login' && $page != 'forgot-password' ){
+		if( !isset($_SESSION['admin_panel']) && $page != '' ){
 			header('HTTP/1.1 403 Forbidden');
 			exit;
 		}
@@ -64,99 +64,6 @@ class AdminController extends Controllers
 				Render::adminPage('home');
 			}
 		});
-
-        $this->add('login',function()
-        {
-            //Comprobamos si existe la sesion de admin
-            if( !isset($_SESSION['admin_panel']) )
-            {
-                header('Location:'._DOMINIO_."admin/");
-            }
-            else
-            {
-                Metas::$title = "Inicio";
-                Render::adminPage('home');
-            }
-        });
-
-		//Inicio
-		$this->add('register',function()
-		{
-			//Comprobamos si existe la sesion de admin
-			if( !isset($_SESSION['admin_panel']) )
-			{
-				//Mensaje de error defecto
-				$mensajeError = '';
-
-				//Comprobamos datos de acceso
-				if( isset($_REQUEST['btn-register']) )
-				{
-					//Obtenemos valores del login
-					$usuario 	= Tools::getValue('usuario');
-					$password	= Tools::md5(Tools::getValue('password'));
-
-					if(Admin::login($usuario, $password))
-						header('Location:'._DOMINIO_."admin/");
-					else
-						$mensajeError = "Usuario y/o contrase&ntilde;a incorrectos.";
-				}
-
-				//Guardamos variables para enviar a la pagina
-				$data = array(
-					'mensajeError' => $mensajeError,
-				);
-
-				//Metas Config
-				Metas::$title = "&iexcl;Regístrate!";
-
-				//Renderizamos pagina admin
-				Render::actionPage('register');
-			}
-			else
-			{
-				Metas::$title = "Inicio";
-				Render::adminPage('home');
-			}
-		});
-
-        $this->add('forgot-password',function()
-        {
-            //Comprobamos si existe la sesion de admin
-            if( !isset($_SESSION['admin_panel']) )
-            {
-                //Mensaje de error defecto
-                $mensajeError = '';
-
-                //Comprobamos datos de acceso
-                if( isset($_REQUEST['btn-register']) )
-                {
-                    //Obtenemos valores del login
-                    $usuario 	= Tools::getValue('usuario');
-                    $password	= Tools::md5(Tools::getValue('password'));
-
-                    if(Admin::login($usuario, $password))
-                        header('Location:'._DOMINIO_."admin/");
-                    else
-                        $mensajeError = "Usuario y/o contrase&ntilde;a incorrectos.";
-                }
-
-                //Guardamos variables para enviar a la pagina
-                $data = array(
-                    'mensajeError' => $mensajeError,
-                );
-
-                //Metas Config
-                Metas::$title = "&iexcl;Recupera tu contraseña!";
-
-                //Renderizamos pagina admin
-                Render::actionPage('forgot-password');
-            }
-            else
-            {
-                Metas::$title = "Inicio";
-                Render::adminPage('home');
-            }
-        });
 
 		// =================================
 		//  Idiomas
@@ -222,6 +129,8 @@ class AdminController extends Controllers
 
 			Render::adminPage('administrar-idioma', $data);
 		});
+
+
 
 		// =================================
 		//  Traducciones
@@ -509,7 +418,6 @@ class AdminController extends Controllers
 
 		$this->add('logout',function()
 		{
-			Render::$layout = false;
 			Admin::logout();
 			header("Location: "._DOMINIO_._ADMIN_);
 		});

@@ -58,7 +58,7 @@ function l($shortcode, $vars=array())
 function __log_error($message = 'Error inesperado', int $type = 3, string $fichero = ''): bool
 {
     $tipo = $type;
-    $name = $fichero=='' ? 'errores_varios' : "debug_".$fichero;
+    $name = $fichero=='' ? 'debug' : "debug_".$fichero;
     $destino = '';
     switch ($type){
         case 1:

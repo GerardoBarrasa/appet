@@ -11,6 +11,6 @@
         <!-- Notifications Dropdown Menu -->
        <?php include(_INCLUDES_._ADMIN_.'notifications.php'); ?>
 
-
+        <?php include(_INCLUDES_._ADMIN_.'user.php'); ?>
     </ul>
 </nav>
