@@ -24,7 +24,7 @@ if($total > 0)
 							<a href="<?= _DOMINIO_ . _ADMIN_ . 'usuario-admin/' . $usuario->id . '/' ?>" type="button" class="btn btn-primary waves-effect waves-light"  data-toggle="tooltip" title="Editar usuario">
 								<i class="fas fa-pencil-alt text-light"></i>
 							</a>
-							<button type="button" class="btn btn-danger waves-effect waves-light" onClick="confirmarEliminacion( <?= $usuario->id ?>, 'Admin', () => ajax_get_usuarios_admin(<?= $comienzo ?>, <?= $limite ?>, <?= $pagina ?>) )"   data-toggle="tooltip" title="Eliminar usuario">
+							<button type="button" class="btn btn-danger waves-effect waves-light" onClick="confirmarEliminacion( <?= $usuario->id ?>, 'Admin', () => ajax_get_usuarios(<?= $comienzo ?>, <?= $limite ?>, <?= $pagina ?>) )"   data-toggle="tooltip" title="Eliminar usuario">
 								<i class="far fa-trash-alt"></i>
 							</button>
 						</td>
@@ -61,7 +61,7 @@ else
 	</div>
 	<div class="col-sm-6">
 		<div class="dataTables_paginate paging_bootstrap">
-			<?php Tools::getPaginador($pagina, $limite, 'Admin', 'getUsuariosWithFiltros', 'ajax_get_usuarios_admin', '', '', 'end'); ?>
+			<?php Tools::getPaginador($pagina, $limite, 'Admin', 'getUsuariosWithFiltros', 'ajax_get_usuarios', '', '', 'end'); ?>
 		</div>
 	</div>
 </div>

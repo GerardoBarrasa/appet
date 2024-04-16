@@ -35,6 +35,7 @@ class AdminController extends Controllers
 				//Comprobamos datos de acceso
 				if( isset($_REQUEST['btn-login']) )
 				{
+
 					//Obtenemos valores del login
 					$usuario 	= Tools::getValue('usuario');
 					$password	= Tools::md5(Tools::getValue('password'));
@@ -48,13 +49,14 @@ class AdminController extends Controllers
 				//Guardamos variables para enviar a la pagina
 				$data = array(
 					'mensajeError' => $mensajeError,
+
 				);
 
 				//Metas Config
 				Metas::$title = "&iexcl;Con&eacute;ctate!";
 
 				//Renderizamos pagina admin
-				Render::showAdminPage('login', $data);
+				Render::actionPage('login', $data);
 			}
 			else
 			{
@@ -127,6 +129,8 @@ class AdminController extends Controllers
 
 			Render::adminPage('administrar-idioma', $data);
 		});
+
+
 
 		// =================================
 		//  Traducciones
@@ -360,7 +364,7 @@ class AdminController extends Controllers
 		// =================================
 		//  Usuarios Admin
 		// =================================
-		$this->add('usuarios-admin',function()
+		$this->add('usuarios',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
 				header("Location: "._DOMINIO_._ADMIN_);
@@ -374,7 +378,7 @@ class AdminController extends Controllers
 				'limite'   => $this->limite
 			);
 				
-			Render::adminPage('usuarios_admin', $data);
+			Render::adminPage('usuarios', $data);
 		});
 
 		$this->add('usuario-admin',function()
@@ -414,7 +418,6 @@ class AdminController extends Controllers
 
 		$this->add('logout',function()
 		{
-			Render::$layout = false;
 			Admin::logout();
 			header("Location: "._DOMINIO_._ADMIN_);
 		});

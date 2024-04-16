@@ -10,7 +10,7 @@ class AdminajaxController extends Controllers
 	{
 		Render::$layout = false;
 
-		$this->add('ajax-get-usuarios-admin',function()
+		$this->add('ajax-get-usuarios',function()
 		{
 			$comienzo		= Tools::getValue('comienzo');
 			$limite 		= Tools::getValue('limite');
@@ -26,7 +26,7 @@ class AdminajaxController extends Controllers
 				'total' 	=> $usuarios['total']
 			);
 
-			$html = Render::getAjaxPage('admin_usuarios_admin',$data);
+			$html = Render::getAjaxPage('admin_usuarios',$data);
 
 			if( !empty($html) )
 			{

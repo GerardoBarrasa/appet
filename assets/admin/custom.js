@@ -1,7 +1,7 @@
 var abortController = new AbortController();
 var signal = abortController.signal;
 
-function ajax_get_usuarios_admin( comienzo, limite, pagina )
+function ajax_get_usuarios( comienzo, limite, pagina )
 {
     let formData = new FormData($("#formFiltrosAdmin")[0]);
 
@@ -10,7 +10,7 @@ function ajax_get_usuarios_admin( comienzo, limite, pagina )
     formData.append("pagina", pagina);
 
     afetch(
-        dominio+"adminajax/ajax-get-usuarios-admin/",
+        dominio+"adminajax/ajax-get-usuarios/",
         {
             method: 'POST',
             body: formData
