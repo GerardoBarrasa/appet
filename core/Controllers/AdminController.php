@@ -28,15 +28,15 @@ class AdminController extends Controllers
         // Cargamos javascripts comunes a todo el back-end
 
         /* jQuery */
-        Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/jquery/jquery.min.js');
+        Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/jquery/jquery.min.js', 'top');
         /* Bootstrap */
-        Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/bootstrap/js/bootstrap.bundle.min.js');
+        Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/bootstrap/js/bootstrap.bundle.min.js', 'top');
         /* overlayScrollbars */
         Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js');
         /* AdminLTE App */
         Tools::registerJavascript(_ASSETS_._ADMIN_.'dist/js/adminlte.js');
         /* Custom */
-        Tools::registerJavascript(_ASSETS_._ADMIN_.'custom.js');
+        Tools::registerJavascript(_ASSETS_._ADMIN_.'dist/js/custom.js');
 
 		/*Tools::registerStylesheet(_ASSETS_._ADMIN_.'bootstrap.min.css');
 		Tools::registerJavascript(_ASSETS_.'jquery/jquery.min.js', 'top');
@@ -404,9 +404,6 @@ class AdminController extends Controllers
 		{
 			if(!isset($_SESSION['admin_panel']))
 				header("Location: "._DOMINIO_._ADMIN_);
-			
-			Tools::registerStylesheet(_ASSETS_._ADMIN_.'footable/footable.bootstrap.min.css');
-			Tools::registerJavascript(_ASSETS_._ADMIN_.'footable/footable.min.js');
 
 			$data = array(
 				'comienzo' => $this->comienzo,

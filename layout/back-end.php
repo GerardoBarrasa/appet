@@ -6,6 +6,10 @@
     <title>ApPet | Dashboard 2</title>
 
     <?php include(_INCLUDES_._ADMIN_.'stylesheets.php'); ?>
+    <script type="text/javascript">
+        const dominio = "<?=_DOMINIO_;?>";
+        const static_token = "<?=!empty($_SESSION['token']) ? $_SESSION['token'] : '';?>";
+    </script>
     <?php include(_INCLUDES_._ADMIN_.'javascript_top.php'); ?>
 
 </head>

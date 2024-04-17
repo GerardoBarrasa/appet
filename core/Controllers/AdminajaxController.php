@@ -26,7 +26,7 @@ class AdminajaxController extends Controllers
 				'total' 	=> $usuarios['total']
 			);
 
-			$html = Render::getAjaxPage('admin_usuarios',$data);
+			$html = Render::getAjaxPage('usuarios',$data);
 
 			if( !empty($html) )
 			{

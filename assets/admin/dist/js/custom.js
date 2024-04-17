@@ -18,7 +18,7 @@ function ajax_get_usuarios( comienzo, limite, pagina )
     )
     .then((response) => response.json())
     .then(data => {
-        if( data.type == 'success' )
+        if( data.type === 'success' )
             $('#page-content').html(data.html);
     });
 }

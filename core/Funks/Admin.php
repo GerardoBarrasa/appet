@@ -26,14 +26,16 @@ class Admin
 		$limit = "";
 
 		if( $busqueda != '' )
-			$search .= "AND (nombre LIKE '%".$busqueda."%' OR email LIKE '%".$busqueda."%' OR date_created LIKE '%".$busqueda."%')";
+			$search .= "AND (u.nombre LIKE '%".$busqueda."%' OR u.email LIKE '%".$busqueda."%' OR u.date_created LIKE '%".$busqueda."%')";
 
 		if($applyLimit)
-			$limit = "LIMIT $comienzo, $limite";
+			$limit = " LIMIT $comienzo, $limite";
 
-		$listado = Bd::getInstance()->fetchObject("SELECT * FROM usuarios WHERE 1=1 $search ORDER BY nombre ASC $limit");
+        $q = "SELECT u.*, IFNULL(at.nombre, 'ROOT') AS TYPE, IFNULL(a.name, '---') AS ACNAME FROM usuarios u LEFT JOIN account a ON u.account_id=a.id LEFT JOIN account_types at ON a.type_id=at.id WHERE 1=1 $search ORDER BY u.nombre ASC";
 
-		$total = Bd::getInstance()->countRows("SELECT * FROM usuarios WHERE 1=1 $search ORDER BY nombre ASC");
+		$listado = Bd::getInstance()->fetchObject( $q.$limit);
+
+		$total = Bd::getInstance()->countRows($q);
 
 		return array(
 			'listado' => $listado,

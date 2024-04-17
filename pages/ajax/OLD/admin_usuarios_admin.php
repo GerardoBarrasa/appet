@@ -1,4 +1,11 @@
 <?php
+/**
+ * @var $total
+ * @var $usuarios
+ * @var $comienzo
+ * @var $limite
+ * @var $pagina
+ */
 if($total > 0)
 {?>
 	<table id="tablaUsuarios" class="footable table table-striped bg-default table-primary">
@@ -65,10 +72,3 @@ else
 		</div>
 	</div>
 </div>
-
-<script>
-	$(function()
-	{
-		$('.footable').footable();
-	});
-</script>
