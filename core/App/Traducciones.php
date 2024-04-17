@@ -132,7 +132,7 @@ class Traducciones
 			self::$traducciones = $traducciones;
 		}
 		else
-			die('Traducciones::loadTraducciones() idioma incorrecto');
+			die('Traducciones::loadTraducciones() idioma incorrecto: '.$slug);
 	}
 
 	public static function getTextoByShortcodeIdioma($shortcode, $id_lang)

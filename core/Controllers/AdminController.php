@@ -15,9 +15,32 @@ class AdminController extends Controllers
 
 		Render::$layout = 'back-end';
 
-		Tools::registerStylesheet(_ASSETS_._ADMIN_.'bootstrap.min.css');
+        // Cargamos hojas de estilos comunes a todo el back-end
+        /* Google Font: Source Sans Pro */
+		Tools::registerStylesheet("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback");
+        /* Font Awesome Icons */
+		Tools::registerStylesheet(_ASSETS_._ADMIN_.'plugins/fontawesome-free/css/all.min.css');
+        /* overlayScrollbars */
+		Tools::registerStylesheet(_ASSETS_._ADMIN_.'plugins/overlayScrollbars/css/OverlayScrollbars.min.css');
+        /* Theme style */
+		Tools::registerStylesheet(_ASSETS_._ADMIN_.'dist/css/adminlte.min.css');
+
+        // Cargamos javascripts comunes a todo el back-end
+
+        /* jQuery */
+        Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/jquery/jquery.min.js');
+        /* Bootstrap */
+        Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/bootstrap/js/bootstrap.bundle.min.js');
+        /* overlayScrollbars */
+        Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js');
+        /* AdminLTE App */
+        Tools::registerJavascript(_ASSETS_._ADMIN_.'dist/js/adminlte.js');
+        /* Custom */
+        Tools::registerJavascript(_ASSETS_._ADMIN_.'custom.js');
+
+		/*Tools::registerStylesheet(_ASSETS_._ADMIN_.'bootstrap.min.css');
 		Tools::registerJavascript(_ASSETS_.'jquery/jquery.min.js', 'top');
-		Tools::registerJavascript(_ASSETS_._ADMIN_.'custom.js', 'top');
+		Tools::registerJavascript(_ASSETS_._ADMIN_.'custom.js', 'top');*/
 
 		Render::$layout_data = array(
 			'idiomas' => Idiomas::getLanguagesAdminForm()
@@ -60,6 +83,19 @@ class AdminController extends Controllers
 			}
 			else
 			{
+                /* jQuery Mapael */
+                Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/jquery-mousewheel/jquery.mousewheel.js');
+                Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/raphael/raphael.min.js');
+                Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/jquery-mapael/jquery.mapael.min.js');
+                Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/jquery-mapael/maps/usa_states.min.js');
+                Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/chart.js/Chart.min.js');
+                /* jQuery ChartJS */
+                Tools::registerJavascript(_ASSETS_._ADMIN_.'plugins/chart.js/Chart.min.js');
+                /* DEMO */
+                Tools::registerJavascript(_ASSETS_._ADMIN_.'dist/js/demo.js');
+                /* AdminLTE dashboard demo (This is only for demo purposes) */
+                Tools::registerJavascript(_ASSETS_._ADMIN_.'dist/js/pages/dashboard2.js');
+
 				Metas::$title = "Inicio";
 				Render::adminPage('home');
 			}

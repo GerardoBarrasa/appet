@@ -5,14 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ApPet | Dashboard 2</title>
 
-    <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="<?=_ASSETS_._ADMIN_;?>plugins/fontawesome-free/css/all.min.css">
-    <!-- overlayScrollbars -->
-    <link rel="stylesheet" href="<?=_ASSETS_._ADMIN_;?>plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
-    <!-- Theme style -->
-    <link rel="stylesheet" href="<?=_ASSETS_._ADMIN_;?>dist/css/adminlte.min.css">
+    <?php include(_INCLUDES_._ADMIN_.'stylesheets.php'); ?>
+    <?php include(_INCLUDES_._ADMIN_.'javascript_top.php'); ?>
+
 </head>
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
 <div class="wrapper">
@@ -58,27 +53,7 @@
 <!-- ./wrapper -->
 
 <!-- REQUIRED SCRIPTS -->
-<!-- jQuery -->
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/jquery/jquery.min.js"></script>
-<!-- Bootstrap -->
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- overlayScrollbars -->
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
-<!-- AdminLTE App -->
-<script src="<?=_ASSETS_._ADMIN_;?>dist/js/adminlte.js"></script>
+<?php include(_INCLUDES_._ADMIN_.'javascript_bottom.php'); ?>
 
-<!-- PAGE PLUGINS -->
-<!-- jQuery Mapael -->
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/jquery-mousewheel/jquery.mousewheel.js"></script>
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/raphael/raphael.min.js"></script>
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/jquery-mapael/jquery.mapael.min.js"></script>
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/jquery-mapael/maps/usa_states.min.js"></script>
-<!-- ChartJS -->
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/chart.js/Chart.min.js"></script>
-
-<!-- AdminLTE for demo purposes -->
-<script src="<?=_ASSETS_._ADMIN_;?>dist/js/demo.js"></script>
-<!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-<script src="<?=_ASSETS_._ADMIN_;?>dist/js/pages/dashboard2.js"></script>
 </body>
 </html>
