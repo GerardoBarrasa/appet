@@ -81,6 +81,7 @@ class AdminController extends Controllers
 				//Renderizamos pagina admin
 				Render::actionPage('login', $data);
 			}
+
 			else
 			{
                 /* jQuery Mapael */
@@ -101,6 +102,40 @@ class AdminController extends Controllers
 			}
 		});
 
+        $this->add('accounts',function()
+        {
+            if(!isset($_SESSION['admin_panel']))
+                header("Location: "._DOMINIO_._ADMIN_);
+
+            $data = array(
+                'comienzo' => $this->comienzo,
+                'pagina'   => $this->pagina,
+                'limite'   => $this->limite
+            );
+
+            Render::adminPage('accounts', $data);
+        });
+
+        $this->add('account',function()
+        {
+            if(!isset($_SESSION['admin_panel']))
+                header("Location: "._DOMINIO_._ADMIN_);
+
+            //Obtenemos el data
+            if( isset($_REQUEST['data']) )
+                $id = $_REQUEST['data'];
+            else
+                header("Location: "._DOMINIO_._ADMIN_);
+
+            $account = Admin::getAccountById( $id );
+
+            $data = array(
+                'account' => $account
+            );
+
+            Render::adminPage('account', $data);
+        });
+
 		// =================================
 		//  Idiomas
 		// =================================
@@ -111,7 +146,7 @@ class AdminController extends Controllers
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'footable/footable.bootstrap.min.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'footable/footable.min.js');
-			
+
 			$data = array(
 				'comienzo' => $this->comienzo,
 				'pagina'   => $this->pagina,
@@ -241,7 +276,7 @@ class AdminController extends Controllers
 					die;
 				}
 			}
-			
+
 			Metas::$title = "Editando traducción";
 			if( $traduccionId !== 'new' )
 				$traduccion = Traducciones::getTraduccionById($traduccionId);
@@ -300,7 +335,7 @@ class AdminController extends Controllers
 		{
 			if(!isset($_SESSION['admin_panel']) || !empty($_SESSION['admin_panel']->id_country))
 				header("Location: "._DOMINIO_._ADMIN_);
-			
+
 			//Obtenemos el data
 			if( isset($_REQUEST['data']) )
 				$id = $_REQUEST['data'];
@@ -386,7 +421,7 @@ class AdminController extends Controllers
 			if( $id !== 'new' ){
 				$datos = Slugs::getById($id);
 				Metas::$title = "Slug: $datos->slug";
-			}			
+			}
 
 			$data = [
 				'datos' => $datos,
@@ -410,7 +445,7 @@ class AdminController extends Controllers
 				'pagina'   => $this->pagina,
 				'limite'   => $this->limite
 			);
-				
+
 			Render::adminPage('usuarios', $data);
 		});
 
@@ -421,7 +456,7 @@ class AdminController extends Controllers
 
 			$usuarioId 		= Tools::getValue('data');
 			$usuario 		= false;
-			
+
 			if( Tools::getIsset('submitUpdateUsuarioAdmin') )
 			{
 				Admin::actualizarUsuario();
@@ -433,7 +468,7 @@ class AdminController extends Controllers
 				Admin::crearUsuario();
 				Tools::registerAlert("El usuario ha sido creado", "success");
 			}
-			
+
 			Metas::$title = "Nuevo usuario";
 			if( $usuarioId !== 'new' ){
 				$usuario = Admin::getUsuarioById($usuarioId);
@@ -741,7 +776,7 @@ class AdminController extends Controllers
 		{
 			if(!isset($_SESSION['admin_panel']))
 				header("Location: "._DOMINIO_._ADMIN_);
-			
+
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'flot-chart/jquery.flot.min.js');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'flot-chart/jquery.flot.time.js');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'flot-chart/jquery.flot.tooltip.min.js');

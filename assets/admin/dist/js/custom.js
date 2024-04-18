@@ -22,6 +22,27 @@ function ajax_get_usuarios( comienzo, limite, pagina )
             $('#page-content').html(data.html);
     });
 }
+function ajax_get_accounts( comienzo, limite, pagina )
+{
+    let formData = new FormData($("#formFiltrosAdmin")[0]);
+
+    formData.append("comienzo", comienzo);
+    formData.append("limite", limite);
+    formData.append("pagina", pagina);
+
+    afetch(
+        dominio+"adminajax/ajax-get-accounts/",
+        {
+            method: 'POST',
+            body: formData
+        }
+    )
+    .then((response) => response.json())
+    .then(data => {
+        if( data.type === 'success' )
+            $('#page-content').html(data.html);
+    });
+}
 
 function ajax_get_idiomas_admin( comienzo, limite, pagina )
 {

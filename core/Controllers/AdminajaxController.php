@@ -46,6 +46,42 @@ class AdminajaxController extends Controllers
 			die(json_encode($response));
 		});
 
+        $this->add('ajax-get-accounts',function()
+        {
+            $comienzo		= Tools::getValue('comienzo');
+            $limite 		= Tools::getValue('limite');
+            $pagina			= Tools::getValue('pagina');
+
+            $accounts = Admin::getAccountsWithFiltros( $comienzo, $limite, true );
+
+            $data = array(
+                'comienzo'  => $comienzo,
+                'limite' 	=> $limite,
+                'pagina' 	=> $pagina,
+                'accounts'  => $accounts['listado'],
+                'total' 	=> $accounts['total']
+            );
+
+            $html = Render::getAjaxPage('accounts',$data);
+
+            if( !empty($html) )
+            {
+                $response = array(
+                    'type' => 'success',
+                    'html' => $html
+                );
+            }
+            else
+            {
+                $response = array(
+                    'type' => 'error',
+                    'html' => 'Hubo un error cargando el html'
+                );
+            }
+
+            die(json_encode($response));
+        });
+
 		$this->add('ajax-get-idiomas-admin',function()
 		{
 			$comienzo		= Tools::getValue('comienzo');
