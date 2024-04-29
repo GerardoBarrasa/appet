@@ -102,6 +102,8 @@ class AdminController extends Controllers
 			}
 		});
 
+
+
         $this->add('accounts',function()
         {
             if(!isset($_SESSION['admin_panel']))

@@ -1,4 +1,6 @@
-<?php vd($account);?>
+
+
+
 
 <div class="container-fluid">
         <div class="row">

@@ -76,6 +76,10 @@ class Admin
 	{
 		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios WHERE id=".(int)$id);
 	}
+	public static function getUsuarioByEmail($email)
+	{
+		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios WHERE 1 AND email='$email'");
+	}
 
 	public static function actualizarUsuario()
 	{
@@ -92,15 +96,8 @@ class Admin
 		return Bd::getInstance()->update('usuarios', $updUsuario, "id = ".(int)Tools::getValue('id'));
 	}
 
-	public static function crearUsuario()
+	public static function crearUsuario($addUsuario)
 	{
-		$addUsuario = array(
-			'nombre' 	   => Tools::getValue('nombre'),
-			'email' 	   => Tools::getValue('email'),
-			'password' 	   => Tools::md5(Tools::getValue('password')),
-			'date_created' => Tools::datetime()
-		);
-
 		return Bd::getInstance()->insert('usuarios', $addUsuario);
 	}
 

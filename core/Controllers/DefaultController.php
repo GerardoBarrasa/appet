@@ -71,17 +71,101 @@ class DefaultController extends Controllers
 		});
 
 		//Pagina de login
-		$this->add('register',function()
-		{
-			$datos_idiomas = Idiomas::getLanguages();
+        $this->add('register',function()
+        {
+            // Valores por defecto
+            $mensajeError   = '';
+            $mensajeSuccess = '';
+            $updateSlug     = false;
 
-			//Array de datos a enviar a la página
-			$data = array(
-				'datos_idiomas' => $datos_idiomas,
-			);
+            //Comprobamos datos de acceso
+            if( isset($_REQUEST['btn-register']) )
+            {
+                //Obtenemos valores del registro
+                // TODO ver de añadir los campos restantes (CP, localidad, provincia...)
+                $nombre     = Tools::getValue('nombre');
+                $email      = Tools::getValue('email');
+                $password   = Tools::md5(Tools::getValue('password'));
+                $rpassword  = Tools::md5(Tools::getValue('rpassword'));
+                $provincia  = Tools::md5(Tools::getValue('provincia'));
+                $localidad  = Tools::md5(Tools::getValue('localidad'));
+                $direccion = Tools::md5(Tools::getValue('direccion'));
+                $slug       = Tools::urlAmigable($nombre, false);
+
+                if($nombre == '' || $email == '' || $password = '' || $rpassword = '' || $provincia = '' || $localidad = '' || $direccion = ''){//Comprobamos que los campos no estén vacíos
+                    $mensajeError .= "Todos los campos son obligatorios.<br>";
+                }
+                else{// Ahora comprobamos la validez de los campos
+                    if($password != $rpassword){
+                        $mensajeError .= "Las contraseñas deben coincidir.<br>";
+                    }
+                    if(Account::getAccountByEmail($email) !== false){// Si existe alguna cuenta con este correo
+                        $mensajeError .= "Ya existe una cuenta con ese email asociado.<br>";
+                    }
+                }
+                // Si no hay errores procedemos, si no dejamos continuar a la página de destino
+                if($mensajeError == ''){
+                    if(Account::getAccountBySlug($slug) !== false){// Existe una cuenta con ese slug, tenemos que generar otro, para ello guardamos la cuenta y obtenemos el ID
+                        $updateSlug = true;
+                        $slug = 'NULL';
+                    }
+                    // TODO ver de añadir los campos restantes (CP, localidad, provincia...)
+                    $addAccount = array(
+                        'name' 	        => $nombre,
+                        'email' 	    => $email,
+                        'password' 	    => $password,
+                        'provincia'     => $provincia,
+                        'localidad'     => $localidad,
+                        'direccion'     => $direccion,
+                        'slug' 	        => $slug,
+                        'type_id'       => 1,// Por defecto guardería TODO esto debería venir del formulario de registro
+                        'date_created'  => Tools::datetime()
+                    );
+                    if(Account::crearAccount($addAccount)){
+                        $mensajeSuccess .= "Cuenta creada correctamente";
+                        $id_account = Bd::getInstance()->lastId();
+                        if($updateSlug){// Actualizamos slug
+                            $slug = Tools::urlAmigable($nombre, false).'-'.$id_account;
+                            Account::updateAccount($id_account, $slug);
+                        }
+                        // TODO Comprobamos si existe un usuario con ese correo, ya veremos qué acciones hacer aquí
+                        if(Admin::getUsuarioByEmail($email) !== false){// Si existe algún usuario con este correo
+                            $mensajeError .= "Ya existe un usuario con ese email.<br>";
+                        }
+                        else{
+                            $addUsuario = array(
+                                'nombre' 	    => $nombre,
+                                'email' 	    => $email,
+                                'password' 	    => $password,
+                                'account_id'    => $id_account,
+                                'estado'        => 0,
+                                'id_credencial' => 2,
+                                'date_created'  => Tools::datetime()
+                            );
+                            if(Admin::crearUsuario($addUsuario)){
+                                $mensajeSuccess .= "Usuario creado correctamente";
+                            }
+                            else{
+                                $mensajeError .= "Error al crear el usuario";
+                            }
+                        }
+                    }
+                    else{
+                        $mensajeError .= "Error al crear la cuenta";
+                    }
+                }
+            }
+            $datos_idiomas = Idiomas::getLanguages();
+
+            //Array de datos a enviar a la página
+            $data = array(
+                'datos_idiomas' => $datos_idiomas,
+                'mensajeError' => $mensajeError,
+                'mensajeSuccess' => $mensajeSuccess,
+            );
 
             Render::actionPage('register', $data);
-		});
+        });
 
 		//Pagina de login
 		$this->add('forgot-password',function()
@@ -107,4 +191,5 @@ class DefaultController extends Controllers
 			exit;
 		}
 	}
+
 }
