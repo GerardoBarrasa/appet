@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ApPet | Dashboard 2</title>
+    <?php Metas::getMetas();?>
 
     <?php include(_INCLUDES_._ADMIN_.'stylesheets.php'); ?>
     <script type="text/javascript">
