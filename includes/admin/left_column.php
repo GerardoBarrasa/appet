@@ -33,6 +33,14 @@
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-item menu-open">
+                    <a href="<?=_DOMINIO_._ADMIN_;?>accounts/" class="nav-link active">
+                        <i class="nav-icon fas fa-address-card"></i>
+                        <p>
+                            Cuentas
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item menu-open">
                     <a href="<?=_DOMINIO_._ADMIN_;?>usuarios/" class="nav-link active">
                         <i class="nav-icon fas fa-users"></i>
                         <p>
@@ -40,7 +48,7 @@
                         </p>
                     </a>
                 </li>
-                <li class="nav-item menu-open">
+                <li class="nav-item menu-open" hidden>
                     <a href="<?=_ASSETS_._ADMIN_;?>#" class="nav-link active">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>

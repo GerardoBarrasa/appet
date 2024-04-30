@@ -6,9 +6,29 @@
     <div class="card">
         <div class="card-body register-card-body">
             <p class="login-box-msg">Register a new membership</p>
-            <form action="../../index.html" method="post">
+            <?php
+            if( !empty($mensajeError) )
+            {
+                ?>
+                <div class="alert alert-danger bg-danger text-white" role="alert">
+                    <?=$mensajeError;?>
+                </div>
+                <?php
+            }
+            ?>
+            <?php
+            if( !empty($mensajeSuccess) )
+            {
+                ?>
+                <div class="success alert-success bg-success text-dark" role="alert">
+                    <?=$mensajeSuccess;?>
+                </div>
+                <?php
+            }
+            ?>
+            <form method="post">
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Full name">
+                    <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Nombre completo">
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-user"></span>
@@ -24,7 +44,7 @@
                     </div>
                 </div>
                 <div class="input-group mb-3">
-                    <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña">
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-lock"></span>
@@ -32,17 +52,45 @@
                     </div>
                 </div>
                 <div class="input-group mb-3">
-                    <input type="password" class="form-control" id="rpassword" name="rpassword" placeholder="Retype password">
+                    <input type="password" class="form-control" id="rpassword" name="rpassword" placeholder="Reescribir contraseña">
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-lock"></span>
                         </div>
                     </div>
                 </div>
+
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="direccion" name="direccion" placeholder="Direccion">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-location-arrow"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="localidad" name="localidad" placeholder="Localidad">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-city"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="provincia" name="provincia" placeholder="Provincia">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-address-card"></span>
+                        </div>
+                    </div>
+                </div>
+
+
                 <div class="row">
                     <div class="col-8">
                         <div class="icheck-primary">
-                            <input type="checkbox" id="agreeTerms" id="checkbox" name="checkbox" value="agree">
+                            <input type="checkbox" id="checkbox" name="checkbox" value="agree">
                             <label for="agreeTerms">
                                 I agree to the <a href="#">terms</a>
                             </label>
@@ -50,7 +98,7 @@
                     </div>
 
                     <div class="col-4">
-                        <button type="submit" class="btn btn-primary btn-block">Register</button>
+                        <button type="submit" class="btn btn-primary btn-block" name="btn-register">Register</button>
                     </div>
 
                 </div>
