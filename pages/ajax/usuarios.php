@@ -23,11 +23,13 @@
                         if($total > 0)
                         {
                         foreach($usuarios as $usuario){//vd($usuario);?>
-                        <tr>
+                        <tr >
                             <td><?=$usuario->email?></td>
                             <td><?=$usuario->CREDENCIAL?></td>
                             <td><?=$usuario->ACNAME?></td>
                             <td><?=$usuario->DATE_CREATED?></td>
+                            <td><button type="button" class="btn-primary" >Desactivar</button> <button type="button" class="btn-primary" id="generarFormularioBtn">Editar</button></td>
+
                         </tr>
                         <?php }
                         }
@@ -45,7 +47,10 @@
                         </tbody>
                     </table>
 
+
+
                 </div>
+                <div id="formularioContainer"></div>
                 <!-- /.card-body -->
             </div>
             <!-- /.card -->

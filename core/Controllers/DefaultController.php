@@ -92,7 +92,7 @@ class DefaultController extends Controllers
                 $direccion = Tools::md5(Tools::getValue('direccion'));
                 $slug       = Tools::urlAmigable($nombre, false);
 
-                if($nombre == '' || $email == '' || $password = '' || $rpassword = '' || $provincia = '' || $localidad = '' || $direccion = ''){//Comprobamos que los campos no estén vacíos
+                if($nombre == '' || $email == '' || $password = '' || $rpassword = '' || $provincia = '' || $localidad = '' || $direccion = '' ){//Comprobamos que los campos no estén vacíos
                     $mensajeError .= "Todos los campos son obligatorios.<br>";
                 }
                 else{// Ahora comprobamos la validez de los campos

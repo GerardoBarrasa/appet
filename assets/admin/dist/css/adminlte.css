@@ -24086,7 +24086,7 @@ body.text-sm .input-group-text {
   color: #fff;
 }
 
-.dark-mode input:-webkit-autofill,
+
 .dark-mode input:-webkit-autofill:hover,
 .dark-mode input:-webkit-autofill:focus,
 .dark-mode textarea:-webkit-autofill,
@@ -24095,8 +24095,10 @@ body.text-sm .input-group-text {
 .dark-mode select:-webkit-autofill,
 .dark-mode select:-webkit-autofill:hover,
 .dark-mode select:-webkit-autofill:focus {
-  -webkit-text-fill-color: #fff;
+  -webkit-text-fill-color: black;
 }
+
+
 
 .dark-mode .custom-range::-webkit-slider-runnable-track {
   background-color: #454d55;

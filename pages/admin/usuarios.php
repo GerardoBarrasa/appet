@@ -31,5 +31,20 @@
 <script>
     $(document).ready(function(){
         ajax_get_usuarios(<?=$comienzo;?>,<?=$limite;?>,<?= $pagina;?>);
+
     });
+
+
+    function cargarFormularioEdicion(id) {
+        $.ajax({
+            url: 'formEditar.php',
+            type: 'POST',
+            data: { id: id },
+            success: function(response) {
+                $('formEditar').html(response);
+                $('#formEditar').show();
+            }
+        });
+    }
+
  </script>

@@ -492,6 +492,8 @@ class AdminController extends Controllers
 			header("Location: "._DOMINIO_._ADMIN_);
 		});
 
+
+
 		/**
 		 * SECCIONES DEMO
 		 */
