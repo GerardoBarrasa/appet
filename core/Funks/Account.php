@@ -46,14 +46,6 @@ class Account
         return Bd::getInstance()->update('account', $updAccount, "id = " . (int)$id_account);
     }
 
-    public static function disableAccount($id_account)
-    {
-        if (!isset($_SESSION['admin_panel'])) {
-            echo "<script>alert('Eres inferior a este usuario, imposible desactivar su cuenta.')</script>";
-        } else
-            return Bd::getInstance()->update("UPDATE account SET estado = 0 WHERE id =$id_account");
-    }
-
     public static function crearAccount($addAccount)
     {
         return Bd::getInstance()->insert('account', $addAccount);

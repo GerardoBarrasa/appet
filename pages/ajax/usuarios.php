@@ -1,3 +1,5 @@
+<?php include 'Account.php';?>
+
 <div class="row">
 
 
@@ -16,6 +18,7 @@
                             <th>Credencial</th>
                             <th>Cuenta asociada</th>
                             <th>Fecha Creación</th>
+                            <th>Acciones</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -28,9 +31,10 @@
                             <td><?=$usuario->CREDENCIAL?></td>
                             <td><?=$usuario->ACNAME?></td>
                             <td><?=$usuario->DATE_CREATED?></td>
-                            <td><button type="button" class="btn-primary" >Desactivar</button> <button type="button" class="btn-primary" id="generarFormularioBtn">Editar</button></td>
+                            <td><button type="button" class="btn-primary" name="btn-disableAccount">Desactivar</button> <button type="button" class="btn-primary" onclick="cargarFormularioEdicion()">Editar</button></td>
 
                         </tr>
+
                         <?php }
                         }
                         else
@@ -47,17 +51,32 @@
                         </tbody>
                     </table>
 
-
-
-                </div>
-                <div id="formularioContainer"></div>
-                <!-- /.card-body -->
-            </div>
+                    <div class="formEditar" style="display: none;">
+                        <br>
+                        <form>
+                            <div class="form-group">
+                                <label for="correo">Correo:</label>
+                                <input type="email" class="form-control" id="correo" name="correo" placeholder="Correo electrónico">
+                            </div>
+                            <div class="form-group">
+                                <label for="credencial">Credencial:</label>
+                                <input type="text" class="form-control" id="credencial" name="credencial" placeholder="Credencial">
+                            </div>
+                            <div class="form-group">
+                                <label for="cuentaAsociada">Cuenta Asociada:</label>
+                                <input type="text" class="form-control" id="cuentaAsociada" name="cuentaAsociada" placeholder="Cuenta Asociada">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        </form>
+                    </div>
             <!-- /.card -->
         </div>
 
 
+
+
 </div>
+
 <div class="row">
 	<div class="col-sm-6">
 		<div class="dataTables_info">

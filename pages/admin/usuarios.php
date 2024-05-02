@@ -34,17 +34,14 @@
 
     });
 
+    function cargarFormularioEdicion() {
+        let container = document.querySelector('.formEditar');
 
-    function cargarFormularioEdicion(id) {
-        $.ajax({
-            url: 'formEditar.php',
-            type: 'POST',
-            data: { id: id },
-            success: function(response) {
-                $('formEditar').html(response);
-                $('#formEditar').show();
-            }
-        });
+        if (container.style.display === "none") {
+            container.style.display = "block";
+        } else {
+            container.style.display = "none";
+        }
     }
 
  </script>
