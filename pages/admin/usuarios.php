@@ -31,5 +31,17 @@
 <script>
     $(document).ready(function(){
         ajax_get_usuarios(<?=$comienzo;?>,<?=$limite;?>,<?= $pagina;?>);
+
     });
+
+    function cargarFormularioEdicion() {
+        let container = document.querySelector('.formEditar');
+
+        if (container.style.display === "none") {
+            container.style.display = "block";
+        } else {
+            container.style.display = "none";
+        }
+    }
+
  </script>

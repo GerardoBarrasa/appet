@@ -492,6 +492,18 @@ class AdminController extends Controllers
 			header("Location: "._DOMINIO_._ADMIN_);
 		});
 
+        $this->add('btn-disableAccount',function($id_account)
+		{
+            if (!isset($_SESSION['admin_panel'])) {
+                echo "<script>alert('Eres inferior a este usuario, imposible desactivar su cuenta.')</script>";
+            } else {
+                 Bd::getInstance()->update("UPDATE account SET estado = 0 WHERE id = $id_account");
+            }
+			header("Location: "._DOMINIO_._ADMIN_);
+		});
+
+
+
 		/**
 		 * SECCIONES DEMO
 		 */
