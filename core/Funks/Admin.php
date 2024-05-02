@@ -4,7 +4,7 @@ class Admin
 {
   	public static function login($usuario, $password)
 	{
-		$datos = Bd::getInstance()->fetchRow("SELECT * FROM usuarios WHERE email='".$usuario."' AND password='".$password."'");
+		$datos = Bd::getInstance()->fetchRow("SELECT * FROM usuarios WHERE email='".$usuario."' AND password='".$password."' AND estado=1");
 
 		if( $datos )
 		{
@@ -81,19 +81,9 @@ class Admin
 		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios WHERE 1 AND email='$email'");
 	}
 
-	public static function actualizarUsuario()
+	public static function actualizarUsuario($id, $updUsuario)
 	{
-		$updUsuario = array(
-			'nombre' => Tools::getValue('nombre'),
-			'email'  => Tools::getValue('email')
-		);
-
-		$password = Tools::getValue('password', '');
-
-		if( !empty($password) && strlen($password) > 0 )
-			$updUsuario['password'] = Tools::md5($password);
-
-		return Bd::getInstance()->update('usuarios', $updUsuario, "id = ".(int)Tools::getValue('id'));
+		return Bd::getInstance()->update('usuarios', $updUsuario, "id = ".(int)$id);
 	}
 
 	public static function crearUsuario($addUsuario)

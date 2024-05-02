@@ -1,5 +1,3 @@
-<?php include 'Account.php';?>
-
 <div class="row">
 
 
@@ -14,11 +12,11 @@
                     <table class="table table-bordered table-striped">
                         <thead>
                         <tr>
-                            <th>Correo</th>
-                            <th>Credencial</th>
-                            <th>Cuenta asociada</th>
-                            <th>Fecha Creación</th>
-                            <th>Acciones</th>
+                            <th class="text-center">Correo</th>
+                            <th class="text-center">Credencial</th>
+                            <th class="text-center">Cuenta asociada</th>
+                            <th class="text-center">Fecha Creación</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -31,7 +29,14 @@
                             <td><?=$usuario->CREDENCIAL?></td>
                             <td><?=$usuario->ACNAME?></td>
                             <td><?=$usuario->DATE_CREATED?></td>
-                            <td><button type="button" class="btn-primary" name="btn-disableAccount">Desactivar</button> <button type="button" class="btn-primary" onclick="cargarFormularioEdicion()">Editar</button></td>
+                            <td class="text-center">
+                                <a class="btn btn-<?=$usuario->estado=='1'?'success':'danger'?><?= $_SESSION['admin_panel']->id != $usuario->id ?'' : ' disabled'?>" title="<?=$usuario->estado=='0'?'Desactivar':'Activar'?>" <?= $_SESSION['admin_panel']->id != $usuario->id ?' onclick="ajax_updateUserField(\''.$usuario->id.'\',\'estado\',\''.$usuario->estado.'\')"' : ''?>>
+                                    <i class="fa fa-<?=$usuario->estado=='1'?'check':'times'?>"></i>
+                                </a>
+                                <a href="<?=_DOMINIO_ . _ADMIN_?>usuario/<?=$usuario->id?>/" class="btn btn-primary" title="Editar">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                            </td>
 
                         </tr>
 
@@ -51,24 +56,6 @@
                         </tbody>
                     </table>
 
-                    <div class="formEditar" style="display: none;">
-                        <br>
-                        <form>
-                            <div class="form-group">
-                                <label for="correo">Correo:</label>
-                                <input type="email" class="form-control" id="correo" name="correo" placeholder="Correo electrónico">
-                            </div>
-                            <div class="form-group">
-                                <label for="credencial">Credencial:</label>
-                                <input type="text" class="form-control" id="credencial" name="credencial" placeholder="Credencial">
-                            </div>
-                            <div class="form-group">
-                                <label for="cuentaAsociada">Cuenta Asociada:</label>
-                                <input type="text" class="form-control" id="cuentaAsociada" name="cuentaAsociada" placeholder="Cuenta Asociada">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                        </form>
-                    </div>
             <!-- /.card -->
         </div>
 

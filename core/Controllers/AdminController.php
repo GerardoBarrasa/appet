@@ -24,6 +24,8 @@ class AdminController extends Controllers
 		Tools::registerStylesheet(_ASSETS_._ADMIN_.'plugins/overlayScrollbars/css/OverlayScrollbars.min.css');
         /* Theme style */
 		Tools::registerStylesheet(_ASSETS_._ADMIN_.'dist/css/adminlte.min.css');
+        /* Custom style */
+		Tools::registerStylesheet(_ASSETS_._ADMIN_.'dist/css/style.min.css');
 
         // Cargamos javascripts comunes a todo el back-end
 
@@ -451,7 +453,7 @@ class AdminController extends Controllers
 			Render::adminPage('usuarios', $data);
 		});
 
-		$this->add('usuario-admin',function()
+		$this->add('usuario',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
 				header("Location: "._DOMINIO_._ADMIN_);
@@ -461,15 +463,25 @@ class AdminController extends Controllers
 
 			if( Tools::getIsset('submitUpdateUsuarioAdmin') )
 			{
-				Admin::actualizarUsuario();
+                $updUsuario = array(
+                    'nombre' => Tools::getValue('nombre'),
+                    'email'  => Tools::getValue('email')
+                );
+
+                $password = Tools::getValue('password', '');
+
+                if( !empty($password) && strlen($password) > 0 )
+                    $updUsuario['password'] = Tools::md5($password);
+
+				Admin::actualizarUsuario($usuarioId, $updUsuario);
 				Tools::registerAlert("El usuario ha sido modificado satisfactoriamente", "success");
 			}
 
-			if( Tools::getIsset('submitCrearUsuarioAdmin') )
+			/*if( Tools::getIsset('submitCrearUsuarioAdmin') )
 			{
 				Admin::crearUsuario();
 				Tools::registerAlert("El usuario ha sido creado", "success");
-			}
+			}*/
 
 			Metas::$title = "Nuevo usuario";
 			if( $usuarioId !== 'new' ){
@@ -481,9 +493,7 @@ class AdminController extends Controllers
 				'usuario' => $usuario
 			);
 
-			Tools::registerStylesheet(_ASSETS_._ADMIN_.'select2/css/select2.min.css');
-			Tools::registerJavascript(_ASSETS_._ADMIN_.'select2/js/select2.min.js');
-			Render::adminPage('usuario_admin', $data);
+			Render::adminPage('usuario', $data);
 		});
 
 		$this->add('logout',function()

@@ -1,6 +1,8 @@
 var abortController = new AbortController();
 var signal = abortController.signal;
-
+$(document).ready(function() {
+    $('[data-toggle="tooltip"]').tooltip();
+});
 function ajax_get_usuarios( comienzo, limite, pagina )
 {
     let formData = new FormData($("#formFiltrosAdmin")[0]);
@@ -193,4 +195,28 @@ function afetch(url, options = {}, abortBeforeFetch = true)
         return fetch(url, mergedOptions);
     }
     return fetch(url, options);
+}
+
+function ajax_updateUserField(id, field, value){
+
+    var formData = new FormData();
+    formData.append('id', id);
+    formData.append('field', field);
+    formData.append('value', value);
+
+    console.log(formData);
+    afetch(
+        dominio+"adminajax/ajax-update-user-field/",
+        {
+            method: 'POST',
+            body: formData
+        }
+    )
+        .then((response) => response.json())
+        .then(data => {
+            if( data.type == 'success' )
+                location.reload();
+            else
+                swal.fire('Error', data.error, 'error');
+        });
 }

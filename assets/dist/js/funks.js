@@ -1,4 +1,5 @@
 $(document).ready(function(){
+	$('[data-toggle="tooltip"]').tooltip();
 	$('body').on('click', '#trigger_get', function(){
 		afetch(
 			dominio+'ajax/ajax-test-get/',

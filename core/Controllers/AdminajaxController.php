@@ -214,6 +214,40 @@ class AdminajaxController extends Controllers
 			die(json_encode($response));
 		});
 
+
+        $this->add('ajax-update-user-field', function()
+        {
+            __log_error($_POST);
+            $id		= Tools::getValue('id');
+            $field  = Tools::getValue('field');
+            $value	= Tools::getValue('value');
+
+            if($field == 'estado'){
+                $value = ($value == '1') ? '0' : '1';
+            }
+            $updUsuario = array(
+                $field => $value
+            );
+
+            $update = Admin::actualizarUsuario( $id, $updUsuario );
+
+            if(!$update)
+            {
+                $response = array(
+                    'type' => 'error',
+                    'error' => 'No se ha podido actualizar el campo'
+                );
+            }
+            else
+            {
+                $response = array(
+                    'type' => 'success'
+                );
+            }
+
+            die(json_encode($response));
+        });
+
 		if( !$this->getRendered() )
 		{
 			header('HTTP/1.1 404 Not Found');
