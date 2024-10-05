@@ -4,7 +4,7 @@ class Redsys
 {
 	public static function tpvPay($total_pedido,$id_pedido_tmp)
 	{
-		$idioma = Idiomas::getLangBySlug($_SESSION['lang']);
+		$idioma = Idiomas::getLangBySlug($_SESSION['lang']->slug);
 		$id_idioma = '0';
 		if( $idioma->id == 1 )
 			$id_idioma = '1';
@@ -23,8 +23,8 @@ class Redsys
 		$Ds_Merchant_Terminal = '001';
 		$Ds_Merchant_MerchantURL = _DOMINIO_.'confirma-tpv.php';
 		$Ds_Merchant_Url = tpv_url;
-		$Ds_Merchant_UrlOK = Slugs::getCurrentSlugByModId('confirmacion-reserva');
-		$Ds_Merchant_UrlKO = Slugs::getCurrentSlugByModId('error-pago');
+		$Ds_Merchant_UrlOK = Slugs::getCurrentSlugByModId('confirmacion-reserva', 1);
+		$Ds_Merchant_UrlKO = Slugs::getCurrentSlugByModId('error-pago', 1);
 		$signatureKey = tpv_clave;
 
 		$miObj->setParameter("DS_MERCHANT_AMOUNT", (string)$Ds_Merchant_Amount);

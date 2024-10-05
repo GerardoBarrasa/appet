@@ -45,9 +45,6 @@ class Bd
 		$this->link = new mysqli($this->server, $this->user, $this->password, $this->database) or Debug::mlog(time(),'','Error al conectar con base de datos');
 		if( $this->link->connect_error )
 			die('Error al conectar con base de datos. '.$this->link->connect_error);
-
-        mysqli_set_charset($this->link, 'utf8');
-        mysqli_report(MYSQLI_REPORT_OFF);
 		return $this->link;
 	}
 
@@ -71,11 +68,8 @@ class Bd
 
 			if( $q )
 				Debug::mlog(time(),$sql,'Ejecutada correctamente');	
-			else {
-                $message = "Error en la consulta: ".$sql.' - '.mysqli_error($l);
-                __log_error($message, 99);
-                Debug::mlog(time(), $sql, mysqli_error($l));
-            }
+			else
+				Debug::mlog(time(),$sql,mysqli_error($l));	
 
 			return $q;
 		}
@@ -84,11 +78,11 @@ class Bd
 	}
 
 	public function execute($sql)
-    {
-        $q = $this->query($sql);
+	{
+		$q = $this->query($sql);
 
-        return (bool) $q;
-    }
+		return (bool) $q;
+	}
 
 	public function getResponse($sql)
 	{
@@ -194,13 +188,19 @@ class Bd
 
 	/* Inserta */
 	public function insert($table,$array)
-	{	
+	{
 		$names = '';
 		$values = '';
 		foreach( $array as $key => $val )
 		{
-			$names .= $key.',';	
-			$values .= ( $val == 'SYSDATE()' ) ? 'SYSDATE(),' : '"'.$val.'",';	
+			$names .= $key.',';
+			if( $val === null )
+				$val = 'NULL,';
+			elseif( $val == 'SYSDATE()' )
+				$val = $val.',';
+			else
+				$val = '"'.$val.'",';
+			$values .= $val;
 		}
 		$names = substr($names,0,strlen($names)-1);
 		$values = substr($values,0,strlen($values)-1);
@@ -211,18 +211,43 @@ class Bd
 
 	/* Actualiza */
 	public function update($table,$array,$where)
-	{	
+	{
 		$names = '';
 		foreach( $array as $key => $val )
 		{
-			if( !empty($val) || (isset($val) && $val == 0) )
-				$value = ( $val == 'SYSDATE()' ) ? 'SYSDATE(), ' : '"'.$val.'", ';
+			if( !empty($val) || (isset($val) && ($val === 0 || $val === '')) )
+				$value = ( $val === 'SYSDATE()' ) ? 'SYSDATE(), ' : '"'.$val.'", ';
 			else 
 				$value = 'NULL, ';
 			$names .= $key.'='.$value;	
 		}
 		$names = substr($names,0,strlen($names)-2);
 		$sql = 'UPDATE '.$table.' SET '.$names.' WHERE '.$where;
-		return $this->query($sql);
-	}	
+		return (bool) $this->query($sql);
+	}
+
+	public function _escape($string)
+	{
+		return $this->link->real_escape_string($string);
+	}
+
+	public function escape($string, $html_ok = false, $bq_sql = false)
+	{
+		if( !is_numeric($string) )
+		{
+			$string = $this->_escape($string);
+			if( !$html_ok )
+				$string = strip_tags(Tools::nl2br($string));
+			if( $bq_sql === true )
+				$string = str_replace('`', '\`', $string);
+		}
+		return $string;
+	}
+
+	public function delete($table, $where = '', $limit = 0)
+	{
+		$sql = 'DELETE FROM `' . bqSQL($table) . '`' . ($where ? ' WHERE ' . $where : '') . ($limit ? ' LIMIT ' . (int) $limit : '');
+		$res = $this->query($sql);
+		return (bool) $res;
+	}
 }

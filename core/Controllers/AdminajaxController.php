@@ -10,8 +10,14 @@ class AdminajaxController extends Controllers
 	{
 		Render::$layout = false;
 
-		$this->add('ajax-get-usuarios',function()
+		$this->add('ajax-get-usuarios-admin',function()
 		{
+			if( !Admin::checkAccess($_SESSION['admin_panel']->id_usuario_admin, 'ACCESS_USUARIOS_ADMIN') )
+			{
+				header('HTTP/1.1 403 Forbidden');
+				exit;
+			}
+
 			$comienzo		= Tools::getValue('comienzo');
 			$limite 		= Tools::getValue('limite');
 			$pagina			= Tools::getValue('pagina');
@@ -26,7 +32,7 @@ class AdminajaxController extends Controllers
 				'total' 	=> $usuarios['total']
 			);
 
-			$html = Render::getAjaxPage('usuarios',$data);
+			$html = Render::getAjaxPage('admin_usuarios_admin',$data);
 
 			if( !empty($html) )
 			{
@@ -46,44 +52,14 @@ class AdminajaxController extends Controllers
 			die(json_encode($response));
 		});
 
-        $this->add('ajax-get-accounts',function()
-        {
-            $comienzo		= Tools::getValue('comienzo');
-            $limite 		= Tools::getValue('limite');
-            $pagina			= Tools::getValue('pagina');
-
-            $accounts = Admin::getAccountsWithFiltros( $comienzo, $limite, true );
-
-            $data = array(
-                'comienzo'  => $comienzo,
-                'limite' 	=> $limite,
-                'pagina' 	=> $pagina,
-                'accounts'  => $accounts['listado'],
-                'total' 	=> $accounts['total']
-            );
-
-            $html = Render::getAjaxPage('accounts',$data);
-
-            if( !empty($html) )
-            {
-                $response = array(
-                    'type' => 'success',
-                    'html' => $html
-                );
-            }
-            else
-            {
-                $response = array(
-                    'type' => 'error',
-                    'html' => 'Hubo un error cargando el html'
-                );
-            }
-
-            die(json_encode($response));
-        });
-
 		$this->add('ajax-get-idiomas-admin',function()
 		{
+			if( !Admin::checkAccess($_SESSION['admin_panel']->id_usuario_admin, 'ACCESS_IDIOMAS') )
+			{
+				header('HTTP/1.1 403 Forbidden');
+				exit;
+			}
+
 			$comienzo		= Tools::getValue('comienzo');
 			$limite 		= Tools::getValue('limite');
 			$pagina			= Tools::getValue('pagina');
@@ -123,6 +99,12 @@ class AdminajaxController extends Controllers
 		//Funcion que devuelve los slugs filtrados
 		$this->add('ajax-get-slugs-filtered',function()
 		{
+			if( !Admin::checkAccess($_SESSION['admin_panel']->id_usuario_admin, 'ACCESS_SLUGS') )
+			{
+				header('HTTP/1.1 403 Forbidden');
+				exit;
+			}
+
 			//Variables default
 			$comienzo 		= Tools::getValue('comienzo');
 			$limite 		= Tools::getValue('limite');
@@ -161,6 +143,12 @@ class AdminajaxController extends Controllers
 
 		$this->add('ajax-get-traductions-filtered', function()
 		{
+			if( !Admin::checkAccess($_SESSION['admin_panel']->id_usuario_admin, 'ACCESS_TRADUCCIONES') )
+			{
+				header('HTTP/1.1 403 Forbidden');
+				exit;
+			}
+
 			$comienzo		= Tools::getValue('comienzo');
 			$limite 		= Tools::getValue('limite');
 			$pagina			= Tools::getValue('pagina');
@@ -195,13 +183,55 @@ class AdminajaxController extends Controllers
 			die(json_encode($response));
 		});
 
+		$this->add('ajax-get-perfiles', function()
+		{
+			if( !Admin::checkAccess($_SESSION['admin_panel']->id_usuario_admin, 'ACCESS_PERMISOS') )
+			{
+				header('HTTP/1.1 403 Forbidden');
+				exit;
+			}
+
+			$comienzo		= Tools::getValue('comienzo');
+			$limite 		= Tools::getValue('limite');
+			$pagina			= Tools::getValue('pagina');
+			
+			$perfiles = Admin::getPerfiles( $comienzo, $limite, true );
+
+			$data = array(
+				'comienzo'  => $comienzo,
+				'limite' 	=> $limite,
+				'pagina' 	=> $pagina,
+				'perfiles'  => $perfiles['listado'],
+				'total' 	=> $perfiles['total']
+			);
+
+			$html = Render::getAjaxPage('admin_perfiles',$data);
+
+			if( !empty($html) )
+			{
+				$response = array(
+					'type' => 'success',
+					'html' => $html
+				);
+			}
+			else
+			{
+				$response = array(
+					'type' => 'error',
+					'html' => 'Hubo un error cargando el html'
+				);
+			}
+
+			die(json_encode($response));
+		});
+
 		$this->add('ajax-eliminar-registro',function()
 		{
 			$id = Tools::getValue('id');
 			$modelo = Tools::getValue('modelo');
 			$response = array(
 				'type' => 'error',
-				'error' => 'No se ha podido eliminar el registro'
+				'error' => l('admin-eliminar-registro-ko')
 			);
 
 			if( method_exists($modelo, 'eliminarRegistro') && $modelo::eliminarRegistro($id) )
@@ -213,40 +243,6 @@ class AdminajaxController extends Controllers
 			
 			die(json_encode($response));
 		});
-
-
-        $this->add('ajax-update-user-field', function()
-        {
-            __log_error($_POST);
-            $id		= Tools::getValue('id');
-            $field  = Tools::getValue('field');
-            $value	= Tools::getValue('value');
-
-            if($field == 'estado'){
-                $value = ($value == '1') ? '0' : '1';
-            }
-            $updUsuario = array(
-                $field => $value
-            );
-
-            $update = Admin::actualizarUsuario( $id, $updUsuario );
-
-            if(!$update)
-            {
-                $response = array(
-                    'type' => 'error',
-                    'error' => 'No se ha podido actualizar el campo'
-                );
-            }
-            else
-            {
-                $response = array(
-                    'type' => 'success'
-                );
-            }
-
-            die(json_encode($response));
-        });
 
 		if( !$this->getRendered() )
 		{

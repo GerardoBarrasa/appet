@@ -1,4 +1,8 @@
 <?php return array (
+  'Cache' => 
+  array (
+    'path' => 'App/Cache.php'
+  ),
   'Debug' => 
   array (
     'path' => 'App/Debug.php'
@@ -43,6 +47,18 @@
   array (
     'path' => 'App/Render.php'
   ),
+  'ObjectModel' => 
+  array (
+    'path' => 'App/ObjectModel.php'
+  ),
+  'Validate' => 
+  array (
+    'path' => 'App/Validate.php'
+  ),
+  'CoreException' => 
+  array (
+    'path' => 'App/CoreException.php'
+  ),
   'Controllers' => 
   array (
     'path' => 'Controllers/Controllers.php'
@@ -79,8 +95,20 @@
   array (
     'path' => 'Funks/Admin.php'
   ),
+  'TextosLegales' => 
+  array (
+    'path' => 'Funks/TextosLegales.php'
+  ),
+  'TextosEmails' => 
+  array (
+    'path' => 'Funks/TextosEmails.php'
+  ),
   'Miprimeraclase' => 
   array (
     'path' => 'Funks/Miprimeraclase.php'
+  ),
+  'ClienteTest' => 
+  array (
+    'path' => 'Funks/ClienteTest.php'
   ),
 ); ?>

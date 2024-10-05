@@ -17,7 +17,6 @@ class Controllers
 		//Controlador
 		$controller = Tools::getValue('controller', $this->defaultController);
 
-
 		if( $controller == 'default' || $controller == 'admin' )
 		{
 			if( $controller == 'default' )
@@ -80,40 +79,35 @@ class Controllers
 			//Obtenemos el parametro idioma de la URL.
 			$lang = Tools::getValue('lang');
 
-			//Comprobamos que exista el idioma, si no redirigimos al idioma defecto o al de la sesion.
+			//Comprobamos que exista el idioma, sino redirigimos al idioma defecto o al de la sesion.
 			$language = Idiomas::getLangBySlug($lang);
 
-			//Si el idioma existe, actualizamos la sesion, pero si no existe comprobamos si existe la sesion para redirigir a la home o redirigir a la home con el idioma default.
-			if($language)
+			//Si el idioma existe y el idioma del slug de la URL no es el mismo que en la sesión actual actualizamos la sesion, pero si no existe comprobamos si existe la sesion para redirigir a la home o redirigir a la home con el idioma default.
+			if( $language && $language->id != $_SESSION['lang']->id )
 			{
-				$_SESSION['id_lang'] = $language->id;
-				$_SESSION['lang'] = $lang;
+				$_SESSION['lang'] = $language;
 			}
-			else{
-
+			elseif( empty($language) )
+			{
 				//Si el idioma indicado en la URL es erróneo, pasamos a comprobar si existe la sesion de idioma para redirigir a la home.
-				if(isset($_SESSION['lang'])){
-					header('Location: ' . _DOMINIO_.$_SESSION['lang'].'/');
-				}
-				else{
-					$defaultLang 		= Idiomas::getDefaultLanguage();
-					$_SESSION['id_lang'] = $defaultLang->id;
-					$_SESSION['lang'] 	= $defaultLang->slug;
-					header('Location: ' . _DOMINIO_.$defaultLang->slug.'/');
+				if(!empty($_SESSION['lang']))
+					Tools::redirect($_SESSION['lang']->slug.'/');
+				else
+				{
+					Idiomas::setLanguage();
+					Tools::redirect($_SESSION['lang']->slug.'/');
 				}
 			}
 		}
 		//Si no hay idioma indicado en la URL, pasamos a comprobar si existe la sesion de idioma para redirigir a la home.
 		else
 		{
-			if(isset($_SESSION['lang'])){
-				header('Location: ' . _DOMINIO_.$_SESSION['lang'].'/');
-			}
-			else{
-				$defaultLang 		= Idiomas::getDefaultLanguage();
-				$_SESSION['id_lang'] = $defaultLang->id;
-				$_SESSION['lang'] 	= $defaultLang->slug;
-				header('Location: ' . _DOMINIO_.$defaultLang->slug.'/');
+			if(!empty($_SESSION['lang']))
+				Tools::redirect($_SESSION['lang']->slug.'/');
+			else
+			{
+				Idiomas::setLanguage();
+				Tools::redirect($_SESSION['lang']->slug.'/');
 			}
 		}
 	}
@@ -149,29 +143,37 @@ class Controllers
 
 	protected function loadTraducciones()
 	{
-		Traducciones::loadTraducciones($_SESSION['id_lang']);
+		Traducciones::loadTraducciones($_SESSION['lang']->id);
 	}
 
 	protected function loadTraduccionesAdmin()
 	{
-		if( !isset($_SESSION['admin_id_lang']) || empty($_SESSION['admin_id_lang']) )
+		if( !empty($_SESSION['admin_panel']) )
+			$_SESSION['admin_lang'] = Idiomas::getLanguages($_SESSION['admin_panel']->id_lang);
+
+		if( empty($_SESSION['admin_lang']) )
 		{
-			$iso_code = _DEFAULT_LANGUAGE_;
+			$iso_code = false;
 			if( !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) )
 			{
 				$langNavegador = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
 				$idiomasDisponibles = Idiomas::getLanguagesVisiblesArray();
-				$iso_code = in_array($langNavegador, $idiomasDisponibles) ? $langNavegador : _DEFAULT_LANGUAGE_;
+				$iso_code = in_array($langNavegador, $idiomasDisponibles) ? $langNavegador : false;
 			}
 			else
-				$_SESSION['admin_id_lang'] = _DEFAULT_LANGUAGE_;
+				$_SESSION['admin_lang'] = self::getLanguages(Configuracion::get('default_language'));
 
-			$lang = Idiomas::getLangBySlug($iso_code);
-			if( !empty($lang) )
-				$_SESSION['admin_id_lang'] = $lang->id;
+			if( !empty($iso_code) )
+			{
+				$lang = Idiomas::getLangBySlug($iso_code);
+				if( !empty($lang) )
+					$_SESSION['admin_lang'] = $lang;
+				else
+					die('Idioma inválido.');
+			}
 			else
-				die('Idioma inválido.');
+				$_SESSION['admin_lang'] = self::getLanguages(Configuracion::get('default_language'));
 		}
-		Traducciones::loadTraducciones($_SESSION['admin_id_lang']);
+		Traducciones::loadTraducciones($_SESSION['admin_lang']->id);
 	}
 }

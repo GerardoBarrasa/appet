@@ -10,6 +10,13 @@ class AjaxController extends Controllers
 	{
 		Render::$layout = false;
 
+		if( !empty(Configuracion::get('modo_mantenimiento', '0')) )
+		{
+			header('HTTP/1.1 503 Service Temporarily Unavailable');
+			header('Status: 503 Service Temporarily Unavailable');
+			die;
+		}
+
 		$this->add('ajax-test-get',function()
 		{
 			$data = array(

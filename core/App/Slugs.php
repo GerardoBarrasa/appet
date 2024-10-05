@@ -10,9 +10,6 @@ class Slugs
     //Funcion que devuelve los slugs filtrados
     public static function getSlugsFiltered($comienzo, $limite, $applyLimit=true)
     {
-        //Obtenemos idioma default.
-        $lang = Idiomas::getDefaultLanguage();
-
         //Obtenemos variables de filtros
         $filter_busqueda    = (isset($_REQUEST['busqueda'])) ? Tools::getValue('busqueda', '') : '';
         $filter_page        = (isset($_REQUEST['page'])) ? Tools::getValue('page', '') : '';
@@ -27,7 +24,7 @@ class Slugs
             $whereLang = " AND id_language = '".$filter_id_language."'";
         else{
             if($filter_page == '' && $filter_busqueda == '')
-                $whereLang = " AND id_language = '".$lang->id."'";
+                $whereLang = " AND id_language = '".Configuracion::get('default_language')."'";
         }
 
         $whereBusqueda = '';
@@ -77,7 +74,7 @@ class Slugs
 	public static function getPageDataBySlug($slug)
 	{
 		//Buscamos la pagina solo si existe idioma session
-		if(isset($_SESSION['lang']))
+		if(!empty($_SESSION['lang']))
 		{
 			//Buscamos la pagina
 			$datos = Bd::getInstance()->fetchRow('
@@ -88,7 +85,7 @@ class Slugs
 				AND id_language = (
 					SELECT id
 					FROM idiomas
-					WHERE slug = "'.$_SESSION['lang'].'"
+					WHERE slug = "'.$_SESSION['lang']->slug.'"
 				)
 			');
 
@@ -105,7 +102,7 @@ class Slugs
     public static function getPageDataByModId($mod_id)
     {
         //Buscamos la pagina solo si existe idioma session
-        if(isset($_SESSION['lang']))
+        if(!empty($_SESSION['lang']))
         {
             //Buscamos la pagina
             $datos = Bd::getInstance()->fetchRow('
@@ -113,12 +110,8 @@ class Slugs
                 FROM slugs
                 WHERE status = "active"
                 AND mod_id = "'.$mod_id.'"
-                AND id_language = (
-                    SELECT id
-                    FROM idiomas
-                    WHERE slug = "'.$_SESSION['lang'].'"
-                )
-            ');
+                AND id_language = '.(int)$_SESSION['lang']->id
+            );
 
             if(!empty($datos))
                 return $datos;
@@ -182,7 +175,7 @@ class Slugs
     public static function getModBySlug($slug)
     {
         //Buscamos la pagina solo si existe idioma session
-        if(isset($_SESSION['lang']))
+        if(!empty($_SESSION['lang']))
         {
             //Buscamos la pagina
             $datos = Bd::getInstance()->fetchRow('
@@ -190,12 +183,8 @@ class Slugs
                 FROM slugs
                 WHERE status = "active"
                 AND slug = "'.$slug.'"
-                AND id_language = (
-                    SELECT id
-                    FROM idiomas
-                    WHERE slug = "'.$_SESSION['lang'].'"
-                )
-            ');
+                AND id_language = '.(int)$_SESSION['lang']->id
+            );
 
             if(!empty($datos))
                 return $datos;
@@ -207,37 +196,21 @@ class Slugs
     }
 
     //Funcion que devuelve el slug, en base al idioma de sesion y un "mod_id".
-    public static function getSlugByModId($mod_id)
+    public static function getSlugByModId($mod_id, $id_lang=false)
     {
-        //Buscamos la pagina solo si existe idioma session
-        if(isset($_SESSION['lang']))
-        {
-            //Buscamos la pagina
-            $datos = Bd::getInstance()->fetchRow('
-                SELECT slug
-                FROM slugs
-                WHERE status = "active"
-                AND mod_id = "'.$mod_id.'"
-                AND id_language = (
-                    SELECT id
-                    FROM idiomas
-                    WHERE slug = "'.$_SESSION['lang'].'"
-                )
-            ');
-
-            if(!empty($datos))
-                return $datos->slug;
-            else
-                return false;
-        }
-        else
-            return false;
+        return Bd::getInstance()->fetchValue('
+            SELECT slug
+            FROM slugs
+            WHERE status = "active"
+            AND mod_id = "'.$mod_id.'"
+            AND id_language = '.(int)$id_lang.'
+        ');
     }
 
-    public static function getCurrentSlugByModId($mod_id, $prefix_domain = true)
+    public static function getCurrentSlugByModId($mod_id, $id_lang, $prefix_domain = true)
     {
-        $slug = self::getSlugByModId($mod_id);
-        return !empty($slug) ? ($prefix_domain ? _DOMINIO_ : '').$_SESSION['lang'].'/'.$slug.'/' : $slug;
+        $slug = self::getSlugByModId($mod_id, $id_lang);
+        return !empty($slug) ? ($prefix_domain ? _DOMINIO_ : '').Idiomas::getSlugById($id_lang).'/'.$slug.'/' : $slug;
     }
 
     //Funcion que devuelve el slug traducido al idioma.

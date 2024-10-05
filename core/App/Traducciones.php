@@ -13,11 +13,12 @@ class Traducciones
 		return empty($result) ? false : true;
 	}
 
-	public static function crearTraduccion($shortcode, $id_lang, $texto)
+	public static function crearTraduccion($shortcode, $id_lang, $texto, $zona = '')
 	{
 		$bdInstance = Bd::getInstance();
 		$addTraduccion = array(
-			'shortcode' => $shortcode
+			'shortcode' => $shortcode,
+			'zona' => $zona
 		);
 
 		$bdInstance->insert('traducciones', $addTraduccion);
@@ -32,7 +33,7 @@ class Traducciones
 				'texto' => ''
 			);
 			if( $idioma->id == $id_lang )
-				$addTraduccionIdioma['texto'] = $texto;
+				$addTraduccionIdioma['texto'] = addslashes($texto);
 
 			$bdInstance->insert('idiomas_traducciones', $addTraduccionIdioma);
 		}
@@ -40,12 +41,12 @@ class Traducciones
 		return $id_traduccion;
 	}
 
-	public static function actualizarTraduccion($id_traduccion, $shortcode, $textos)
+	public static function actualizarTraduccion($id_traduccion, $shortcode, $textos, $zona = '')
 	{
-		Bd::getInstance()->update('traducciones', array('shortcode' => $shortcode), 'id_traduccion = '.(int)$id_traduccion);
+		Bd::getInstance()->update('traducciones', array('shortcode' => $shortcode, 'zona' => $zona), 'id_traduccion = '.(int)$id_traduccion);
 
 		foreach( $textos as $id_lang => $texto )
-			Bd::getInstance()->update('idiomas_traducciones', array('texto' => $texto), 'id_traduccion = '.(int)$id_traduccion.' AND id_lang = '.(int)$id_lang);
+			Bd::getInstance()->update('idiomas_traducciones', array('texto' => addslashes($texto)), 'id_traduccion = '.(int)$id_traduccion.' AND id_lang = '.(int)$id_lang);
 	}
 
 	public static function getTraduccionById($id_traduccion)
@@ -59,6 +60,7 @@ class Traducciones
 				$finalResult->id_traduccion = $res->id_traduccion;
 				$finalResult->shortcode = $res->shortcode;
 				$finalResult->traducciones[$res->id_lang] = $res->texto;
+				$finalResult->zona = $res->zona;
 			}
 		}
 		return $finalResult;
@@ -81,6 +83,7 @@ class Traducciones
 		$busqueda = Tools::getValue('busqueda', '');
 		$translation_status	= Tools::getValue('translation_status');
 		$id_lang = Tools::getValue('id_lang');
+		$zona = Tools::getValue('zona', '0');
 		$search = "";
 		$limit = "";
 
@@ -92,6 +95,9 @@ class Traducciones
 
 		if( !empty($id_lang) )
 			$search .= " AND it.id_lang = ".(int)$id_lang;
+
+		if( $zona != '0' )
+			$search .= " AND t.zona = '".$zona."'";
 
 		if($applyLimit)
 			$limit = "LIMIT $comienzo, $limite";
@@ -124,7 +130,7 @@ class Traducciones
 
 	public static function loadTraducciones($id_lang)
 	{
-		$slug = Bd::getInstance()->fetchValue("SELECT slug FROM idiomas WHERE id = ".(int)$id_lang);
+		$slug = Idiomas::getSlugById($id_lang);
 		if( file_exists(_PATH_.'translations/'.$slug.'.php') )
 		{
 			$file_contents = file_get_contents(_PATH_.'translations/'.$slug.'.php');
@@ -132,11 +138,33 @@ class Traducciones
 			self::$traducciones = $traducciones;
 		}
 		else
-			die('Traducciones::loadTraducciones() idioma incorrecto: '.$slug);
+			die('Traducciones::loadTraducciones() idioma incorrecto');
 	}
 
 	public static function getTextoByShortcodeIdioma($shortcode, $id_lang)
 	{
-		return Bd::getInstance()->fetchValue("SELECT it.texto FROM idiomas_traducciones it LEFT JOIN traducciones t ON t.id_traduccion = it.id_traduccion AND t.shortcode = '".$shortcode."' WHERE it.id_lang = ".(int)$id_lang);
+		return Bd::getInstance()->fetchValue("SELECT it.texto FROM idiomas_traducciones it INNER JOIN traducciones t ON t.id_traduccion = it.id_traduccion AND t.shortcode = '".$shortcode."' WHERE it.id_lang = ".(int)$id_lang);
+	}
+
+	public static function generarTraduccionesVacias($id_lang)
+	{
+		$shortcodes = Traducciones::getShortcodes();
+		foreach( $shortcodes as $shortcode )
+		{
+			$addTraduccionIdioma = array(
+				'id_traduccion' => $shortcode->id_traduccion,
+				'id_lang' => $id_lang,
+				'texto' => ''
+			);
+
+			if( !Bd::getInstance()->insert('idiomas_traducciones', $addTraduccionIdioma) )
+				return false;
+		}
+		return true;
+	}
+
+	public static function getZonas()
+	{
+		return Bd::getInstance()->fetchObject("SELECT DISTINCT zona FROM traducciones ORDER BY zona ASC");
 	}
 }

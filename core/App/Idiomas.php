@@ -2,45 +2,53 @@
 
 class Idiomas
 {
+	protected static $_initialized = false;
+	protected static $_cache_ids = null;
+	protected static $_cache_slugs = null;
+
+	public static function loadIdiomas()
+	{
+		$idiomas = Bd::getInstance()->fetchObject('SELECT * FROM idiomas ORDER BY id ASC');
+		foreach( $idiomas as $idioma )
+		{
+			self::$_cache_ids[$idioma->id] = $idioma;
+			self::$_cache_slugs[$idioma->slug] = $idioma;
+		}
+		self::$_initialized = true;
+	}
+
 	public static function setLanguage()
 	{
-		if( !isset($_SESSION['lang']) || empty($_SESSION['lang']) )
+		if( empty($_SESSION['lang']) )
 		{
+			$defaultLanguage = self::getLanguages(Configuracion::get('default_language'));
 			if( !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) )
 			{
 				$langNavegador = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-				$idiomasDisponibles = self::getLanguagesVisiblesArray();
-				$_SESSION['lang'] = in_array($langNavegador, $idiomasDisponibles) ? $langNavegador : _DEFAULT_LANGUAGE_;
+				$idiomasDisponibles = self::getLanguagesVisibles();
+				foreach( $idiomasDisponibles as $id )
+				{
+					if( $id->slug == $langNavegador )
+					{
+						$_SESSION['lang'] = $id;
+						return;
+					}
+				}
 			}
-			else
-				$_SESSION['lang'] = _DEFAULT_LANGUAGE_;
+			$_SESSION['lang'] = $defaultLanguage;
 		}
-	}
-
-	public static function getDefaultLanguage()
-	{
-		$datos = Bd::getInstance()->fetchRow('SELECT * FROM idiomas WHERE isDefault = "1"');
-
-		if(!empty($datos))
-			return $datos;
-		else
-			return false;
 	}
 
 	//Funcion que devuelve el total de idiomas
 	public static function getLanguages($id="")
 	{
-		if( $id == "" )
-			return Bd::getInstance()->fetchObject('SELECT * FROM idiomas ORDER BY id ASC');
-		else
-		{
-			$datos = Bd::getInstance()->fetchObject('SELECT * FROM idiomas WHERE id = "'.$id.'"');
+		if( !self::$_initialized )
+			self::loadIdiomas();
 
-			if( count($datos) == 1 )
-				return $datos[0];
-			else
-				return false;
-		}
+		if( $id == "" )
+			return self::$_cache_ids;
+		else
+			return self::$_cache_ids[$id];
 	}
 
 	public static function getLanguagesAdminForm()
@@ -51,7 +59,14 @@ class Idiomas
 	//Funcion que devuelve el total de idiomas
 	public static function getLanguagesVisibles()
 	{
-		return Bd::getInstance()->fetchObject('SELECT * FROM idiomas WHERE visible = "1" ORDER BY id ASC');
+		if( !self::$_initialized )
+			self::loadIdiomas();
+
+		$idiomas = array();
+		foreach( self::$_cache_ids as $idioma )
+			if( !empty($idioma->visible) )
+				$idiomas[] = $idioma;
+		return $idiomas;
 	}
 
 	//Funcion que devuelve el total de idiomas
@@ -65,24 +80,12 @@ class Idiomas
 	}
 
 	//Funcion que devuelve idioma
-	public static function getLangBySlug($slug, $withName=false)
+	public static function getLangBySlug($slug)
 	{
-		if(!$withName)
-			$datos = Bd::getInstance()->fetchObject('SELECT * FROM idiomas WHERE slug = "'.$slug.'"');
-		else
-		{
-			$datos = Bd::getInstance()->fetchObject('
-				SELECT l.*, l.nombre as name
-				FROM idiomas l
-				WHERE l.slug = "'.$slug.'"
-				GROUP BY l.id
-			');
-		}
+		if( !self::$_initialized )
+			self::loadIdiomas();
 
-		if( count($datos) == 1 )
-			return $datos[0];
-		else
-			return false;
+		return isset(self::$_cache_slugs[$slug]) ? self::$_cache_slugs[$slug] : false;
 	}
 
 	public static function getIdiomasWithFiltros($comienzo, $limite, $applyLimit=true)
@@ -93,121 +96,70 @@ class Idiomas
 		if($applyLimit)
 			$limit = "LIMIT $comienzo, $limite";
 
-		return Bd::getInstance()->fetchObject("SELECT * FROM idiomas WHERE 1=1 ORDER BY nombre ASC $limit");
+		return Bd::getInstance()->fetchObject("SELECT * FROM idiomas WHERE 1=1 ORDER BY visible DESC, nombre ASC $limit");
 	}
 
-	//Funcion que crea/actualiza un idioma
-	public static function administrarIdioma()
+	public static function crearIdioma()
 	{
-		//ID producto
-		$id = Tools::getValue('id');
-		$msg = "ok";
+		$ruta_img = Tools::uploadImage('assets/img/flags/', 'icon', Tools::getValue('slug').'-flag-'.time());
 
-		//Obtenemos los datos del idioma (si es update)
-		if( $id != '0' )
-			$datos = self::getLanguages($id);
-
-		$upd['nombre'] 			= Tools::getValue('nombre');
-		$upd['slug'] 			= Tools::getValue('slug');
-		$upd['colour'] 			= Tools::getValue('colour');
-		$upd['visible'] 		= (isset($_REQUEST['visible'])) ? '1' : '0';
-
-		if( $upd['nombre'] != "" )
+		if( $ruta_img['type'] == 'success' )
 		{
-			if( $upd['slug'] != "" )
-			{
-				//Vamos a buscar otros idiomas con mismo slug
-				$datosLang = Bd::getInstance()->fetchObject('SELECT * FROM idiomas WHERE slug = "'.$upd['slug'].'"');
+			$addIdioma = array(
+				'nombre' => Tools::getValue('nombre'),
+				'slug' => Tools::getValue('slug'),
+				'colour' => Tools::getValue('colour'),
+				'visible' => isset($_REQUEST['visible']) ? '1' : '0',
+				'icon' => $ruta_img['data']
+			);
 
-				if( count($datosLang) > '0' && $id == '0' )
-				{
-					$msg = "La abreviatura que indicas ya está siendo usada en el idioma <strong>" . $datosLang[0]->nombre . "</strong>. <a href='"._ADMIN_."administrar-idioma/".$datosLang[0]->id."/' class='text-white'><u>Editar idioma</u></a>";
-				}
-
-				//Comprobamos color si no hay errores.
-				if( $msg == 'ok' )
-				{
-					if( empty($upd['colour']) )
-						$msg = "Especifica el color, coge por defecto <strong>primary</strong> si no sabes cual poner.";
-				}
-			}
-			else
-				$msg = "Debes indicar la abreviatura como mínimo para que el idioma sea funcional.";
+			if( Bd::getInstance()->insert('idiomas', $addIdioma) )
+				return Bd::getInstance()->lastId();
 		}
-		else
-			$msg = "Debes indicar el nombre del idioma";
+		elseif( $ruta_img['type'] == 'error' )
+			return false;
+		return false;
+	}
 
-		//Comprobamos si no tiene imagen destacada ya que sera obligatoria que suba
-		if( $msg == 'ok' )
+	public static function actualizarIdioma()
+	{
+		$datos = self::getLanguages(Tools::getValue('id'));
+
+		$updIdioma = array(
+			'nombre' => Tools::getValue('nombre'),
+			'slug' => Tools::getValue('slug'),
+			'colour' => Tools::getValue('colour'),
+			'visible' => isset($_REQUEST['visible']) ? '1' : '0'
+		);
+
+		if( isset($_FILES['icon']) && $_FILES['icon']['size'] > '0' )
 		{
-			if( isset($_FILES['icon']) && $_FILES['icon']['size'] > '0' )
+			$ruta_img = Tools::uploadImage('assets/img/flags/', 'icon', $updIdioma['slug'].'-flag-'.time());
+
+			if( $ruta_img['type'] == 'success' )
 			{
-				$imagenes 	= $_FILES['icon'];
-				$ruta_img = Tools::uploadImage('assets/img/flags/', 'icon', $upd['slug'].'-flag-'.time());
+				$updIdioma['icon'] = $ruta_img['data'];
 
-				//Guardamos las imagenes en la BD.
-				if( $ruta_img['type'] == 'success' )
-				{
-					$upd['icon'] 	= $ruta_img['data'];
-
-					//Comrpobamos si tenia imagen destacada para eliminarla
-					if( isset($datos->icon) && $datos->icon != "" && file_exists(_PATH_.$datos->icon) )
-						unlink(_PATH_.$datos->icon);
-
-					$msg = "ok";
-				}
-				elseif( $ruta_img['type'] == 'error' )
-					$msg = $ruta_img['error'];
-			}
-			else
-			{
-				if( $id == '0' )
-					$msg = "No se ha seleccionado ninguna imagen de bandera y es obligatoria.";
+				if( isset($datos->icon) && $datos->icon != "" && file_exists(_PATH_.$datos->icon) )
+					unlink(_PATH_.$datos->icon);
 			}
 		}
 
-		//Solo si es OK actualizamos
-		if( $msg == "ok" )
-		{
-			if( $id == '0' )
-			{
-				if( Bd::getInstance()->insert('idiomas', $upd) )
-				{
-					//Generamos todas las traducciones en blanco para el nuevo idioma
-					$createdLanguage = Bd::getInstance()->lastId();
-					$shortcodes = Traducciones::getShortcodes();
-					foreach( $shortcodes as $shortcode )
-					{
-						$addTraduccionIdioma = array(
-							'id_traduccion' => $shortcode->id_traduccion,
-							'id_lang' => $createdLanguage,
-							'texto' => ''
-						);
+		if( Bd::getInstance()->update('idiomas', $updIdioma, 'id = '.(int)$datos->id) )
+			return true;
+		return false;
+	}
 
-						Bd::getInstance()->insert('idiomas_traducciones', $addTraduccionIdioma);
-					}
-					return "ok";
-				}
-				else
-					return "Ha ocurrido un error interno al intentar crear el idioma. Inténtalo de nuevo y si el problema persiste comunícalo.";
-			}
-			else
-			{
-				//Si es update, y ha subido imagen, debemos actualizarla.
-				if( isset($upd['icon']) && $upd['icon'] != "" )
-				{
-					//Eliminamos la imagen que ya tenia
-					if( isset($datos->icon) && $datos->icon != "" && file_exists(_PATH_.$datos->icon) )
-						unlink(_PATH_.$datos->icon);
-				}
+	public static function getSlugById($id_lang)
+	{
+		if( !self::$_initialized )
+			self::loadIdiomas();
+		return self::$_cache_ids[$id_lang]->slug;
+	}
 
-				if( Bd::getInstance()->update('idiomas', $upd, "id = '".$id."'") )
-					return "ok";
-				else
-					return "Ha ocurrido un error interno al intentar guardar el idioma. Inténtalo de nuevo y si el problema persiste comunícalo.";
-			}
-		}
-		else
-			return $msg;
+	public static function getIDs()
+	{
+		$idiomas = self::getLanguages();
+		return array_keys(self::$_cache_ids);
 	}
 }

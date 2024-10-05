@@ -6,8 +6,6 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1.0">
 	<link rel="icon" type="image/x-icon" href="<?=_ASSETS_;?>img/favicon.ico">
 	<?php Metas::getMetas();?>
-	<?php Tools::loadFontawesome();?>
-	<?php Tools::loadBootstrap('css');?>
 	<?php include(_INCLUDES_.'stylesheets.php'); ?>
 	<script type="text/javascript">
 		const dominio = "<?=_DOMINIO_;?>";
@@ -20,7 +18,5 @@
 		<?php Render::getPage();?>
 	</main>
 	<?php include(_INCLUDES_.'javascript_bottom.php'); ?>
-	<?php Tools::loadBootstrap('js');?>
-	<script type="text/javascript" src="<?=_JS_;?>funks.js?t=1"></script>
 </body>  
 </html>

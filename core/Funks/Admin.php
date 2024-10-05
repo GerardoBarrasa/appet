@@ -4,7 +4,7 @@ class Admin
 {
   	public static function login($usuario, $password)
 	{
-		$datos = Bd::getInstance()->fetchRow("SELECT * FROM usuarios WHERE email='".$usuario."' AND password='".$password."' AND estado=1");
+		$datos = Bd::getInstance()->fetchRow("SELECT * FROM usuarios_admin WHERE email='".$usuario."' AND password='".$password."'");
 
 		if( $datos )
 		{
@@ -26,16 +26,17 @@ class Admin
 		$limit = "";
 
 		if( $busqueda != '' )
-			$search .= "AND (u.nombre LIKE '%".$busqueda."%' OR u.email LIKE '%".$busqueda."%' OR u.date_created LIKE '%".$busqueda."%')";
+			$search .= "AND (ua.nombre LIKE '%".$busqueda."%' OR ua.email LIKE '%".$busqueda."%' OR ua.date_created LIKE '%".$busqueda."%')";
 
 		if($applyLimit)
-			$limit = " LIMIT $comienzo, $limite";
+			$limit = "LIMIT $comienzo, $limite";
 
-        $q = "SELECT u.*, DATE_FORMAT(u.date_created, '%d-%m-%Y %H:%i:%s') as DATE_CREATED, c.nombre AS CREDENCIAL, IFNULL(at.nombre, '---') AS TYPE, IFNULL(a.name, '---') AS ACNAME FROM usuarios u INNER JOIN credenciales c ON u.id_credencial=c.id LEFT JOIN account a ON u.account_id=a.id LEFT JOIN account_types at ON a.type_id=at.id WHERE 1=1 $search ORDER BY u.nombre ASC";
+		if( $_SESSION['admin_panel']->id_perfil != 1 )
+			$search .= " AND ua.id_perfil > 1";
 
-		$listado = Bd::getInstance()->fetchObject( $q.$limit);
+		$listado = Bd::getInstance()->fetchObject("SELECT ua.*, p.nombre as perfil FROM usuarios_admin ua LEFT JOIN perfiles p ON p.id_perfil = ua.id_perfil WHERE 1=1 $search ORDER BY ua.nombre ASC $limit");
 
-		$total = Bd::getInstance()->countRows($q);
+		$total = Bd::getInstance()->countRows("SELECT ua.*, p.nombre as perfil FROM usuarios_admin ua LEFT JOIN perfiles p ON p.id_perfil = ua.id_perfil WHERE 1=1 $search ORDER BY ua.nombre ASC");
 
 		return array(
 			'listado' => $listado,
@@ -43,56 +44,115 @@ class Admin
 		);
 	}
 
-	public static function getAccountsWithFiltros($comienzo, $limite, $applyLimit=true)
+	public static function getUsuarioById($id_usuario_admin)
 	{
-		$busqueda = Tools::getValue('busqueda', '');
-		$search = "";
-		$limit = "";
+		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios_admin WHERE id_usuario_admin=".(int)$id_usuario_admin);
+	}
 
-		if( $busqueda != '' )
-			$search .= "AND (a.name LIKE '%".$busqueda."%' OR a.email LIKE '%".$busqueda."%')";
-
-		if($applyLimit)
-			$limit = " LIMIT $comienzo, $limite";
-
-        $q = "SELECT a.*, DATE_FORMAT(a.create_time, '%d-%m-%Y %H:%i:%s') as CREATE_TIME, IFNULL(at.nombre, 'ROOT') AS TYPE FROM account a LEFT JOIN account_types at ON a.type_id=at.id WHERE 1 $search ORDER BY a.name ASC";
-
-		$listado = Bd::getInstance()->fetchObject( $q.$limit);
-
-		$total = Bd::getInstance()->countRows($q);
-
-		return array(
-			'listado' => $listado,
-			'total' => $total
+	public static function actualizarUsuario()
+	{
+		$updUsuario = array(
+			'nombre' => Tools::getValue('nombre'),
+			'email'  => Tools::getValue('email'),
+			'id_perfil' => Tools::getValue('id_perfil')
 		);
+
+		$password = Tools::getValue('password', '');
+
+		if( !empty($password) && strlen($password) > 0 )
+			$updUsuario['password'] = Tools::md5($password);
+
+		return Bd::getInstance()->update('usuarios_admin', $updUsuario, "id_usuario_admin = ".(int)Tools::getValue('id_usuario_admin'));
 	}
 
-    public static function getAccountById($id)
-    {
-        return Bd::getInstance()->fetchRow("SELECT * FROM account WHERE id=".(int)$id);
-    }
+	public static function crearUsuario()
+	{
+		$addUsuario = array(
+			'nombre' 	   => Tools::getValue('nombre'),
+			'email' 	   => Tools::getValue('email'),
+			'id_perfil' => Tools::getValue('id_perfil'),
+			'password' 	   => Tools::md5(Tools::getValue('password')),
+			'date_created' => Tools::datetime()
+		);
 
-	public static function getUsuarioById($id)
-	{
-		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios WHERE id=".(int)$id);
-	}
-	public static function getUsuarioByEmail($email)
-	{
-		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios WHERE 1 AND email='$email'");
-	}
-
-	public static function actualizarUsuario($id, $updUsuario)
-	{
-		return Bd::getInstance()->update('usuarios', $updUsuario, "id = ".(int)$id);
-	}
-
-	public static function crearUsuario($addUsuario)
-	{
-		return Bd::getInstance()->insert('usuarios', $addUsuario);
+		return Bd::getInstance()->insert('usuarios_admin', $addUsuario);
 	}
 
 	public static function eliminarRegistro( $id )
 	{
-		return Bd::getInstance()->query("DELETE FROM usuarios WHERE id = ".(int)$id);
+		return Bd::getInstance()->query("DELETE FROM usuarios_admin WHERE id_usuario_admin = ".(int)$id);
+	}
+
+	public static function getUsuarioByEmail($email)
+	{
+		return Bd::getInstance()->fetchRow("SELECT * FROM usuarios_admin WHERE email = '".$email."'");
+	}
+
+	public static function checkEmailExists($email, $ignore_id = false)
+	{
+		$where_not_id = "";
+		if( !empty($ignore_id) )
+			$where_not_id = " AND id_usuario_admin != ".(int)$ignore_id;
+		$result = Bd::getInstance()->countRows("SELECT id_usuario_admin FROM usuarios_admin WHERE email = '".$email."'".$where_not_id);
+		return empty($result) ? false : true;
+	}
+
+	public static function checkAccess($id_usuario_admin, $nombre_permiso, $redirectOnError = false)
+	{
+		$result = (bool) Bd::getInstance()->countRows("SELECT pp.* FROM permisos_perfiles pp JOIN permisos p ON pp.id_permiso = p.id_permiso AND p.nombre = '".$nombre_permiso."' JOIN usuarios_admin ua ON ua.id_perfil = pp.id_perfil AND ua.id_usuario_admin = ".(int)$id_usuario_admin);
+		if( !$result && $redirectOnError )
+		{
+			Tools::registerAlert(l('admin-acceso-denegado'), 'error');
+			Tools::redirect(_ADMIN_);
+		}
+		return $result;
+	}
+
+	public static function getPerfiles($comienzo, $limite, $applyLimit=true)
+	{
+		$limit = "";
+		if($applyLimit)
+			$limit = "LIMIT $comienzo, $limite";
+
+		$listado = Bd::getInstance()->fetchObject("SELECT * FROM perfiles $limit");
+		$total = Bd::getInstance()->countRows("SELECT * FROM perfiles");
+
+		return array(
+			'listado' => $listado,
+			'total' => $total
+		);
+	}
+
+	public static function getPermisosByIdPerfil($id_perfil)
+	{
+		return Bd::getInstance()->fetchObject("SELECT pp.*, pe.nombre as nombre_perfil, p.nombre, p.descripcion FROM permisos_perfiles pp JOIN permisos p ON pp.id_permiso = p.id_permiso JOIN perfiles pe ON pp.id_perfil = pe.id_perfil WHERE pp.id_perfil = ".(int)$id_perfil);
+	}
+
+	public static function getPermisos()
+	{
+		return Bd::getInstance()->fetchObject("SELECT * FROM permisos");
+	}
+
+	public static function getNombrePerfilById($id_perfil)
+	{
+		return Bd::getInstance()->fetchValue("SELECT nombre FROM perfiles WHERE id_perfil = ".(int)$id_perfil);
+	}
+
+	public static function guardarPermisos($id_perfil, $id_permisos)
+	{
+		Bd::getInstance()->query("DELETE FROM permisos_perfiles WHERE id_perfil = ".(int)$id_perfil);
+
+		if( !empty($id_permisos) )
+		{
+			foreach( $id_permisos as $id_permiso )
+			{
+				$addPerfilPermiso = array(
+					'id_perfil' => $id_perfil,
+					'id_permiso' => $id_permiso
+				);
+
+				Bd::getInstance()->insert('permisos_perfiles', $addPerfilPermiso);
+			}
+		}
 	}
 }

@@ -95,14 +95,6 @@ class Render
 		self::$data = $data;
 	}
 
-	//Configuramos página admin para mostrarla con layout
-	public static function actionPage($name,$data=array())
-	{
-		self::$page = $name;
-		self::$data = $data;
-        self::$layout = "actions";
-	}
-
 	//Configuramos y mostramos pagina
 	public static function showAdminPage($name,$data=array())
 	{

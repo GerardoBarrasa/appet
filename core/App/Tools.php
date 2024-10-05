@@ -136,17 +136,6 @@ class Tools
 	}
 
 	/**
-	 * Comprueba si el string tiene formato valido email
-	 *
-	 * @param string $mail 
-	 * @return bool
-	 */
-	public static function isEmail($mail)
-	{
-		return (filter_var($mail, FILTER_VALIDATE_EMAIL) ? true : false);
-	}
-
-	/**
 	 * Encripta o desencripta un string en base64.
 	 *
 	 * @param string $var Cadena de texto a encriptar o desencriptar
@@ -188,125 +177,186 @@ class Tools
 	}
 
 	/**
-    * Generar contraseña aleatoria
-    *
-    * @param int $length longitud (opcional)
-    * @param string $flag Tipo de contraseña (NUMERIC, ALPHANUMERIC, NO_NUMERIC, RANDOM)
-    * @return bool|string Password
-    */
-    public static function passwdGen($length = 8, $flag = 'ALPHANUMERIC')
-    {
-        $length = (int)$length;
+	* Generar contraseña aleatoria
+	*
+	* @param int $length longitud (opcional)
+	* @param string $flag Tipo de contraseña (NUMERIC, ALPHANUMERIC, NO_NUMERIC, RANDOM)
+	* @return bool|string Password
+	*/
+	public static function passwdGen($length = 8, $flag = 'ALPHANUMERIC')
+	{
+		$length = (int)$length;
 
-        if ($length <= 0)
-            return false;
+		if ($length <= 0)
+			return false;
 
-        switch ($flag)
-        {
-            case 'NUMERIC':
-                $str = '0123456789';
-                break;
-            case 'NO_NUMERIC':
-                $str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                break;
-            case 'RANDOM':
-                $num_bytes = ceil($length * 0.75);
-                $bytes = self::getBytes($num_bytes);
-                return substr(rtrim(base64_encode($bytes), '='), 0, $length);
-            case 'ALPHANUMERIC':
-            default:
-                $str = 'abcdefghijkmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                break;
-        }
+		switch ($flag)
+		{
+			case 'NUMERIC':
+				$str = '0123456789';
+				break;
+			case 'NO_NUMERIC':
+				$str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+				break;
+			case 'RANDOM':
+				$num_bytes = ceil($length * 0.75);
+				$bytes = self::getBytes($num_bytes);
+				return substr(rtrim(base64_encode($bytes), '='), 0, $length);
+			case 'ALPHANUMERIC':
+			default:
+				$str = 'abcdefghijkmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+				break;
+		}
 
-        $bytes = self::getBytes($length);
-        $position = 0;
-        $result = '';
+		$bytes = self::getBytes($length);
+		$position = 0;
+		$result = '';
 
-        for ($i = 0; $i < $length; $i++)
-        {
-            $position = ($position + ord($bytes[$i])) % strlen($str);
-            $result .= $str[$position];
-        }
+		for ($i = 0; $i < $length; $i++)
+		{
+			$position = ($position + ord($bytes[$i])) % strlen($str);
+			$result .= $str[$position];
+		}
 
-        return $result;
-    }
+		return $result;
+	}
 
-    public static function getBytes($length)
-    {
-        $length = (int)$length;
+	public static function getBytes($length)
+	{
+		$length = (int)$length;
 
-        if ($length <= 0)
-            return false;
+		if ($length <= 0)
+			return false;
 
-        if (function_exists('openssl_random_pseudo_bytes'))
-        {
-            $bytes = openssl_random_pseudo_bytes($length, $crypto_strong);
+		if (function_exists('openssl_random_pseudo_bytes'))
+		{
+			$bytes = openssl_random_pseudo_bytes($length, $crypto_strong);
 
-            if ($crypto_strong === true)
-                return $bytes;
-        }
+			if ($crypto_strong === true)
+				return $bytes;
+		}
 
-        if (function_exists('mcrypt_create_iv'))
-        {
-            $bytes = mcrypt_create_iv($length, MCRYPT_DEV_URANDOM);
+		if (function_exists('mcrypt_create_iv'))
+		{
+			$bytes = mcrypt_create_iv($length, MCRYPT_DEV_URANDOM);
 
-            if ($bytes !== false && strlen($bytes) === $length)
-                return $bytes;
-        }
+			if ($bytes !== false && strlen($bytes) === $length)
+				return $bytes;
+		}
 
-        // Else try to get $length bytes of entropy.
-        // Thanks to Zend
+		// Else try to get $length bytes of entropy.
+		// Thanks to Zend
 
-        $result         = '';
-        $entropy        = '';
-        $msec_per_round = 400;
-        $bits_per_round = 2;
-        $total          = $length;
-        $hash_length    = 20;
+		$result         = '';
+		$entropy        = '';
+		$msec_per_round = 400;
+		$bits_per_round = 2;
+		$total          = $length;
+		$hash_length    = 20;
 
-        while (strlen($result) < $length)
-        {
-            $bytes  = ($total > $hash_length) ? $hash_length : $total;
-            $total -= $bytes;
+		while (strlen($result) < $length)
+		{
+			$bytes  = ($total > $hash_length) ? $hash_length : $total;
+			$total -= $bytes;
 
-            for ($i=1; $i < 3; $i++)
-            {
-                $t1 = microtime(true);
-                $seed = mt_rand();
+			for ($i=1; $i < 3; $i++)
+			{
+				$t1 = microtime(true);
+				$seed = mt_rand();
 
-                for ($j=1; $j < 50; $j++)
-                    $seed = sha1($seed);
+				for ($j=1; $j < 50; $j++)
+					$seed = sha1($seed);
 
-                $t2 = microtime(true);
-                $entropy .= $t1 . $t2;
-            }
+				$t2 = microtime(true);
+				$entropy .= $t1 . $t2;
+			}
 
-            $div = (int) (($t2 - $t1) * 1000000);
+			$div = (int) (($t2 - $t1) * 1000000);
 
-            if ($div <= 0)
-                $div = 400;
+			if ($div <= 0)
+				$div = 400;
 
-            $rounds = (int) ($msec_per_round * 50 / $div);
-            $iter = $bytes * (int) (ceil(8 / $bits_per_round));
+			$rounds = (int) ($msec_per_round * 50 / $div);
+			$iter = $bytes * (int) (ceil(8 / $bits_per_round));
 
-            for ($i = 0; $i < $iter; $i ++)
-            {
-                $t1 = microtime();
-                $seed = sha1(mt_rand());
+			for ($i = 0; $i < $iter; $i ++)
+			{
+				$t1 = microtime();
+				$seed = sha1(mt_rand());
 
-                for ($j = 0; $j < $rounds; $j++)
-                    $seed = sha1($seed);
+				for ($j = 0; $j < $rounds; $j++)
+					$seed = sha1($seed);
 
-                $t2 = microtime();
-                $entropy .= $t1 . $t2;
-            }
+				$t2 = microtime();
+				$entropy .= $t1 . $t2;
+			}
 
-            $result .= sha1($entropy, true);
-        }
+			$result .= sha1($entropy, true);
+		}
 
-        return substr($result, 0, $length);
-    }
+		return substr($result, 0, $length);
+	}
+
+	/**
+	 * Transformar iso 8859-1 a utf8, sería como utf8_encode
+	 */
+	function iso8859_1_to_utf8(string $s): string
+	{
+		$s .= $s;
+		$len = \strlen($s);
+
+		for ($i = $len >> 1, $j = 0; $i < $len; ++$i, ++$j) {
+			switch (true) {
+				case $s[$i] < "\x80": $s[$j] = $s[$i]; break;
+				case $s[$i] < "\xC0": $s[$j] = "\xC2"; $s[++$j] = $s[$i]; break;
+				default: $s[$j] = "\xC3"; $s[++$j] = \chr(\ord($s[$i]) - 64); break;
+			}
+		}
+
+		return substr($s, 0, $j);
+	}
+
+	/**
+	 * Transformar texto utf8 a iso 8859-1, sería como utf8_decode
+	 */
+	public static function utf8_to_iso8859_1(string $string): string
+	{
+		$s = (string) $string;
+		$len = \strlen($s);
+
+		for ($i = 0, $j = 0; $i < $len; ++$i, ++$j) {
+			switch ($s[$i] & "\xF0") {
+				case "\xC0":
+				case "\xD0":
+					$c = (\ord($s[$i] & "\x1F") << 6) | \ord($s[++$i] & "\x3F");
+					$s[$j] = $c < 256 ? \chr($c) : '?';
+					break;
+
+				case "\xF0":
+					++$i;
+					// no break
+
+				case "\xE0":
+					$s[$j] = '?';
+					$i += 2;
+					break;
+
+				default:
+					$s[$j] = $s[$i];
+			}
+		}
+
+		return substr($s, 0, $j);
+	}
+
+	public static function strlen($str, $encoding = 'UTF-8')
+	{
+		if( null === $str || is_array($str) )
+			return false;
+
+		$str = html_entity_decode($str, ENT_COMPAT, 'UTF-8');
+		return mb_strlen($str, $encoding);
+	}
 
 
 	/*
@@ -417,13 +467,65 @@ class Tools
 
 		return $ret;
 	}
-	
+
+	public static function safeOutput($string, $html = false)
+	{
+		if( !$html )
+			$string = strip_tags($string);
+		return @Tools::htmlentitiesUTF8($string, ENT_QUOTES);
+	}
+
+	public static function htmlentitiesUTF8($string, $type = ENT_QUOTES)
+	{
+		if (is_array($string)) {
+			return array_map(['Tools', 'htmlentitiesUTF8'], $string);
+		}
+
+		return htmlentities((string) $string, $type, 'utf-8');
+	}
+
+	/**
+	 * Convierte \n, \r\n, y \r a <br />.
+	 *
+	 * @param string $str Texto a tratar
+	 * @return string Nuevo texto
+	 */
+	public static function nl2br($str)
+	{
+		return str_replace(["\r\n", "\r", "\n", PHP_EOL], '<br />', $str);
+	}
+
 
 	/*
 	|--------------------------------------------------------------------------
 	| Funciones de utilidad
 	|--------------------------------------------------------------------------
 	*/
+
+	/**
+	 * Redirige a otra página
+	 *
+	 * @param string $url Desired URL
+	 * @param string $base_uri Base URI (optional)
+	 * @param string|array $headers A list of headers to send before redirection
+	 */
+	public static function redirect($url, $base_uri = _DOMINIO_, $headers = null)
+	{
+		if( strpos($url, $base_uri) === false )
+			$url = $base_uri.$url;
+
+		if( $headers )
+		{
+			if( !is_array($headers) )
+				$headers = [$headers];
+
+			foreach( $headers as $header )
+				header($header);
+		}
+
+		header('Location: ' . $url);
+		exit;
+	}
 
 	/**
 	 * Genera mensaje de alerta en HTML con el texto enviado
@@ -662,7 +764,7 @@ class Tools
 
 			  ?>
 			  <nav>
-		  	<ul class="pagination <?=(!empty($size) ? 'pagination-'.$size : '')?> <?=(!empty($alineacion) ? 'justify-content-'.$alineacion : '')?>">
+			<ul class="pagination <?=(!empty($size) ? 'pagination-'.$size : '')?> <?=(!empty($alineacion) ? 'justify-content-'.$alineacion : '')?>">
 				<?php
 					if($page != 1){
 						$pagina_anterior = $page-1;
@@ -707,7 +809,7 @@ class Tools
 				?>
 			   </ul>
 			   </nav>
-		  	<?php
+			<?php
 		 }
 	}
 
@@ -737,82 +839,17 @@ class Tools
 		return;
 	}
 
+	public static function isEmpty($field)
+	{
+		return $field === '' || $field === null;
+	}
+
 
 	/*
 	|--------------------------------------------------------------------------
-	| Funciones para cargar librerias
+	| Funciones para cargar recursos
 	|--------------------------------------------------------------------------
 	*/
-
-	/**
-	 * Cargamos FontAwesome
-	 */
-	public static function loadFontawesome()
-	{
-		?>
-		<link rel="stylesheet" href="<?=_DOMINIO_?>assets/fontawesome/font-awesome.min.css">
-		<?php
-	}
-
-	/**
-	 * Cargamos Bootstrap
-	 *
-	 * @param string $type both|js|css
-	 */
-	public static function loadBootstrap($type="both")
-	{
-		if( $type == 'both' || $type == 'css' )
-		{
-			?>
-			<link rel="stylesheet" href="<?=_DOMINIO_?>assets/bootstrap/bootstrap.min.css">
-			<?php
-		}
-
-		if( $type == 'both' || $type == 'js' )
-		{
-			?>
-			<script src="<?=_DOMINIO_?>assets/bootstrap/bootstrap.min.js"></script>
-			<?php
-		}
-	}
-
-	/**
-	 * Cargamos Sweetalert
-	 */
-	public static function loadSweetalert()
-	{
-		?>
-		<script src="<?=_DOMINIO_?>assets/sweetalert/sweet-alert.min.js"></script>
-		<link rel="stylesheet" href="<?=_DOMINIO_?>assets/sweetalert/sweet-alert.css">
-		<?php
-	}
-
-	/**
-	 * Cargamos Tinymce
-	 */ 
-	public static function loadTinymce()
-	{
-		/* Poner aqui los id de los textarea */
-		?>
-		<script src='<?=_DOMINIO_;?>assets/tinymce/tinymce.min.js'></script>
-		<script>
-		tinymce.init({
-			selector: '#descripcion_larga',
-			plugins: "advlist"
-		});
-		</script>
-		<script src='<?=_DOMINIO_;?>assets/tinymce/langs/es.js'></script>
-		<?php
-	}
-
-	/**
-	 * Cargamos libreria de la carpeta Helpers
-	 * @param string $relative_file_path
-	 */
-	public static function loadHelper($relative_file_path)
-	{
-		require_once _PATH_.'core/Helpers/'.$relative_file_path;
-	}
 
 	/**
 	 * Guarda un array de urls para cargarlos posteriormente en la vista

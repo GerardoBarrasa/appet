@@ -24,7 +24,7 @@ class Sendmail
 					'.$mensaje.'
 					<br /><br />
 					<div style="border-top:1px solid #ccc; padding-top:24px; font-size:12px; color:#666;">
-						'.Traducciones::getTextoByShortcodeIdioma('email-footer-automatic-2', $id_lang).' '._TITULO_.'. <a href="'.Slugs::getCurrentSlugByModId('politica-privacidad').'" style="color: #D8A109;">'.Traducciones::getTextoByShortcodeIdioma('email-footer-privacy', $id_lang).'</a>
+						'.Traducciones::getTextoByShortcodeIdioma('email-footer-automatic-2', $id_lang).' '._TITULO_.'. <a href="'.Slugs::getCurrentSlugByModId('politica-privacidad', $id_lang).'" style="color: #D8A109;">'.Traducciones::getTextoByShortcodeIdioma('email-footer-privacy', $id_lang).'</a>
 					</div>
 				</div>
 				<br /><br />
@@ -69,10 +69,6 @@ class Sendmail
 	{
 		$mensaje = self::prepareMail($mensaje, $id_lang);
 
-		/*require_once _PATH_.'core/Helpers/PHPMailer/PHPMailer.php';
-		require_once _PATH_.'core/Helpers/PHPMailer/SMTP.php';
-		require_once _PATH_.'core/Helpers/PHPMailer/Exception.php';*/
-
 		$mail = new PHPMailer();
 
 		$mail->SMTPSecure = 'tls';
@@ -87,11 +83,17 @@ class Sendmail
 		$mail->CharSet = _SMTP_CHARSET_ISO_;
 		$mail->WordWrap = 50;					
 		$mail->IsHTML(true);
-		$mail->AltBody = utf8_decode(strip_tags($mensaje));
+		$mail->AltBody = Tools::utf8_to_iso8859_1(strip_tags($mensaje));
 		$mail->AddAddress($destinatario, _TITULO_);
-		$mail->Subject = utf8_decode($asunto);
-		$mail->Body = utf8_decode($mensaje);
+		$mail->Subject = Tools::utf8_to_iso8859_1($asunto);
+		$mail->Body = Tools::utf8_to_iso8859_1($mensaje);
 		//$mail->SMTPDebug = 2;
+		$mail->SMTPOptions = array(
+			'ssl' => array(
+				'verify_peer' => false,
+				'verify_peer_name' => false
+			)
+		);
 
 		if( !empty($attachment_path) )
 			$mail->AddAttachment($attachment_path, basename($attachment_path));
@@ -154,11 +156,17 @@ class Sendmail
 		$mail->CharSet = _SMTP_CHARSET_ISO_;
 		$mail->WordWrap = 50;
 		$mail->IsHTML(true);
-		$mail->AltBody = utf8_decode(strip_tags($mensaje));
+		$mail->AltBody = Tools::utf8_to_iso8859_1(strip_tags($mensaje));
 		$mail->AddAddress($destinatario, _TITULO_);
-		$mail->Subject = utf8_decode($asunto);
-		$mail->Body = utf8_decode($mensaje);
+		$mail->Subject = Tools::utf8_to_iso8859_1($asunto);
+		$mail->Body = Tools::utf8_to_iso8859_1($mensaje);
 		//$mail->SMTPDebug = 2;
+		$mail->SMTPOptions = array(
+			'ssl' => array(
+				'verify_peer' => false,
+				'verify_peer_name' => false
+			)
+		);
 
 		if( !$mail->Send() )
 			echo 'Error al enviar email a '.$destinatario.' con asunto: "'.$asunto.'"';
@@ -176,5 +184,11 @@ class Sendmail
 			}
 		}
 		return $texto;
+	}
+
+	public static function sendTemplate($plantilla, $id_lang, $destinatario, $vars = array(), $attachment_path = '')
+	{
+		$textos_email = TextosEmails::getTextosEmail($plantilla, $id_lang, $vars);
+		return Sendmail::send($destinatario, $textos_email['asunto'], $textos_email['contenido'], $id_lang, $attachment_path);
 	}
 }

@@ -4,9 +4,9 @@
 
 <select class="form-control">					
 <?php
-foreach($datos_idiomas as $idiomas)
+foreach($idiomas as $idioma)
 { ?>
-	<option value="<?=$idiomas->slug ?>"><?= $idiomas->nombre ?></option>
+	<option value="<?=$idioma->slug ?>"><?= $idioma->nombre ?></option>
 <?php
 }
 ?>
@@ -28,3 +28,10 @@ if( !empty($test) )
 <input type="text" id="ajax__testvar_post">
 <button type="button" id="trigger_post">TEST</button><br/>
 <div id="ajax__result_post"></div>
+
+<br/><br/>
+<h3>Cliente antes de actualizar</h3>
+<?php vd($old_cliente);?>
+<br/><br/>
+<h3>Cliente después de actualizar</h3>
+<?php vd($cliente);?>

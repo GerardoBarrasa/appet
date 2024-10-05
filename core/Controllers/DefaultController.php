@@ -6,7 +6,13 @@ class DefaultController extends Controllers
 	{
 		//Layout por defecto
 		Render::$layout = 'front-end';
+
+		Tools::registerStylesheet(_ASSETS_.'fontawesome/font-awesome.min.css');
+		Tools::registerStylesheet(_ASSETS_.'bootstrap/bootstrap.min.css');
+
 		Tools::registerJavascript(_ASSETS_.'jquery/jquery.min.js');
+		Tools::registerJavascript(_ASSETS_.'bootstrap/bootstrap.bundle.min.js');
+		Tools::registerJavascript(_JS_.'funks.js?t='._VERSION_);
 
 		$idiomas = Idiomas::getLanguages();
 		foreach( $idiomas as &$idioma )
@@ -25,159 +31,88 @@ class DefaultController extends Controllers
 			Metas::$description = (isset($metaData->description)) ? $metaData->description : _TITULO_;
 		}
 		else
-			header('Location:'._DOMINIO_.$_SESSION['lang']."/");
+			Tools::redirect($_SESSION['lang']->slug."/");
+
+		if( !empty(Configuracion::get('modo_mantenimiento', '0')) )
+		{
+			header('HTTP/1.1 503 Service Temporarily Unavailable');
+			header('Status: 503 Service Temporarily Unavailable');
+			Render::$layout = false;
+			Render::showPage('mantenimiento');
+		}
 
 		//Pagina de inicio
 		$this->add('',function()
 		{
 			$mpc = new Miprimeraclase;
-			$datos_idiomas = Idiomas::getLanguages();
+
+			//Ejemplo uso ObjectModel
+			$cliente = new ClienteTest(1);
+			$old_cliente = clone $cliente;
+			$cliente->name = 'Nuevo Nombre '.Tools::passwdGen(8, 'NO_NUMERIC');
+			$cliente->test_lang_field = array(1 => 'texto en ESP '.time(), 2 => 'texto en EN '.time());
+
+			//Para guardar registro existente o crear nuevo sin establecer ID
+			$cliente->save();
+
+			//Para crear nuevo registro estableciendo el ID
+			/*$cliente->id = 288;
+			$cliente->force_id = true;
+			$cliente->add();*/
+
+			//Para eliminar
+			//$cliente->delete();
+
+			/**
+			 * Para generar los shortcodes de las traducciones de los campos de la clase
+			 * @see ClientesTest::generarTraducciones para ver los parámetros
+			 */
+			//ClienteTest::generarTraduccionesCampos(true, array('id_gender', 'newsletter'));
 
 			//Array de datos a enviar a la página
 			$data = array(
-				'datos_idiomas' => $datos_idiomas,
 				'test' => $mpc->getMessage(),
+				'old_cliente' => $old_cliente,
+				'cliente' => $cliente
 			);
 
 			Render::page('home',$data);
 		});
 
-		//Pagina de inicio
+		$this->add('politica-privacidad',function()
+		{
+			$data = array(
+				'texto_legal' => TextosLegales::getTextoLegalByLang('politica-privacidad', $_SESSION['lang']->id),
+			);
+			Render::page('texto-legal', $data);
+		});
+
+		$this->add('condiciones-generales',function()
+		{
+			$data = array(
+				'texto_legal' => TextosLegales::getTextoLegalByLang('condiciones-generales', $_SESSION['lang']->id),
+			);
+			Render::page('texto-legal', $data);
+		});
+
+		$this->add('politica-cookies',function()
+		{
+			$data = array(
+				'texto_legal' => TextosLegales::getTextoLegalByLang('politica-cookies', $_SESSION['lang']->id),
+			);
+			Render::page('texto-legal', $data);
+		});
+
 		$this->add('test',function()
 		{
 			$mpc = new Miprimeraclase;
-			$datos_idiomas = Idiomas::getLanguages();
 
 			//Array de datos a enviar a la página
 			$data = array(
-				'datos_idiomas' => $datos_idiomas,
 				'test' => $mpc->getMessage(),
 			);
 
 			Render::page('home',$data);
-		});
-
-		//Pagina de login
-		$this->add('login',function()
-		{
-			$datos_idiomas = Idiomas::getLanguages();
-
-			//Array de datos a enviar a la página
-			$data = array(
-				'datos_idiomas' => $datos_idiomas,
-			);
-
-            Render::actionPage('login', $data);
-		});
-
-		//Pagina de login
-        $this->add('register',function()
-        {
-            // Valores por defecto
-            $mensajeError   = '';
-            $mensajeSuccess = '';
-            $updateSlug     = false;
-
-            //Comprobamos datos de acceso
-            if( isset($_REQUEST['btn-register']) )
-            {
-                //Obtenemos valores del registro
-                // TODO ver de añadir los campos restantes (CP, localidad, provincia...)
-                $nombre     = Tools::getValue('nombre');
-                $email      = Tools::getValue('email');
-                $password   = Tools::md5(Tools::getValue('password'));
-                $rpassword  = Tools::md5(Tools::getValue('rpassword'));
-                $provincia  = Tools::md5(Tools::getValue('provincia'));
-                $localidad  = Tools::md5(Tools::getValue('localidad'));
-                $direccion = Tools::md5(Tools::getValue('direccion'));
-                $slug       = Tools::urlAmigable($nombre, false);
-
-                if($nombre == '' || $email == '' || $password = '' || $rpassword = '' || $provincia = '' || $localidad = '' || $direccion = '' ){//Comprobamos que los campos no estén vacíos
-                    $mensajeError .= "Todos los campos son obligatorios.<br>";
-                }
-                else{// Ahora comprobamos la validez de los campos
-                    if($password != $rpassword){
-                        $mensajeError .= "Las contraseñas deben coincidir.<br>";
-                    }
-                    if(Account::getAccountByEmail($email) !== false){// Si existe alguna cuenta con este correo
-                        $mensajeError .= "Ya existe una cuenta con ese email asociado.<br>";
-                    }
-                }
-                // Si no hay errores procedemos, si no dejamos continuar a la página de destino
-                if($mensajeError == ''){
-                    if(Account::getAccountBySlug($slug) !== false){// Existe una cuenta con ese slug, tenemos que generar otro, para ello guardamos la cuenta y obtenemos el ID
-                        $updateSlug = true;
-                        $slug = 'NULL';
-                    }
-                    // TODO ver de añadir los campos restantes (CP, localidad, provincia...)
-                    $addAccount = array(
-                        'name' 	        => $nombre,
-                        'email' 	    => $email,
-                        'password' 	    => $password,
-                        'provincia'     => $provincia,
-                        'localidad'     => $localidad,
-                        'direccion'     => $direccion,
-                        'slug' 	        => $slug,
-                        'type_id'       => 1,// Por defecto guardería TODO esto debería venir del formulario de registro
-                        'date_created'  => Tools::datetime()
-                    );
-                    if(Account::crearAccount($addAccount)){
-                        $mensajeSuccess .= "Cuenta creada correctamente";
-                        $id_account = Bd::getInstance()->lastId();
-                        if($updateSlug){// Actualizamos slug
-                            $slug = Tools::urlAmigable($nombre, false).'-'.$id_account;
-                            Account::updateAccount($id_account, $slug);
-                        }
-                        // TODO Comprobamos si existe un usuario con ese correo, ya veremos qué acciones hacer aquí
-                        if(Admin::getUsuarioByEmail($email) !== false){// Si existe algún usuario con este correo
-                            $mensajeError .= "Ya existe un usuario con ese email.<br>";
-                        }
-                        else{
-                            $addUsuario = array(
-                                'nombre' 	    => $nombre,
-                                'email' 	    => $email,
-                                'password' 	    => $password,
-                                'account_id'    => $id_account,
-                                'estado'        => 0,
-                                'id_credencial' => 2,
-                                'date_created'  => Tools::datetime()
-                            );
-                            if(Admin::crearUsuario($addUsuario)){
-                                $mensajeSuccess .= "Usuario creado correctamente";
-                            }
-                            else{
-                                $mensajeError .= "Error al crear el usuario";
-                            }
-                        }
-                    }
-                    else{
-                        $mensajeError .= "Error al crear la cuenta";
-                    }
-                }
-            }
-            $datos_idiomas = Idiomas::getLanguages();
-
-            //Array de datos a enviar a la página
-            $data = array(
-                'datos_idiomas' => $datos_idiomas,
-                'mensajeError' => $mensajeError,
-                'mensajeSuccess' => $mensajeSuccess,
-            );
-
-            Render::actionPage('register', $data);
-        });
-
-		//Pagina de login
-		$this->add('forgot-password',function()
-		{
-			$datos_idiomas = Idiomas::getLanguages();
-
-			//Array de datos a enviar a la página
-			$data = array(
-				'datos_idiomas' => $datos_idiomas,
-			);
-
-            Render::actionPage('forgot-password', $data);
 		});
 
 		$this->add('404',function()
@@ -186,10 +121,6 @@ class DefaultController extends Controllers
 		});
 
 		if( !$this->getRendered() )
-		{
-			header('Location: ' . _DOMINIO_.$_SESSION['lang'].'/404/');
-			exit;
-		}
+			Tools::redirect(_ADMIN_.$_SESSION['lang']->slug."/404/");
 	}
-
 }

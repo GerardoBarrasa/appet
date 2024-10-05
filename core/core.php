@@ -4,20 +4,20 @@
      ----   ----    ---    ----
     |      |    |  | _ |  |_
     |      |    |  |  \   |
-     ----   ----   -   -   ----   4.1
+     ----   ----   -   -   ----   4.4
 */
 
 /**
  * @author Anelis Network
- * @modified Equipo5
  */
 ini_set('session.gc_maxlifetime', 43200);
 @session_start();
 
 // Definimos constantes
-const DS = DIRECTORY_SEPARATOR;
+define( 'DS', DIRECTORY_SEPARATOR );
 define( '_PATH_', str_replace(DS.'core',DS,dirname(__FILE__)) );
-const log_folder = _PATH_ . 'log/';
+define( 'log_folder', _PATH_.'log/' );
+define( 'log_max_kb', 2048 );
 if (!file_exists(log_folder)) {
     mkdir(log_folder);
 }
