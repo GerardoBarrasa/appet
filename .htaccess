@@ -10,7 +10,7 @@ RewriteRule ^(.+[^/])$ %{REQUEST_URI}/ [R=301,L]
 #--------------------------------------------
 #           Instalador
 #--------------------------------------------
-RewriteRule ^install/$ install/index.php
+RewriteRule ^install/$ /install/index.php
 
 #--------------------------------------------
 #           Debug
