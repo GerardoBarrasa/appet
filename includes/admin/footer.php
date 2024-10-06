@@ -1,1 +1,0 @@
-© <?=date('Y');?> Copyright
