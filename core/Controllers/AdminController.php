@@ -16,7 +16,7 @@ class AdminController extends Controllers
 		Render::$layout = 'back-end';
 
 		Tools::registerStylesheet(_ASSETS_._ADMIN_.'bootstrap.min.css');
-		Tools::registerJavascript(_ASSETS_.'jquery/jquery.min.js', 'top');
+		Tools::registerJavascript(_JS_._PUBLIC_.'jquery/jquery.min.js', 'top');
 		Tools::registerJavascript(_ASSETS_._ADMIN_.'custom.js', 'top');
 
 		Render::$layout_data = array(
@@ -650,8 +650,8 @@ class AdminController extends Controllers
 			if(!isset($_SESSION['admin_panel']))
 				header("Location: "._DOMINIO_._ADMIN_);
 
-			Tools::registerJavascript(_ASSETS_.'tinymce/tinymce.min.js');
-			Tools::registerJavascript(_ASSETS_.'tinymce/langs/es.js');
+			Tools::registerJavascript(_JS_._PUBLIC_.'tinymce/tinymce.min.js');
+			Tools::registerJavascript(_JS_._PUBLIC_.'tinymce/langs/es.js');
 
 			Render::adminPage('form-editors');
 		});

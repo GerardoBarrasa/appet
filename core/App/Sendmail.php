@@ -19,7 +19,7 @@ class Sendmail
 				'.Traducciones::getTextoByShortcodeIdioma('email-footer-automatic', $id_lang).'
 				<br /><br />
 				<div style="border:1px solid #ccc; background-color:#fff; padding:26px; width:860px; color:#333; font-size:14px; line-height:22px; text-align:left; margin:0 auto;">
-				<center><a href="'._DOMINIO_.'"><img src="'._ASSETS_.'img/logo.png" alt="logo"></a></center>
+				<center><a href="'._DOMINIO_.'"><img src="'._JS_._PUBLIC_.'img/logo.png" alt="logo"></a></center>
 					<br /><br />
 					'.$mensaje.'
 					<br /><br />

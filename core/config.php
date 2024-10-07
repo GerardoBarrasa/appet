@@ -23,9 +23,9 @@ define( '_ASSETS_',_DOMINIO_.'assets/' );
 define( '_ASSETS_PATH_',_PATH_.'assets/' );
 define( '_CSS_',_DOMINIO_.'css/' );
 define( '_JS_',_DOMINIO_.'js/' );
-define( '_IMG_',_DOMINIO_.'img/' );
 define( '_INCLUDES_',_PATH_.'includes/' );
 define( '_ADMIN_', 'admin/' );
+define( '_PUBLIC_', 'public/' );
 
 /* Configuracion de Base de datos */
 if( _DEBUG_ )

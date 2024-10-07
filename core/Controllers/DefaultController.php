@@ -6,7 +6,7 @@ class DefaultController extends Controllers
 	{
 		//Layout por defecto
 		Render::$layout = 'front-end';
-		Tools::registerJavascript(_ASSETS_.'jquery/jquery.min.js');
+		Tools::registerJavascript(_JS_._PUBLIC_.'jquery/jquery.min.js');
 
 		$idiomas = Idiomas::getLanguages();
 		foreach( $idiomas as &$idioma )
