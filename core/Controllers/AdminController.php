@@ -15,34 +15,79 @@ class AdminController extends Controllers
 
 		Render::$layout = 'back-end';
 
-		Tools::registerStylesheet(_ASSETS_._ADMIN_.'bootstrap.min.css');
-		Tools::registerJavascript(_JS_._PUBLIC_.'jquery/jquery.min.js', 'top');
-		Tools::registerJavascript(_ASSETS_._ADMIN_.'custom.js', 'top');
+		Tools::registerStylesheet('https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback');
+		Tools::registerStylesheet(_ASSETS_._COMMON_.'bootstrap-5.3.3-dist/css/bootstrap.min.css');
+		Tools::registerStylesheet(_ASSETS_._COMMON_.'fontawesome-free-6.6.0-web/css/all.css');
+		Tools::registerStylesheet(_RESOURCES_._ADMIN_.'css/adminlte.min.css');
+
+		Tools::registerJavascript(_ASSETS_._COMMON_.'jquery-3.7.1.min.js');
+		Tools::registerJavascript(_ASSETS_._COMMON_.'bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js');
+		Tools::registerJavascript(_RESOURCES_._ADMIN_.'js/adminlte.min.js');
+		Tools::registerJavascript(_RESOURCES_._ADMIN_.'js/custom.js', 'top');
 
 		Render::$layout_data = array(
 			'idiomas' => Idiomas::getLanguagesAdminForm()
 		);
 
+        if(isset($_SESSION['admin_panel'])){
+            Tools::logError('Tenemos usuario logueado: '.json_encode($_SESSION['admin_panel']), 3, 'login');
+            // Comprobamos los datos del usuario logueado
+            if(Admin::getUsuarioDataById($_SESSION['admin_panel']->id_usuario_admin)) {
+                Tools::logError('Validamos usuario logueado', 3, 'login');
+                $validateUser = Admin::validateUserData($_SESSION['admin_panel']);
+
+                if( $validateUser != 'ok' )
+                {
+                    Tools::logError('Errores en la validación: '.$validateUser, 3, 'login');
+                    $_SESSION['actions_mensajeError'] = $validateUser;
+                    Admin::logout();
+                    Tools::logError('Redirección a login', 3, 'login');
+                    header("Location: "._DOMINIO_._ADMIN_);
+                    exit;
+                }
+            }
+            else {
+                Tools::logError('No validamos usuario logueado', 3, 'login');
+                $_SESSION['actions_mensajeError'] = 'El usuario no es válido';
+                Render::$layout = false;
+                Admin::logout();
+                Tools::logError('Redirección a admin', 3, 'login');
+                header("Location: "._DOMINIO_._ADMIN_);
+                exit;
+            }
+        }
+
 		//Inicio
 		$this->add('',function()
 		{
+            Tools::logError('Entramos a login', 3, 'login');
 			//Comprobamos si existe la sesion de admin
 			if( !isset($_SESSION['admin_panel']) )
 			{
+                Tools::logError('No hay usuario logueado', 3, 'login');
 				//Mensaje de error defecto
-				$mensajeError = '';
+				$mensajeError = $_SESSION['actions_mensajeError'] ?? '';
+                Tools::logError('Mensaje de error: '.$mensajeError, 3, 'login');
+                unset($_SESSION['actions_mensajeError']);
+                Render::$layout = 'actions';
 
 				//Comprobamos datos de acceso
 				if( isset($_REQUEST['btn-login']) )
 				{
+                    Tools::logError('Recibimos credenciales', 3, 'login');
 					//Obtenemos valores del login
 					$usuario 	= Tools::getValue('usuario');
 					$password	= Tools::md5(Tools::getValue('password'));
 
-					if(Admin::login($usuario, $password))
-						header('Location:'._DOMINIO_."admin/");
-					else
-						$mensajeError = "Usuario y/o contrase&ntilde;a incorrectos.";
+					if(Admin::login($usuario, $password)) {
+                        Tools::logError('Acceso correcto', 3, 'login');
+                        header('Location:' . _DOMINIO_ . _ADMIN_);
+                        exit;
+                    }
+					else {
+                        $mensajeError = "Usuario y/o contrase&ntilde;a incorrectos.";
+                        Tools::logError('Error al acceder: '.$mensajeError, 3, 'login');
+                    }
 				}
 
 				//Guardamos variables para enviar a la pagina
@@ -52,12 +97,13 @@ class AdminController extends Controllers
 
 				//Metas Config
 				Metas::$title = "&iexcl;Con&eacute;ctate!";
+                Tools::logError('Renderizamos login: '.json_encode($data), 3, 'login');
 
-				//Renderizamos pagina admin
-				Render::showAdminPage('login', $data);
+                Render::adminPage('login', $data);
 			}
 			else
 			{
+                Tools::logError('Renderizamos home', 3, 'login');
 				Metas::$title = "Inicio";
 				Render::adminPage('home');
 			}
@@ -68,8 +114,10 @@ class AdminController extends Controllers
 		// =================================
 		$this->add('idiomas',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'footable/footable.bootstrap.min.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'footable/footable.min.js');
@@ -86,14 +134,18 @@ class AdminController extends Controllers
 		// PAGE - Administrar el idioma
 		$this->add('administrar-idioma',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			//Obtenemos el data
 			if( isset($_REQUEST['data']) )
 				$id = $_REQUEST['data'];
-			else
-				header("Location: "._ADMIN_.'idiomas/');
+			else {
+                header("Location: " . _ADMIN_ . 'idiomas/');
+                exit;
+            }
 
 			//Comprobamos update/creation
 			if( isset($_REQUEST['action']) )
@@ -134,8 +186,10 @@ class AdminController extends Controllers
 
 		$this->add('traducciones',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'footable/footable.bootstrap.min.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'footable/footable.min.js');
@@ -159,8 +213,10 @@ class AdminController extends Controllers
 
 		$this->add('traduccion',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'select2/css/select2.min.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'select2/js/select2.min.js');
@@ -215,8 +271,10 @@ class AdminController extends Controllers
 
 		$this->add('regenerar-cache-traducciones',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			$idiomas = Idiomas::getLanguages();
 			foreach( $idiomas as $idioma )
@@ -227,6 +285,7 @@ class AdminController extends Controllers
 			Render::$layout = false;
 			Tools::registerAlert("Caché de traducciones regenerada correctamente.", "success");
 			header("Location: "._DOMINIO_._ADMIN_."traducciones/");
+            exit;
 		});
 
 		// =================================
@@ -234,8 +293,10 @@ class AdminController extends Controllers
 		// =================================
 		$this->add('slugs',function()
 		{
-			if(!isset($_SESSION['admin_panel']) || !empty($_SESSION['admin_panel']->id_country))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel']) || !empty($_SESSION['admin_panel']->id_country)) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'select2/css/select2.min.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'select2/js/select2.min.js');
@@ -258,14 +319,18 @@ class AdminController extends Controllers
 
 		$this->add('administrar-slug',function()
 		{
-			if(!isset($_SESSION['admin_panel']) || !empty($_SESSION['admin_panel']->id_country))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel']) || !empty($_SESSION['admin_panel']->id_country)) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 			
 			//Obtenemos el data
 			if( isset($_REQUEST['data']) )
 				$id = $_REQUEST['data'];
-			else
-				header("Location: "._ADMIN_.'slugs/');
+			else {
+                header("Location: " . _ADMIN_ . 'slugs/');
+                exit;
+            }
 
 			$msg_error = 0;
 			$datos = false;
@@ -362,8 +427,10 @@ class AdminController extends Controllers
 		// =================================
 		$this->add('usuarios-admin',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 			
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'footable/footable.bootstrap.min.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'footable/footable.min.js');
@@ -379,8 +446,10 @@ class AdminController extends Controllers
 
 		$this->add('usuario-admin',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			$usuarioId 		= Tools::getValue('data');
 			$usuario 		= false;
@@ -417,6 +486,7 @@ class AdminController extends Controllers
 			Render::$layout = false;
 			Admin::logout();
 			header("Location: "._DOMINIO_._ADMIN_);
+            exit;
 		});
 
 		/**
@@ -425,56 +495,70 @@ class AdminController extends Controllers
 
 		$this->add('email-inbox',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Render::adminPage('email-inbox');
 		});
 
 		$this->add('email-read',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Render::adminPage('email-read');
 		});
 
 		$this->add('email-compose',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Render::adminPage('email-compose');
 		});
 
 		$this->add('ui-alerts',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Render::adminPage('ui-alerts');
 		});
 
 		$this->add('ui-buttons',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Render::adminPage('ui-buttons');
 		});
 
 		$this->add('ui-badge',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Render::adminPage('ui-badge');
 		});
 
 		$this->add('ui-cards',function()
 		{
-			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+			if(!isset($_SESSION['admin_panel'])) {
+                header("Location: " . _DOMINIO_ . _ADMIN_);
+                exit;
+            }
 
 			Render::adminPage('ui-cards');
 		});

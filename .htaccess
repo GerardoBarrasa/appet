@@ -1,4 +1,5 @@
 #Options -MultiViews
+Options +FollowSymLinks
 RewriteEngine on
 
 #Redireccion trailing slash. NO FUNCIONA EN LOCALHOST
@@ -44,12 +45,22 @@ RewriteRule ^admin/([a-zA-Z0-9-._]+)/([a-zA-Z0-9-._]+)/$ /index.php?controller=a
 RewriteRule ^admin/([a-zA-Z0-9-._]+)/([a-zA-Z0-9-._]+)/([a-zA-Z0-9-._]+)/$ /index.php?controller=admin&mod=$1&data=$2&data2=$3
 
 #--------------------------------------------
-#           Regular Core Stuff
+#           Guarderías
 #--------------------------------------------
-RewriteRule ^([a-z]+)/$ /index.php?lang=$1&mod=
-RewriteRule ^([a-z]+)/([a-zA-Z0-9-]+)/$ /index.php?lang=$1&mod=$2
-RewriteRule ^([a-z]+)/([a-zA-Z0-9-]+)/([a-zA-Z0-9-=.]+)/$ /index.php?lang=$1&controller=default&mod=$2&data=$3
-RewriteRule ^([a-z]+)/([a-zA-Z0-9-]+)/([a-zA-Z0-9-=.]+)/([a-zA-Z0-9-=.]+)/$ /index.php?lang=$1&controller=default&mod=$2&data=$3&data2=$4
+RewriteRule ^appet-([a-zA-Z0-9-]+)/$ /index.php?controller=admin&userslug=$1
+RewriteRule ^appet-([a-zA-Z0-9-]+)/([a-zA-Z0-9-._]+)/$ /index.php?controller=admin&userslug=$1&mod=$2
+RewriteRule ^appet-([a-zA-Z0-9-]+)/([a-zA-Z0-9-._]+)/([a-zA-Z0-9-._]+)/$ /index.php?controller=admin&userslug=$1&mod=$2&data=$3
+RewriteRule ^appet-([a-zA-Z0-9-]+)/([a-zA-Z0-9-._]+)/([a-zA-Z0-9-._]+)/([a-zA-Z0-9-._]+)/$ /index.php?controller=admin&userslug=$1&mod=$2&data=$3&data2=$4
+
+#--------------------------------------------
+#           Public
+#--------------------------------------------
+RewriteRule ^([a-zA-Z0-9-]+)/$ /index.php?mod=$1
+RewriteRule ^([a-zA-Z0-9-]+)/$ /index.php?lang=$1&mod=$2
+RewriteRule ^([a-zA-Z0-9-]+)/([a-zA-Z0-9-=.]+)/$ /index.php?mod=$2&data=$3
+RewriteRule ^([a-zA-Z0-9-]+)/([a-zA-Z0-9-=.]+)/([a-zA-Z0-9-=.]+)/$ /index.php?mod=$2&data=$3&data2=$4
+
+
 
 #--------------------------------------------
 #  Speed rush stuff (No funcionan en Local)

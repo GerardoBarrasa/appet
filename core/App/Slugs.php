@@ -179,7 +179,7 @@ class Slugs
             return true;
     }
 
-    public static function getModBySlug($slug)
+    public static function getModBySlug($slug, $controller = 'default')
     {
         //Buscamos la pagina solo si existe idioma session
         if(isset($_SESSION['lang']))
@@ -190,6 +190,7 @@ class Slugs
                 FROM slugs
                 WHERE status = "active"
                 AND slug = "'.$slug.'"
+                AND controller = "'.$controller.'"
                 AND id_language = (
                     SELECT id
                     FROM idiomas

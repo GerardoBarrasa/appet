@@ -489,7 +489,7 @@ class Tools
 			<br /><br /><br />
 			<img src="<?=_DOMINIO_?>img/loading.gif" class="flat" />
 		</div>
-		<?php		
+		<?php
 	}
 
 	/**
@@ -887,57 +887,37 @@ class Tools
 		}
 	}
 
-	/**
-	 * Lee la alerta que pueda haber en la sesion servidor y pinta el script para mostrarla
-	 */
-	public static function readAlert(){
-		if(isset($_SESSION['alert'])){
-			$toast = $_SESSION['alert'];
 
-			if($toast['background']){
-				$background = $toast['background'];
-			} else{
-				switch($toast['type']){
-					case "error":
-						$background = "#f43942";
-						break;
-					case "success":
-						$background = "#79cf49";
-						break;
-					case "warning":
-						$background = "#f4c911";
-						break;
-					case "info":
-						$background = "#3fc3ee";
-						break;
-				}
-			}
 
-			$script = "<script>";
-			$script .= "
-			$(document).ready(function(){
-			swal.fire({
-				icon: '".$toast["type"]."',
-				title: '".$toast["message"]."',
-				timer: ".$toast["timer"].",
-				background: '".$background."',
-				iconColor: '#fff',
-				color: '#fff',
-				toast: true,
-				position: 'top-end',
-				showConfirmButton: false,
-				timerProgressBar: true,
-				didOpen: (toast) => {
-				  toast.onmouseenter = Swal.stopTimer;
-				  toast.onmouseleave = Swal.resumeTimer;
-				}
-			})
-			";
-			$script .= "})</script>";
-			unset($_SESSION['alert']);
-			print $script;
-		} else{
-			print '<!-- NO ALERTS -->';
-		}
-	}
+    /**
+     * @param array|string|object $message
+     * @param int $type
+     * @param string $fichero
+     * @return bool
+     */
+    public static function logError(array|string|object $message = 'Error inesperado', int $type = 3, string $fichero = ''): bool
+    {
+        $tipo = $type;
+        $name = $fichero=='' ? 'errores_varios' : "debug_".$fichero;
+        $destino = '';
+        switch ($type){
+            case 1:
+                $destino = _WARNING_MAIL_;
+                break;
+            case 0:// Error con fichero personalizado para crear un log aparte para debug
+                $tipo = 3;
+                break;
+            case 99:// Error de query, lo añadimos a otro fichero diferente
+                $tipo = 3;
+                $name = "errores_query";
+                break;
+            default:// Error general
+                $tipo = 3;
+        }
+        !is_array($message) && !is_object($message) ?: $message = json_encode($message);
+        $destiny = $destino == '' ? log_folder.$name."_".date('Ymd').".log" : $destino;
+        $description = date('Y-m-d H:i:s')." - ".$message."\r\n";
+        return error_log($description, $tipo, $destiny);
+    }
+
 }

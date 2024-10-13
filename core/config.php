@@ -21,11 +21,15 @@ else
 
 define( '_ASSETS_',_DOMINIO_.'assets/' );
 define( '_ASSETS_PATH_',_PATH_.'assets/' );
+define( '_RESOURCES_',_DOMINIO_.'resources/' );
+define( '_RESOURCES_PATH_',_PATH_.'resources/' );
 define( '_CSS_',_DOMINIO_.'css/' );
 define( '_JS_',_DOMINIO_.'js/' );
 define( '_INCLUDES_',_PATH_.'includes/' );
 define( '_ADMIN_', 'admin/' );
 define( '_PUBLIC_', 'public/' );
+define( '_COMMON_', 'common/' );
+define( '_WARNING_MAIL_', 'info@equipo5.es' );
 
 /* Configuracion de Base de datos */
 if( _DEBUG_ )

@@ -4,6 +4,11 @@ class DefaultController extends Controllers
 {
 	public function execute($page)
 	{
+        // Redireccionamos todo a admin
+
+        header('Location: ' . _DOMINIO_._ADMIN_);
+        exit;
+
 		//Layout por defecto
 		Render::$layout = 'front-end';
 		Tools::registerJavascript(_JS_._PUBLIC_.'jquery/jquery.min.js');
