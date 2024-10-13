@@ -9,9 +9,35 @@ class AdminController extends Controllers
 	public function execute($page)
 	{
 		if( !isset($_SESSION['admin_panel']) && $page != '' ){
-			header('HTTP/1.1 403 Forbidden');
+            header("Location: "._DOMINIO_._ADMIN_);
 			exit;
 		}
+        // Obtenemos el entorno si existe
+        $userslug 	= Tools::getValue('userslug');
+        // Si estamos recibiendo un entorno comprobamos que existe y está activo, si no redirijimos a admin
+        if($userslug){
+            $entorno = Cuidador::getCuidadorBySlug($userslug);
+            if(!$entorno) {
+                $_SESSION['actions_mensajeError'] = 'El entorno al que intenta acceder no existe';
+                $dest = $_SESSION['admin_vars']['entorno'];
+                Admin::logout();
+                header("Location: "._DOMINIO_.$dest);
+                exit;
+            }
+            else{
+                // Comprobamos si está activo además de existir
+                if($entorno->estado == 0){
+                    $_SESSION['actions_mensajeError'] = 'El entorno al que intenta acceder no está disponible';
+                    $dest = $_SESSION['admin_vars']['entorno'];
+                    Admin::logout();
+                    header("Location: "._DOMINIO_.$dest);
+                    exit;
+                }
+                else{
+                    $_SESSION['admin_vars']['entorno'] = 'appet-'.$userslug.'/';
+                }
+            }
+        }
 
 		Render::$layout = 'back-end';
 
@@ -30,63 +56,61 @@ class AdminController extends Controllers
 		);
 
         if(isset($_SESSION['admin_panel'])){
-            Tools::logError('Tenemos usuario logueado: '.json_encode($_SESSION['admin_panel']), 3, 'login');
             // Comprobamos los datos del usuario logueado
             if(Admin::getUsuarioDataById($_SESSION['admin_panel']->id_usuario_admin)) {
-                Tools::logError('Validamos usuario logueado', 3, 'login');
+                if($_SESSION['admin_vars']['entorno'] != $_SESSION['admin_panel']->cuidador_slug.'/'){
+                    $dest = $_SESSION['admin_panel']->cuidador_slug.'/';
+                    header("Location: "._DOMINIO_.$dest);
+                    exit;
+                }
+                $_SESSION['admin_vars']['entorno'] = $_SESSION['admin_panel']->cuidador_slug.'/';
                 $validateUser = Admin::validateUserData($_SESSION['admin_panel']);
-
                 if( $validateUser != 'ok' )
                 {
-                    Tools::logError('Errores en la validación: '.$validateUser, 3, 'login');
                     $_SESSION['actions_mensajeError'] = $validateUser;
+                    $dest = $_SESSION['admin_vars']['entorno'];
                     Admin::logout();
-                    Tools::logError('Redirección a login', 3, 'login');
-                    header("Location: "._DOMINIO_._ADMIN_);
+                    header("Location: "._DOMINIO_.$dest);
                     exit;
                 }
             }
             else {
-                Tools::logError('No validamos usuario logueado', 3, 'login');
+                $_SESSION['admin_vars']['entorno'] = _ADMIN_;
                 $_SESSION['actions_mensajeError'] = 'El usuario no es válido';
                 Render::$layout = false;
+                $dest = $_SESSION['admin_vars']['entorno'];
                 Admin::logout();
-                Tools::logError('Redirección a admin', 3, 'login');
-                header("Location: "._DOMINIO_._ADMIN_);
+                header("Location: "._DOMINIO_.$dest);
                 exit;
             }
         }
 
+        Tools::logError($page);
+
 		//Inicio
 		$this->add('',function()
 		{
-            Tools::logError('Entramos a login', 3, 'login');
 			//Comprobamos si existe la sesion de admin
 			if( !isset($_SESSION['admin_panel']) )
 			{
-                Tools::logError('No hay usuario logueado', 3, 'login');
 				//Mensaje de error defecto
 				$mensajeError = $_SESSION['actions_mensajeError'] ?? '';
-                Tools::logError('Mensaje de error: '.$mensajeError, 3, 'login');
                 unset($_SESSION['actions_mensajeError']);
                 Render::$layout = 'actions';
 
 				//Comprobamos datos de acceso
 				if( isset($_REQUEST['btn-login']) )
 				{
-                    Tools::logError('Recibimos credenciales', 3, 'login');
 					//Obtenemos valores del login
 					$usuario 	= Tools::getValue('usuario');
 					$password	= Tools::md5(Tools::getValue('password'));
 
 					if(Admin::login($usuario, $password)) {
-                        Tools::logError('Acceso correcto', 3, 'login');
-                        header('Location:' . _DOMINIO_ . _ADMIN_);
+                        header('Location:' . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
                         exit;
                     }
 					else {
                         $mensajeError = "Usuario y/o contrase&ntilde;a incorrectos.";
-                        Tools::logError('Error al acceder: '.$mensajeError, 3, 'login');
                     }
 				}
 
@@ -97,13 +121,11 @@ class AdminController extends Controllers
 
 				//Metas Config
 				Metas::$title = "&iexcl;Con&eacute;ctate!";
-                Tools::logError('Renderizamos login: '.json_encode($data), 3, 'login');
 
                 Render::adminPage('login', $data);
 			}
 			else
 			{
-                Tools::logError('Renderizamos home', 3, 'login');
 				Metas::$title = "Inicio";
 				Render::adminPage('home');
 			}
@@ -115,7 +137,7 @@ class AdminController extends Controllers
 		$this->add('idiomas',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -135,7 +157,7 @@ class AdminController extends Controllers
 		$this->add('administrar-idioma',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -143,7 +165,7 @@ class AdminController extends Controllers
 			if( isset($_REQUEST['data']) )
 				$id = $_REQUEST['data'];
 			else {
-                header("Location: " . _ADMIN_ . 'idiomas/');
+                header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'idiomas/');
                 exit;
             }
 
@@ -156,7 +178,7 @@ class AdminController extends Controllers
 				{
 					if($id == '0'){
 						Tools::registerAlert("Idioma creado correctamente.", "success");
-						header("Location: "._ADMIN_.'idiomas/');
+						header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno'].'idiomas/');
 						die;
 					} else{
 						Tools::registerAlert("Idioma actualizado correctamente.", "success");
@@ -187,7 +209,7 @@ class AdminController extends Controllers
 		$this->add('traducciones',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -214,7 +236,7 @@ class AdminController extends Controllers
 		$this->add('traduccion',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -247,13 +269,13 @@ class AdminController extends Controllers
 					$texto = Tools::getValue('texto');
 					$traduccionId = Traducciones::crearTraduccion($shortcode, $id_lang, $texto);
 					Tools::registerAlert("Traducción creada correctamente.", "success");
-					header("Location: "._DOMINIO_._ADMIN_."traduccion/".(int)$traduccionId."/");
+					header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']."traduccion/".(int)$traduccionId."/");
 					die;
 				}
 				else
 				{
 					Tools::registerAlert("Shortcode vacío o ya existe", "error");
-					header("Location: "._DOMINIO_._ADMIN_."traducciones/");
+					header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']."traducciones/");
 					die;
 				}
 			}
@@ -272,7 +294,7 @@ class AdminController extends Controllers
 		$this->add('regenerar-cache-traducciones',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -284,7 +306,7 @@ class AdminController extends Controllers
 
 			Render::$layout = false;
 			Tools::registerAlert("Caché de traducciones regenerada correctamente.", "success");
-			header("Location: "._DOMINIO_._ADMIN_."traducciones/");
+			header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']."traducciones/");
             exit;
 		});
 
@@ -294,7 +316,7 @@ class AdminController extends Controllers
 		$this->add('slugs',function()
 		{
 			if(!isset($_SESSION['admin_panel']) || !empty($_SESSION['admin_panel']->id_country)) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -320,7 +342,7 @@ class AdminController extends Controllers
 		$this->add('administrar-slug',function()
 		{
 			if(!isset($_SESSION['admin_panel']) || !empty($_SESSION['admin_panel']->id_country)) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
                 exit;
             }
 			
@@ -328,7 +350,7 @@ class AdminController extends Controllers
 			if( isset($_REQUEST['data']) )
 				$id = $_REQUEST['data'];
 			else {
-                header("Location: " . _ADMIN_ . 'slugs/');
+                header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'slugs/');
                 exit;
             }
 
@@ -428,7 +450,7 @@ class AdminController extends Controllers
 		$this->add('usuarios-admin',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_.$_SESSION['admin_vars']['entorno']);
                 exit;
             }
 			
@@ -447,7 +469,7 @@ class AdminController extends Controllers
 		$this->add('usuario-admin',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_.$_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -483,9 +505,11 @@ class AdminController extends Controllers
 
 		$this->add('logout',function()
 		{
+            Tools::logError('LOGOUT');
 			Render::$layout = false;
-			Admin::logout();
-			header("Location: "._DOMINIO_._ADMIN_);
+            $dest = $_SESSION['admin_vars']['entorno'];
+            Admin::logout();
+            header("Location: "._DOMINIO_.$dest);
             exit;
 		});
 
@@ -496,7 +520,7 @@ class AdminController extends Controllers
 		$this->add('email-inbox',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_.$_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -506,7 +530,7 @@ class AdminController extends Controllers
 		$this->add('email-read',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_.$_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -516,7 +540,7 @@ class AdminController extends Controllers
 		$this->add('email-compose',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_.$_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -526,7 +550,7 @@ class AdminController extends Controllers
 		$this->add('ui-alerts',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_.$_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -536,7 +560,7 @@ class AdminController extends Controllers
 		$this->add('ui-buttons',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_.$_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -546,7 +570,7 @@ class AdminController extends Controllers
 		$this->add('ui-badge',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_.$_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -556,7 +580,7 @@ class AdminController extends Controllers
 		$this->add('ui-cards',function()
 		{
 			if(!isset($_SESSION['admin_panel'])) {
-                header("Location: " . _DOMINIO_ . _ADMIN_);
+                header("Location: " . _DOMINIO_.$_SESSION['admin_vars']['entorno']);
                 exit;
             }
 
@@ -566,7 +590,7 @@ class AdminController extends Controllers
 		$this->add('ui-carousel',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('ui-carousel');
 		});
@@ -574,7 +598,7 @@ class AdminController extends Controllers
 		$this->add('ui-dropdowns',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('ui-dropdowns');
 		});
@@ -582,14 +606,14 @@ class AdminController extends Controllers
 		$this->add('ui-grid',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 			Render::adminPage('ui-grid');
 		});
 
 		$this->add('ui-images',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('ui-images');
 		});
@@ -597,7 +621,7 @@ class AdminController extends Controllers
 		$this->add('ui-modals',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('ui-modals');
 		});
@@ -605,7 +629,7 @@ class AdminController extends Controllers
 		$this->add('ui-pagination',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('ui-pagination');
 		});
@@ -613,7 +637,7 @@ class AdminController extends Controllers
 		$this->add('ui-popover-tooltips',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('ui-popover-tooltips');
 		});
@@ -621,7 +645,7 @@ class AdminController extends Controllers
 		$this->add('ui-progressbars',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('ui-progressbars');
 		});
@@ -629,7 +653,7 @@ class AdminController extends Controllers
 		$this->add('ui-tabs-accordions',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('ui-tabs-accordions');
 		});
@@ -637,7 +661,7 @@ class AdminController extends Controllers
 		$this->add('ui-typography',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('ui-typography');
 		});
@@ -645,7 +669,7 @@ class AdminController extends Controllers
 		$this->add('ui-video',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('ui-video');
 		});
@@ -653,7 +677,7 @@ class AdminController extends Controllers
 		$this->add('components-lightbox',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'magnific-popup.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'jquery.magnific-popup.min.js');
@@ -664,7 +688,7 @@ class AdminController extends Controllers
 		$this->add('components-rangeslider',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'ion.rangeSlider.css');
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'ion.rangeSlider.skinModern.css');
@@ -676,7 +700,7 @@ class AdminController extends Controllers
 		$this->add('components-session-timeout',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'bootstrap-session-timeout.min.js');
 
@@ -686,7 +710,7 @@ class AdminController extends Controllers
 		$this->add('components-sweet-alert',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('components-sweet-alert');
 		});
@@ -694,7 +718,7 @@ class AdminController extends Controllers
 		$this->add('form-elements',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('form-elements');
 		});
@@ -702,7 +726,7 @@ class AdminController extends Controllers
 		$this->add('form-validation',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'parsley.min.js');
 
@@ -712,7 +736,7 @@ class AdminController extends Controllers
 		$this->add('form-advanced',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'bootstrap-colorpicker/css/bootstrap-colorpicker.min.css');
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'bootstrap-md-datetimepicker/css/bootstrap-material-datetimepicker.css');
@@ -732,7 +756,7 @@ class AdminController extends Controllers
 		$this->add('form-editors',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerJavascript(_JS_._PUBLIC_.'tinymce/tinymce.min.js');
 			Tools::registerJavascript(_JS_._PUBLIC_.'tinymce/langs/es.js');
@@ -743,7 +767,7 @@ class AdminController extends Controllers
 		$this->add('form-uploads',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'dropzone/dropzone.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'dropzone/dropzone.js');
@@ -754,7 +778,7 @@ class AdminController extends Controllers
 		$this->add('form-xeditable',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'x-editable/css/bootstrap-editable.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'moment.js');
@@ -766,7 +790,7 @@ class AdminController extends Controllers
 		$this->add('charts-chartist',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'chartist/css/chartist.min.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'chartist/js/chartist.min.js');
@@ -778,7 +802,7 @@ class AdminController extends Controllers
 		$this->add('charts-chartjs',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'chart.js/chart.min.js');
 
@@ -788,7 +812,7 @@ class AdminController extends Controllers
 		$this->add('charts-flot',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 			
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'flot-chart/jquery.flot.min.js');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'flot-chart/jquery.flot.time.js');
@@ -806,7 +830,7 @@ class AdminController extends Controllers
 		$this->add('charts-c3',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'c3/c3.min.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'d3/d3.min.js');
@@ -818,7 +842,7 @@ class AdminController extends Controllers
 		$this->add('charts-morris',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'morris/morris.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'morris/morris.min.js');
@@ -830,7 +854,7 @@ class AdminController extends Controllers
 		$this->add('charts-other',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'jquery-knob/excanvas.js');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'jquery-knob/jquery.knob.js');
@@ -841,7 +865,7 @@ class AdminController extends Controllers
 		$this->add('tables-basic',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('tables-basic');
 		});
@@ -849,7 +873,7 @@ class AdminController extends Controllers
 		$this->add('tables-responsive',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'footable/footable.bootstrap.min.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'footable/footable.min.js');
@@ -860,7 +884,7 @@ class AdminController extends Controllers
 		$this->add('tables-editable',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'tiny-editable/mindmup-editabletable.js');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'tiny-editable/numeric-input-example.js');
@@ -871,7 +895,7 @@ class AdminController extends Controllers
 		$this->add('icons-material',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('icons-material');
 		});
@@ -879,7 +903,7 @@ class AdminController extends Controllers
 		$this->add('icons-ion',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('icons-ion');
 		});
@@ -887,7 +911,7 @@ class AdminController extends Controllers
 		$this->add('icons-fontawesome',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('icons-fontawesome');
 		});
@@ -895,7 +919,7 @@ class AdminController extends Controllers
 		$this->add('icons-themify',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('icons-themify');
 		});
@@ -903,7 +927,7 @@ class AdminController extends Controllers
 		$this->add('icons-dripicons',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('icons-dripicons');
 		});
@@ -911,7 +935,7 @@ class AdminController extends Controllers
 		$this->add('icons-typicons',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Render::adminPage('icons-typicons');
 		});
@@ -919,7 +943,7 @@ class AdminController extends Controllers
 		$this->add('calendar',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'fullcalendar/css/fullcalendar.min.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'jquery-ui/jquery-ui.min.js');
@@ -932,7 +956,7 @@ class AdminController extends Controllers
 		$this->add('maps-google',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerJavascript('https://maps.google.com/maps/api/js?key=AIzaSyCtSAR45TFgZjOs4nBFFZnII-6mMHLfSYI');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'gmaps/gmaps.min.js');
@@ -943,7 +967,7 @@ class AdminController extends Controllers
 		$this->add('maps-vector',function()
 		{
 			if(!isset($_SESSION['admin_panel']))
-				header("Location: "._DOMINIO_._ADMIN_);
+				header("Location: "._DOMINIO_.$_SESSION['admin_vars']['entorno']);
 
 			Tools::registerStylesheet(_ASSETS_._ADMIN_.'jvectormap/jquery-jvectormap-2.0.2.css');
 			Tools::registerJavascript(_ASSETS_._ADMIN_.'jvectormap/jquery-jvectormap-2.0.2.min.js');
@@ -963,7 +987,7 @@ class AdminController extends Controllers
 
 		if( !$this->getRendered() )
 		{
-			header('Location: ' . _DOMINIO_._ADMIN_.'404/');
+			header('Location: ' . _DOMINIO_.$_SESSION['admin_vars']['entorno'].'404/');
 			exit;
 		}
 	}

@@ -17,6 +17,7 @@ class Admin
 	public static function logout()
 	{
 		unset($_SESSION['admin_panel']);
+		unset($_SESSION['admin_vars']);
 	}
 
 	public static function getUsuariosWithFiltros($comienzo, $limite, $applyLimit=true)
@@ -48,9 +49,7 @@ class Admin
 
 	public static function getUsuarioDataById($id_usuario_admin): bool
     {
-        $datos = Bd::getInstance()->fetchRow("SELECT u.*, '".$_SESSION['admin_panel']->last_access."' AS last_access, IF(u.idperfil=1,'admin',IF(c.slug IS NOT NULL, CONCAT('appet-',slug), '')) AS cuidador_slug, IF(u.idperfil=1,'ApPet',IFNULL(c.nombre, '')) AS cuidador_nombre, IFNULL(c.estado, 0) AS cuidador_estado FROM usuarios_admin u LEFT JOIN usuarios_cuidadores uc ON u.id_usuario_admin=uc.id_usuario LEFT JOIN cuidadores c ON c.id=uc.id_cuidador WHERE u.id_usuario_admin='".$id_usuario_admin."'");
-
-        Tools::logError($datos, 3, 'login');
+        $datos = Bd::getInstance()->fetchRow("SELECT u.*, '".$_SESSION['admin_panel']->last_access."' AS last_access, IF(u.idperfil=1,'admin',IF(c.slug IS NOT NULL, CONCAT('appet-',slug), '')) AS cuidador_slug, IF(u.idperfil=1,'ApPet',IFNULL(c.nombre, '')) AS cuidador_nombre, IF(u.idperfil=1,'1',IFNULL(c.estado, 0)) AS cuidador_estado FROM usuarios_admin u LEFT JOIN usuarios_cuidadores uc ON u.id_usuario_admin=uc.id_usuario LEFT JOIN cuidadores c ON c.id=uc.id_cuidador WHERE u.id_usuario_admin='".$id_usuario_admin."'");
 
         if( $datos )
         {
@@ -80,11 +79,13 @@ class Admin
         }
         // Comprobamos si el usuario tiene un cuidador asignado
         if($userData->cuidador_slug == ''){
+            $_SESSION['admin_vars']['entorno'] = _ADMIN_;
             $result = "Su usuario no está asignado a ninguna cuenta";
             goto end;
         }
         // Comprobamos si la cuenta del cuidador está activa
         if($userData->cuidador_estado == 0){
+            $_SESSION['admin_vars']['entorno'] = _ADMIN_;
             $result = "La cuenta a la que intenta acceder no está operativa";
             goto end;
         }

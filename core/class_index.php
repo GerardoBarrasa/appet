@@ -79,8 +79,8 @@
   array (
     'path' => 'Funks/Admin.php'
   ),
-  'Miprimeraclase' => 
+  'Cuidador' =>
   array (
-    'path' => 'Funks/Miprimeraclase.php'
+    'path' => 'Funks/Cuidador.php'
   ),
 ); ?>
