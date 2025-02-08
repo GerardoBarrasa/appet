@@ -2,9 +2,11 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content=" user-scalable=no, width=device-width, initial-scale=1, minimum-scale=1">
     <link rel="icon" type="image/x-icon" href="<?=_RESOURCES_._COMMON_?>img/appet_icon.png">
     <?php Metas::getMetas();?>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <?php include(_INCLUDES_._ADMIN_.'stylesheets.php'); ?>
     <script type="text/javascript">
         const dominio = "<?=_DOMINIO_;?>";
@@ -12,7 +14,7 @@
     </script>
     <?php include(_INCLUDES_._ADMIN_.'javascript_top.php'); ?>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="hold-transition sidebar-mini layout-fixed outfit-appet">
 <!-- Site wrapper -->
 <div class="wrapper">
     <!-- Navbar -->
@@ -25,6 +27,7 @@
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
+        <?php include(_INCLUDES_._ADMIN_.'header.php'); ?>
         <?php Render::getAdminPage();?>
         <!-- /.content -->
     </div>
@@ -41,7 +44,5 @@
 <!-- ./wrapper -->
 
 <?php include(_INCLUDES_._ADMIN_.'javascript_bottom.php'); ?>
-<!-- AdminLTE for demo purposes -->
-<script src="<?=_RESOURCES_._ADMIN_?>js/demo.js"></script>
 </body>
 </html>

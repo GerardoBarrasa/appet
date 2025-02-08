@@ -51,14 +51,14 @@
                 </div>
             </form>
 
-            <?php include(_INCLUDES_._ADMIN_.'login_social.php'); ?>
+            <?php //include(_INCLUDES_._ADMIN_.'login_social.php'); ?>
             <!-- /.social-auth-links -->
 
             <p class="mb-1">
-                <a href="<?=_DOMINIO_._ADMIN_?>forgot-password/">I forgot my password</a>
+                <a href="<?=_DOMINIO_._ADMIN_?>forgot-password/">Olvidé mi contraseña</a>
             </p>
             <p class="mb-0">
-                <a href="<?=_DOMINIO_._ADMIN_?>registro/" class="text-center">Register a new membership</a>
+                <a href="<?=_DOMINIO_._ADMIN_?>registro/" class="text-center">Registrarme</a>
             </p>
         </div>
         <!-- /.card-body -->

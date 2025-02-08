@@ -12,7 +12,5 @@
 <?php Render::getAdminPage();?>
 
 <?php include(_INCLUDES_._ADMIN_.'javascript_bottom.php'); ?>
-<!-- AdminLTE for demo purposes -->
-<script src="<?=_RESOURCES_._ADMIN_?>js/demo.js"></script>
 </body>
 </html>

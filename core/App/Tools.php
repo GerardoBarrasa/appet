@@ -920,4 +920,35 @@ class Tools
         return error_log($description, $tipo, $destiny);
     }
 
+
+    /**
+     * @param $path
+     * @param int $width
+     * @param int|string $height
+     * @return false|string
+     */
+    public static function resize_image($path, int $width=300, int|string $height='auto'): false|string
+    {
+        $fileData = file_get_contents($path);
+        $im = imagecreatefromstring($fileData);
+        $source_width = imagesx($im);
+        $source_height = imagesy($im);
+        $ratio =  $source_height / $source_width;
+
+        $new_width = $width; // assign new width to new resized image
+        $new_height = $height == 'auto' ? $ratio * $width : $height;
+
+        $thumb = imagecreatetruecolor($new_width, $new_height);
+
+        $transparency = imagecolorallocatealpha($thumb, 255, 255, 255, 127);
+        imagefilledrectangle($thumb, 0, 0, $new_width, $new_height, $transparency);
+
+        imagecopyresampled($thumb, $im, 0, 0, 0, 0, $new_width, $new_height, $source_width, $source_height);
+        ob_start();
+        imagepng($thumb);
+        $imagedata = ob_get_clean();
+        imagedestroy($im);
+        return $imagedata;
+    }
+
 }

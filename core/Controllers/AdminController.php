@@ -13,38 +13,18 @@ class AdminController extends Controllers
 			exit;
 		}
         // Obtenemos el entorno si existe
-        $userslug 	= Tools::getValue('userslug');
-        // Si estamos recibiendo un entorno comprobamos que existe y está activo, si no redirijimos a admin
-        if($userslug){
-            $entorno = Cuidador::getCuidadorBySlug($userslug);
-            if(!$entorno) {
-                $_SESSION['actions_mensajeError'] = 'El entorno al que intenta acceder no existe';
-                $dest = $_SESSION['admin_vars']['entorno'];
-                Admin::logout();
-                header("Location: "._DOMINIO_.$dest);
-                exit;
-            }
-            else{
-                // Comprobamos si está activo además de existir
-                if($entorno->estado == 0){
-                    $_SESSION['actions_mensajeError'] = 'El entorno al que intenta acceder no está disponible';
-                    $dest = $_SESSION['admin_vars']['entorno'];
-                    Admin::logout();
-                    header("Location: "._DOMINIO_.$dest);
-                    exit;
-                }
-                else{
-                    $_SESSION['admin_vars']['entorno'] = 'appet-'.$userslug.'/';
-                }
-            }
-        }
+        Admin::getEntorno();
+        // Validamos los datos del usuario logueado
+        Admin::validateUser();
 
 		Render::$layout = 'back-end';
 
 		Tools::registerStylesheet('https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback');
+		Tools::registerStylesheet('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 		Tools::registerStylesheet(_ASSETS_._COMMON_.'bootstrap-5.3.3-dist/css/bootstrap.min.css');
 		Tools::registerStylesheet(_ASSETS_._COMMON_.'fontawesome-free-6.6.0-web/css/all.css');
 		Tools::registerStylesheet(_RESOURCES_._ADMIN_.'css/adminlte.min.css');
+		Tools::registerStylesheet(_RESOURCES_._ADMIN_.'css/style-admin.min.css');
 
 		Tools::registerJavascript(_ASSETS_._COMMON_.'jquery-3.7.1.min.js');
 		Tools::registerJavascript(_ASSETS_._COMMON_.'bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js');
@@ -54,38 +34,6 @@ class AdminController extends Controllers
 		Render::$layout_data = array(
 			'idiomas' => Idiomas::getLanguagesAdminForm()
 		);
-
-        if(isset($_SESSION['admin_panel'])){
-            // Comprobamos los datos del usuario logueado
-            if(Admin::getUsuarioDataById($_SESSION['admin_panel']->id_usuario_admin)) {
-                if($_SESSION['admin_vars']['entorno'] != $_SESSION['admin_panel']->cuidador_slug.'/'){
-                    $dest = $_SESSION['admin_panel']->cuidador_slug.'/';
-                    header("Location: "._DOMINIO_.$dest);
-                    exit;
-                }
-                $_SESSION['admin_vars']['entorno'] = $_SESSION['admin_panel']->cuidador_slug.'/';
-                $validateUser = Admin::validateUserData($_SESSION['admin_panel']);
-                if( $validateUser != 'ok' )
-                {
-                    $_SESSION['actions_mensajeError'] = $validateUser;
-                    $dest = $_SESSION['admin_vars']['entorno'];
-                    Admin::logout();
-                    header("Location: "._DOMINIO_.$dest);
-                    exit;
-                }
-            }
-            else {
-                $_SESSION['admin_vars']['entorno'] = _ADMIN_;
-                $_SESSION['actions_mensajeError'] = 'El usuario no es válido';
-                Render::$layout = false;
-                $dest = $_SESSION['admin_vars']['entorno'];
-                Admin::logout();
-                header("Location: "._DOMINIO_.$dest);
-                exit;
-            }
-        }
-
-        Tools::logError($page);
 
 		//Inicio
 		$this->add('',function()
