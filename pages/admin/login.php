@@ -10,8 +10,8 @@
     }
     ?>
     <!-- /.login-logo -->
-    <div class="card card-outline card-primary">
-        <div class="card-header text-center">
+    <div class="card card-outline card-primary" style="background-image: url('<?=_RESOURCES_?>common/img/appet_logotipo.png'); background-repeat: no-repeat; background-position: 5% 10%; background-size: 100px;background-color: rgba(255,255,255,0.6); background-blend-mode: lighten;">
+        <div class="card-header text-center border-bottom-0">
             <a href="<?=_DOMINIO_._ADMIN_?>" class="h1"><b>Ap</b>Pet</a>
         </div>
         <div class="card-body">
@@ -57,9 +57,9 @@
             <p class="mb-1">
                 <a href="<?=_DOMINIO_._ADMIN_?>forgot-password/">Olvidé mi contraseña</a>
             </p>
-            <p class="mb-0">
-                <a href="<?=_DOMINIO_._ADMIN_?>registro/" class="text-center">Registrarme</a>
-            </p>
+            <!--<p class="mb-0">
+                <a href="<?php /*=_DOMINIO_._ADMIN_*/?>registro/" class="text-center">Registrarme</a>
+            </p>-->
         </div>
         <!-- /.card-body -->
     </div>

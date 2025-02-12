@@ -41,6 +41,15 @@ $(document).ready(function(){
 	});
 });
 
+function show_loader()
+{
+	$(".loadingscr").removeClass('d-none').addClass('d-flex');
+}
+function hide_loader()
+{
+	$(".loadingscr").removeClass('d-flex').addClass('d-none');
+}
+
 function afetch(url, options = {})
 {
 	if( typeof options.method !== 'undefined' && options.method == 'POST' && options.body instanceof FormData )

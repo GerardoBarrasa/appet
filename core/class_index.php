@@ -83,4 +83,8 @@
   array (
     'path' => 'Funks/Cuidador.php'
   ),
+  'Mascotas' =>
+  array (
+    'path' => 'Funks/Mascotas.php'
+  ),
 ); ?>

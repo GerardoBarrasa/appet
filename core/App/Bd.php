@@ -64,13 +64,12 @@ class Bd
 		if( $this->link != '' )
 		{
 			$l = $this->link;
-			$q = $l->query($sql) or mysqli_error($l);
+			$q = $l->query($sql);
 
-			if( $q )
-				Debug::mlog(time(),$sql,'Ejecutada correctamente');	
-			else {
-                Debug::mlog(time(), $sql, mysqli_error($l));
-                error_log(date('Y-m-d H:i:s').' - Query: '.$sql.' - '.mysqli_error($l). "\r\n", 3, log_folder.'error_queries_'.date('Ymd').'.log');
+			if( !$q ){
+                //Debug::mlog(time(), $sql, mysqli_error($l));
+                //error_log(date('Y-m-d H:i:s').' - Query: '.$sql.' - '.mysqli_error($l). "\r\n", 3, log_folder.'error_queries_'.date('Ymd').'.log');
+                __log_error('Query: '.$sql.' - '.mysqli_error($l), 99);
             }
 
 			return $q;

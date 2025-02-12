@@ -9,6 +9,10 @@ class AdminajaxController extends Controllers
 	public function execute($page)
 	{
 		Render::$layout = false;
+        // Obtenemos el entorno si existe
+        Admin::getEntorno();
+        // Validamos los datos del usuario logueado
+        Admin::validateUser();
 
 		$this->add('ajax-get-usuarios-admin',function()
 		{
@@ -177,6 +181,45 @@ class AdminajaxController extends Controllers
 			
 			die(json_encode($response));
 		});
+
+        $this->add('ajax-get-mascotas-admin',function()
+        {
+            __log_error(json_encode($_POST));
+
+            $comienzo	= Tools::getValue('comienzo');
+            $limite 	= Tools::getValue('limite');
+            $pagina		= Tools::getValue('pagina');
+
+            $mascotas   = Mascotas::getMascotasFiltered( $comienzo, $limite );
+            $total      = count(Mascotas::getMascotasFiltered( $comienzo, $limite, false ));
+
+            $data = array(
+                'comienzo'  => $comienzo,
+                'limite' 	=> $limite,
+                'pagina' 	=> $pagina,
+                'mascotas'  => $mascotas,
+                'total' 	=> $total
+            );
+
+            $html = Render::getAjaxPage('admin_mascotas_list',$data);
+
+            if( !empty($html) )
+            {
+                $response = array(
+                    'type' => 'success',
+                    'html' => $html
+                );
+            }
+            else
+            {
+                $response = array(
+                    'type' => 'error',
+                    'html' => 'Hubo un error cargando el html'
+                );
+            }
+
+            die(json_encode($response));
+        });
 
 		if( !$this->getRendered() )
 		{

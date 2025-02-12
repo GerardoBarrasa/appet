@@ -30,6 +30,8 @@ RewriteRule ^ajax/([a-zA-Z0-9-]+)/([a-zA-Z0-9-._]+)/?$ /index.php?controller=aja
 #--------------------------------------------
 RewriteRule ^adminajax/([a-zA-Z0-9-]+)/?$ /index.php?controller=adminajax&mod=$1
 RewriteRule ^adminajax/([a-zA-Z0-9-]+)/([a-zA-Z0-9-._]+)/?$ /index.php?controller=adminajax&mod=$1&token=$2
+RewriteRule ^appet-([a-zA-Z0-9-]+)/adminajax/([a-zA-Z0-9-]+)/?$ /index.php?controller=adminajax&userslug=$1&mod=$2
+RewriteRule ^appet-([a-zA-Z0-9-]+)/adminajax/([a-zA-Z0-9-]+)/([a-zA-Z0-9-._]+)/?$ /index.php?controller=adminajax&userslug=$1&mod=$2&token=$3
 
 #--------------------------------------------
 #           Cronjobs

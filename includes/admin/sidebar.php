@@ -10,16 +10,16 @@
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                <li class="nav-item active<?=Render::$page == 'propietarios'? ' active' : ''?>">
-                    <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>propietarios/" class="nav-link">
-                        <i class="fa fa-user-alt nav-icon"></i>
-                        <p>Propietarios</p>
-                    </a>
-                </li>
-                <li class="nav-item">
+                <li class="nav-item<?=Render::$page == 'mascotas'? ' active' : ''?>">
                     <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>mascotas/" class="nav-link">
                         <i class="fa fa-dog nav-icon"></i>
                         <p>Mascotas</p>
+                    </a>
+                </li>
+                <li class="nav-item <?=Render::$page == 'propietarios'? ' active' : ''?>">
+                    <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>propietarios/" class="nav-link">
+                        <i class="fa fa-user-alt nav-icon"></i>
+                        <p>Tutores</p>
                     </a>
                 </li>
             </ul>
