@@ -6,11 +6,20 @@
     --colorSecondaryAlt: #e1c863;
     --colorSecondaryAltHover: #ab8c16;
 }
+[class*=sidebar-dark-] {
+    background-color: var(--colorPrimary);
+}
+[class*=sidebar-dark] .brand-link {
+    border-bottom: 1px solid var(--colorSecondary);
+}
 a {
     color: var(--colorSecondary);
 }
 a:hover {
     color: var(--colorSecondaryHover);
+}
+textarea{
+    resize: none !important;
 }
 .outfit-appet {
      font-family: "Outfit", sans-serif;
@@ -188,6 +197,45 @@ a.bg-secondary:focus, a.bg-secondary:hover, button.bg-secondary:focus, button.bg
     outline-color: var(--colorSecondaryAlt);
 }
 
+.card-primary:not(.card-outline)>.card-header {
+    background-color: var(--colorPrimary);
+    color: #fff;
+}
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    color: #fff;
+    background-color: var(--colorSecondary);
+}
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    color: var(--bs-nav-pills-link-active-color);
+    background-color: var(--colorSecondary);
+}
+.nav-link {
+    color: var(--colorSecondary);
+}
+.nav-pills .nav-link:not(.active):hover {
+    color: var(--colorSecondary);
+}
+.slider-handle {
+    background-image: -moz-linear-gradient(top, var(--colorSecondary), var(--colorSecondaryAltHover));
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(var(--colorSecondary)), to(var(--colorSecondaryAltHover)));
+    background-image: -webkit-linear-gradient(top, var(--colorSecondary), var(--colorSecondaryAltHover));
+    background-image: -o-linear-gradient(top, var(--colorSecondary), var(--colorSecondaryAltHover));
+    background-image: linear-gradient(to bottom, var(--colorSecondary), var(--colorSecondaryAltHover));
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='var(--colorSecondary)', endColorstr='var(--colorSecondaryAltHover)',GradientType=0);
+    -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);
+    -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);
+    position: absolute;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    background-color: var(--colorSecondaryAltHover);
+    border: 0 solid transparent;
+}
+.slider-yellow .slider .slider-selection {
+    background: var(--colorSecondaryAlt);
+}
 
 .loadingscr {
     position: fixed;

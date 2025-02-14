@@ -4,8 +4,8 @@ class Mascotas
 {
     public static function getMascotaById($id_mascota)
     {
-        $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ?: " AND id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
-        return Bd::getInstance()->fetchRow("SELECT * FROM mascotas WHERE 1 AND id='$id_mascota' $filtro_cuidador");
+        $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ?: " AND m.id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
+        return Bd::getInstance()->fetchRow("SELECT m.*, mg.nombre AS GENERO, mt.nombre AS TIPO FROM mascotas m INNER JOIN mascotas_tipo mt ON m.tipo=mt.id INNER JOIN mascotas_genero mg ON m.genero=mg.id WHERE 1 AND m.id='$id_mascota' $filtro_cuidador");
     }
 
     public static function getMascotaBySlug($slug)
@@ -31,7 +31,22 @@ class Mascotas
             $limit = "";
 
         $q = "SELECT m.*, mg.nombre AS GENERO, mt.nombre AS TIPO FROM mascotas m INNER JOIN mascotas_tipo mt ON m.tipo=mt.id INNER JOIN mascotas_genero mg ON m.genero=mg.id WHERE 1 ".$whereBusqueda." ".$filtro_cuidador." ORDER BY id DESC $limit";
-        __log_error($q);
+        $datos = Bd::getInstance()->fetchObject($q);
+
+        return $datos;
+    }
+
+    public static function getMascotasCaracteristicas($idmascota)
+    {
+        $q = "SELECT mc.* FROM mascotas_caracteristicas mc WHERE 1 AND mc.id_mascota='$idmascota'";
+        $datos = Bd::getInstance()->fetchObjectWithKey($q, 'id_caracteristica');
+
+        return $datos;
+    }
+
+    public static function getCaracteristicas()
+    {
+        $q = "SELECT c.* FROM caracteristicas c WHERE 1  ORDER BY c.nombre, c.slug DESC";
         $datos = Bd::getInstance()->fetchObject($q);
 
         return $datos;

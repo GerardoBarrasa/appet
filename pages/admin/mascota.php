@@ -1,3 +1,6 @@
+<?php
+$image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'.jpg') ? _RESOURCES_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'.jpg' : _RESOURCES_ . _COMMON_ .'img/petType_'.$mascota->tipo.'_default.png';
+?>
 <!-- Main content -->
 <section class="content">
     <div class="container-fluid">
@@ -8,28 +11,29 @@
                 <div class="card card-primary card-outline">
                     <div class="card-body box-profile">
                         <div class="text-center">
-                            <img class="profile-user-img img-fluid img-circle"
-                                 src="../../dist/img/user4-128x128.jpg"
-                                 alt="User profile picture">
+                            <img class="profile-user-img img-fluid img-circle w-100" src="<?=$image?>" alt="<?=$mascota->nombre?>">
                         </div>
 
-                        <h3 class="profile-username text-center">Nina Mcintire</h3>
+                        <h3 class="profile-username text-center"><?=$mascota->nombre?><?=$mascota->alias == '' ? '' : '<span class="small"> ('.$mascota->alias.')</span>'?></h3>
 
-                        <p class="text-muted text-center">Software Engineer</p>
+                        <p class="text-muted text-center"><?=$mascota->GENERO?><?=$mascota->raza == '' ?: ' '.$mascota->raza?></p>
 
                         <ul class="list-group list-group-unbordered mb-3">
                             <li class="list-group-item">
-                                <b>Followers</b> <a class="float-right">1,322</a>
+                                <i class="fa fa-weight-hanging"></i>
+                                <b>Peso</b> <a class="float-right"><?=$mascota->peso == 0 ? '---' : $mascota->peso.'Kg'?></a>
                             </li>
                             <li class="list-group-item">
-                                <b>Following</b> <a class="float-right">543</a>
+                                <i class="fa fa-syringe"></i>
+                                <b>Esterilizado/a</b> <a class="float-right<?=$mascota->esterilizado == 1 ? ' text-success' : ''?>"><?=$mascota->esterilizado == 1 ? 'Sí' : 'No'?></a>
                             </li>
                             <li class="list-group-item">
-                                <b>Friends</b> <a class="float-right">13,287</a>
+                                <i class="fa fa-clock"></i>
+                                <b>Edad (años)</b> <a class="float-right"><?=$mascota->nacimiento_fecha != '' ? Tools::calcularAniosTranscurridos($mascota->nacimiento_fecha).' <span class="small">(nació el ' . Tools::fecha($mascota->nacimiento_fecha).')</span>' : ($mascota->edad == 0 ? '---' : $mascota->edad .' <span class="small">a día ' . Tools::fecha($mascota->edad_fecha)).'</span>'?></a>
                             </li>
                         </ul>
 
-                        <a href="#" class="btn btn-primary btn-block"><b>Follow</b></a>
+                        <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>editar-mascota/<?=$mascota->slug.'-'.$mascota->id?>/" class="btn btn-primary btn-block"><b>Editar</b></a>
                     </div>
                     <!-- /.card-body -->
                 </div>
@@ -38,21 +42,39 @@
                 <!-- About Me Box -->
                 <div class="card card-primary">
                     <div class="card-header">
-                        <h3 class="card-title">About Me</h3>
+                        <h3 class="card-title">Sobre mi</h3>
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
-                        <strong><i class="fas fa-book mr-1"></i> Education</strong>
+                        <?php $cnom = '';
+                        foreach ($caracteristicas as $cr){
+                            if($cnom != $cr->nombre){//Cambiamos de característica?>
+                                <strong><i class="fa <?=$cr->ico?> mr-1"></i> <?=$cr->nombre?>:</strong>
+                            <?php $cnom = $cr->nombre;}
+                            if($cr->tipo == 'escala'){
+                                $values = explode(',', $cr->valores);?>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="col-11">
+                                            <div class="slider-yellow">
+                                                <input type="text" value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" class="slider form-control" data-slider-min="<?=min($values)?>" data-slider-max="<?=max($values)?>" data-slider-step="1" data-slider-value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-slider-orientation="horizontal" data-slider-selection="before" data-slider-tooltip="show">
+                                            </div>
+                                        </div>
+                                        <i class="fa fa-question-circle text-info fs-4" data-toggle="tooltip" title="<?=$cr->texto_ayuda?>"></i>
+                                    </div>
+                               
+                            <?php }
+                            if($cr->tipo == 'texto'){
+                                $values = explode(',', $cr->valores);?>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="col-12">
+                                        <textarea rows="5" class="form-control form-text"><?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?></textarea>
+                                    </div>
+                                </div>
 
-                        <p class="text-muted">
-                            B.S. in Computer Science from the University of Tennessee at Knoxville
-                        </p>
-
-                        <hr>
-
-                        <strong><i class="fas fa-map-marker-alt mr-1"></i> Location</strong>
-
-                        <p class="text-muted">Malibu, California</p>
+                            <?php }?>
+                            <hr class="border-1 bg-secondary">
+                        <?php } ?>
+                        <p class="text-muted">Santa Pola</p>
 
                         <hr>
 

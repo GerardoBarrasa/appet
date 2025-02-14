@@ -5,7 +5,10 @@ $(document).ready(function(){
     $('#formFiltrosAdmin input[type=text]').keyup(_.debounce(function () {
         let funcion = $(this).data('function');
         window[funcion]('0', '10', '1');
-    }, 500))
+    }, 500));
+    /* BOOTSTRAP SLIDER */
+    $('.slider').bootstrapSlider();
+    $('[data-toggle="tooltip"]').tooltip()
 });
 
 function show_loader()

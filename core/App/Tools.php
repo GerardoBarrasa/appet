@@ -60,6 +60,26 @@ class Tools
 		return $input;
 	}
 
+    /**
+     * Calcula la edad en años entre fechas
+     *
+     * @param string $fechaInicio YYYY-MM-DD
+     * @param string $fechaFin YYYY-MM-DD
+     * @return string
+     */
+    public static function calcularAniosTranscurridos(string $fechaFin, string $fechaInicio='')
+    {
+        $fechaFin != '' ?: $fechaFin = date('Y-m-d');
+        $inicio = new DateTime($fechaInicio);
+        $fin = new DateTime($fechaFin);
+
+        // Calcular la diferencia entre las fechas
+        $diferencia = $inicio->diff($fin);
+
+        // Devolver el número de años sin decimales
+        return $diferencia->y;
+    }
+
 
 	/*
 	|--------------------------------------------------------------------------

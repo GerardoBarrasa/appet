@@ -1,7 +1,7 @@
 <?php
 if ($total > 0) {
     foreach ($mascotas as $key => $mascota) {
-        $image = file_exists(_RESOURCES_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'.jpg') ? _RESOURCES_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'jpg' : _RESOURCES_ . _COMMON_ .'img/petType_'.$mascota->tipo.'_default.png';
+        $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'.jpg') ? _RESOURCES_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'.jpg' : _RESOURCES_ . _COMMON_ .'img/petType_'.$mascota->tipo.'_default.png';
         ?>
 
         <div class="col-12 col-md-6 col-xl-4 d-flex align-items-stretch flex-column">
@@ -24,7 +24,7 @@ if ($total > 0) {
                             </ul>
                         </div>
                         <div class="col-12 col-sm-5 text-center">
-                            <img src="<?= _RESOURCES_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'.jpg'?>" width="150" alt="dog-avatar" class="img-circle img-fluid">
+                            <img src="<?= $image?>" width="150" alt="dog-avatar" class="img-circle img-fluid">
                         </div>
                     </div>
                 </div>

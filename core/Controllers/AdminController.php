@@ -22,12 +22,14 @@ class AdminController extends Controllers
 		Tools::registerStylesheet('https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback');
 		Tools::registerStylesheet('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 		Tools::registerStylesheet(_ASSETS_._COMMON_.'bootstrap-5.3.3-dist/css/bootstrap.min.css');
+		Tools::registerStylesheet(_ASSETS_._COMMON_.'bootstrap-slider/css/bootstrap-slider.min.css');
 		Tools::registerStylesheet(_ASSETS_._COMMON_.'fontawesome-free-6.6.0-web/css/all.css');
 		Tools::registerStylesheet(_RESOURCES_._ADMIN_.'css/adminlte.min.css');
 		Tools::registerStylesheet(_RESOURCES_._ADMIN_.'css/style-admin.css?v='.time());
 
 		Tools::registerJavascript(_ASSETS_._COMMON_.'jquery-3.7.1.min.js', 'top');
 		Tools::registerJavascript(_ASSETS_._COMMON_.'bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js');
+		Tools::registerJavascript(_ASSETS_._COMMON_.'bootstrap-slider/bootstrap-slider.min.js');
 		Tools::registerJavascript(_ASSETS_._COMMON_.'underscore.js');
 		Tools::registerJavascript(_RESOURCES_._ADMIN_.'js/adminlte.min.js');
 		Tools::registerJavascript(_RESOURCES_._ADMIN_.'js/custom.js?v='.time(), 'top');
@@ -474,9 +476,17 @@ class AdminController extends Controllers
                 header("Location: " . _DOMINIO_.$_SESSION['admin_vars']['entorno']);
                 exit;
             }
+            if( isset($_REQUEST['data']) )
+                $data = explode('-',$_REQUEST['data']);
+            $idMascota              = $data[1];
+            $mascota                = Mascotas::getMascotaById($idMascota);
+            $mascotaCaracteristicas = Mascotas::getMascotasCaracteristicas($idMascota);
+            $caracteristicas        = Mascotas::getCaracteristicas();
 
 			$data = array(
-				'mascota' => ''
+				'mascota'                   => $mascota,
+				'caracteristicas'    => $caracteristicas,
+				'mascotaCaracteristicas'    => $mascotaCaracteristicas,
 			);
 
 			Render::adminPage('mascota', $data);

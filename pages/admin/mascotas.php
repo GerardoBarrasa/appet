@@ -12,7 +12,7 @@
                     </form>
                 </div>
                 <div class="col-12 col-md-2 d-flex align-items-center justify-content-around justify-content-md-end mb-2 mb-md-0">
-                    <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>mascota/new/" class="btn btn-primary">Nueva mascota</a>
+                    <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>nueva-mascota/" class="btn btn-primary">Nueva mascota</a>
                 </div>
             </div>
         </div>
