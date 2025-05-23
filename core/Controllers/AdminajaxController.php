@@ -264,15 +264,7 @@ class AdminajaxController extends Controllers
         {
             __log_error(json_encode($_POST));
 
-            $data = array(
-                'comienzo'  => $comienzo,
-                'limite' 	=> $limite,
-                'pagina' 	=> $pagina,
-                'mascotas'  => $mascotas,
-                'total' 	=> $total
-            );
-
-            $html = Render::getAjaxPage('admin_modal_content',$data);
+            $html = '';
 
             if( !empty($html) )
             {
