@@ -12,6 +12,9 @@
 [class*=sidebar-dark] .brand-link {
     border-bottom: 1px solid var(--colorSecondary);
 }
+.clickable {
+    cursor: pointer;
+}
 a {
     color: var(--colorSecondary);
 }
@@ -235,6 +238,20 @@ a.bg-secondary:focus, a.bg-secondary:hover, button.bg-secondary:focus, button.bg
 }
 .slider-yellow .slider .slider-selection {
     background: var(--colorSecondaryAlt);
+}
+.tooltip-inner {
+    background-color: var(--colorPrimary);
+}
+.modal-header {
+    background-color: var(--colorPrimary);
+    color: #FFFFFF;
+}
+.close, .mailbox-attachment-close {
+    color: var(--colorSecondaryAltHover);
+    text-shadow: 0 1px 0 var(--colorSecondaryAlt);
+}
+.close:hover, .mailbox-attachment-close:hover {
+    color: var(--colorSecondary);
 }
 
 .loadingscr {

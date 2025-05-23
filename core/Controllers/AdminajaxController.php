@@ -221,6 +221,77 @@ class AdminajaxController extends Controllers
             die(json_encode($response));
         });
 
+        $this->add('ajax-contenido-modal',function()
+        {
+            __log_error(json_encode($_POST));
+
+            $comienzo	= Tools::getValue('comienzo');
+            $limite 	= Tools::getValue('limite');
+            $pagina		= Tools::getValue('pagina');
+
+            $mascotas   = Mascotas::getMascotasFiltered( $comienzo, $limite );
+            $total      = count(Mascotas::getMascotasFiltered( $comienzo, $limite, false ));
+
+            $data = array(
+                'comienzo'  => $comienzo,
+                'limite' 	=> $limite,
+                'pagina' 	=> $pagina,
+                'mascotas'  => $mascotas,
+                'total' 	=> $total
+            );
+
+            $html = Render::getAjaxPage('admin_modal_content',$data);
+
+            if( !empty($html) )
+            {
+                $response = array(
+                    'type' => 'success',
+                    'html' => $html
+                );
+            }
+            else
+            {
+                $response = array(
+                    'type' => 'error',
+                    'html' => 'Hubo un error cargando el html'
+                );
+            }
+
+            die(json_encode($response));
+        });
+
+        $this->add('ajax-save-mascota-evaluation',function()
+        {
+            __log_error(json_encode($_POST));
+
+            $data = array(
+                'comienzo'  => $comienzo,
+                'limite' 	=> $limite,
+                'pagina' 	=> $pagina,
+                'mascotas'  => $mascotas,
+                'total' 	=> $total
+            );
+
+            $html = Render::getAjaxPage('admin_modal_content',$data);
+
+            if( !empty($html) )
+            {
+                $response = array(
+                    'type' => 'success',
+                    'html' => $html
+                );
+            }
+            else
+            {
+                $response = array(
+                    'type' => 'error',
+                    'html' => 'Hubo un error cargando el html'
+                );
+            }
+
+            die(json_encode($response));
+        });
+
 		if( !$this->getRendered() )
 		{
 			header('HTTP/1.1 404 Not Found');

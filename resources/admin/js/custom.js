@@ -10,6 +10,15 @@ $(document).ready(function(){
     $('.slider').bootstrapSlider();
     $('[data-toggle="tooltip"]').tooltip()
 });
+function toastrDefault(title, contenido, clase = ''){
+    $(document).Toasts('create', {
+        class: clase,
+        title: title,
+        autohide: true,
+        delay: 1500,
+        body: contenido
+    })
+}
 
 function show_loader()
 {
@@ -60,6 +69,78 @@ function ajax_get_mascotas_admin( comienzo, limite, pagina )
 
     afetch(
         dominio+"adminajax/ajax-get-mascotas-admin/",
+        {
+            method: 'POST',
+            body: formData
+        }
+    )
+        .then((response) => response.json())
+        .then(data => {
+            if( data.type === 'success' )
+                $('#page-content').html(data.html);
+            hide_loader();
+        });
+}
+
+function modalGeneral(este) {
+    if($(este).length) {
+        //console.log(este);
+        let formData = new FormData();
+        let datas = $(este).data();
+        $.each(datas, function (indexname, value) {
+            formData.append(indexname, value);
+            //console.log(indexname+" - "+value);
+        })
+        //console.log(formData);
+        //return false;
+        afetch(
+            dominio+"adminajax/ajax-contenido-modal/",
+            {
+                method: 'POST',
+                body: formData
+            }
+        )
+            .then((response) => response.json())
+            .then(data => {
+                //console.log(data);
+                if( data.type === 'success' ) {
+                    //console.log('SHOW');
+                    $('#modalGeneral .modal-content').html(data.html);
+                    const myModal = new bootstrap.Modal('#modalGeneral', {
+                        keyboard: false,
+                    });
+                    myModal.show();
+                }
+                hide_loader();
+            });
+    }
+}
+
+function compruebaCambios(este){
+    let def = $(este).data('orig').toString();
+    let valor = $(este).val();
+    let savebtn = $(este).data('savebtn');
+    if (def !== valor) {
+        $('.'+savebtn).removeClass('d-none').addClass('d-flex');
+        toastrDefault('ApPet', 'Se han detectado cambios');
+    }
+    else{
+        $('.'+savebtn).removeClass('d-flex').addClass('d-none');
+        toastrDefault('ApPet', 'Ahora ya no hay cambios', 'bg-success');
+    }
+}
+function saveEvaluation(idmascota, clase){
+    show_loader();
+    let formData = new FormData();
+    formData.append('idmascota', idmascota);
+    $('.'+clase).each(function () {
+        let indexname = $(this).data('crid');
+        let value = $(this).val();
+        formData.append(indexname, value);
+    });
+
+    afetch(
+        dominio+"adminajax/ajax-save-mascota-evaluation/",
         {
             method: 'POST',
             body: formData

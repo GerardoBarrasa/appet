@@ -41,11 +41,8 @@
 
     <?php include(_INCLUDES_._ADMIN_.'footer.php'); ?>
 
-    <!-- Control Sidebar -->
-    <aside class="control-sidebar control-sidebar-dark">
-        <!-- Control sidebar content goes here -->
-    </aside>
-    <!-- /.control-sidebar -->
+    <?php include(_INCLUDES_._ADMIN_.'modals.php'); ?>
+
 </div>
 <!-- ./wrapper -->
 

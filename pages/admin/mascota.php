@@ -14,7 +14,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$masc
                             <img class="profile-user-img img-fluid img-circle w-100" src="<?=$image?>" alt="<?=$mascota->nombre?>">
                         </div>
 
-                        <h3 class="profile-username text-center"><?=$mascota->nombre?><?=$mascota->alias == '' ? '' : '<span class="small"> ('.$mascota->alias.')</span>'?></h3>
+                        <h3 class="profile-username clickable text-center" title="Click para cambiar" data-toggle="tooltip" data-type="mascota" data-content="nombre" data-idmascota="<?=$mascota->id?>" onclick="modalGeneral(this)"><?=$mascota->nombre?><?=$mascota->alias == '' ? '' : '<span class="small"> ('.$mascota->alias.')</span>'?></h3>
 
                         <p class="text-muted text-center"><?=$mascota->GENERO?><?=$mascota->raza == '' ?: ' '.$mascota->raza?></p>
 
@@ -33,7 +33,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$masc
                             </li>
                         </ul>
 
-                        <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>editar-mascota/<?=$mascota->slug.'-'.$mascota->id?>/" class="btn btn-primary btn-block"><b>Editar</b></a>
+                        <!--<a href="<?php /*=_DOMINIO_.$_SESSION['admin_vars']['entorno']*/?>editar-mascota/<?php /*=$mascota->slug.'-'.$mascota->id*/?>/" class="btn btn-primary btn-block"><b>Editar</b></a>-->
                     </div>
                     <!-- /.card-body -->
                 </div>
@@ -49,14 +49,17 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$masc
                         <?php $cnom = '';
                         foreach ($caracteristicas as $cr){
                             if($cnom != $cr->nombre){//Cambiamos de característica?>
-                                <strong><i class="fa <?=$cr->ico?> mr-1"></i> <?=$cr->nombre?>:</strong>
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span><i class="fa <?=$cr->ico?> mr-1"></i> <strong><?=$cr->nombre?>:</strong></span>
+                                    <i class="fa fa-save fs-4 text-secondary clickable d-none save_<?=Tools::urlAmigable($cr->nombre)?>" data-toggle="tooltip" title="Guardar evaluación para <?=$cr->nombre?>" onclick="saveEvaluation('<?=$mascota->id?>','evaluate_<?=Tools::urlAmigable($cr->nombre)?>')"></i>
+                                </div>
                             <?php $cnom = $cr->nombre;}
                             if($cr->tipo == 'escala'){
                                 $values = explode(',', $cr->valores);?>
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div class="col-11">
                                             <div class="slider-yellow">
-                                                <input type="text" value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" class="slider form-control" data-slider-min="<?=min($values)?>" data-slider-max="<?=max($values)?>" data-slider-step="1" data-slider-value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-slider-orientation="horizontal" data-slider-selection="before" data-slider-tooltip="show">
+                                                <input type="text" value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> slider form-control" data-slider-min="<?=min($values)?>" data-slider-max="<?=max($values)?>" data-slider-step="1" data-slider-value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-slider-orientation="horizontal" data-slider-selection="before" data-slider-tooltip="show" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onchange="compruebaCambios(this)">
                                             </div>
                                         </div>
                                         <i class="fa fa-question-circle text-info fs-4" data-toggle="tooltip" title="<?=$cr->texto_ayuda?>"></i>
@@ -67,7 +70,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$masc
                                 $values = explode(',', $cr->valores);?>
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div class="col-12">
-                                        <textarea rows="5" class="form-control form-text"><?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?></textarea>
+                                        <textarea rows="5" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> form-control form-text" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onkeyup="compruebaCambios(this)"><?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?></textarea>
                                     </div>
                                 </div>
 
