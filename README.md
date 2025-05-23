@@ -1,24 +1,3 @@
-# Appet - Herramienta de gestión de guarderías y alojamientos para mascotas
-
-## Changelog
-
-El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-
-Este proyecto se adhiere al versionado semántico [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-### [Unreleased]
-
-### [1.0.0-alpha] - 25-03-2024
-##### Feature
-- Instalación de Core 4.1
-
-
-
-
-****************************************************************************************
-
-
-
 # Core 4.1
 
 Este repositorio contiene la versión estable de CORE 4.1! :smiley::smiley::smiley:

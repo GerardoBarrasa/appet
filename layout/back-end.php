@@ -1,84 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ApPet | Dashboard 2</title>
-
-    <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="<?=_ASSETS_._ADMIN_;?>plugins/fontawesome-free/css/all.min.css">
-    <!-- overlayScrollbars -->
-    <link rel="stylesheet" href="<?=_ASSETS_._ADMIN_;?>plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
-    <!-- Theme style -->
-    <link rel="stylesheet" href="<?=_ASSETS_._ADMIN_;?>dist/css/adminlte.min.css">
+    <meta name="viewport" content=" user-scalable=no, width=device-width, initial-scale=1, minimum-scale=1">
+    <link rel="icon" type="image/x-icon" href="<?=_RESOURCES_._COMMON_?>img/appet_icon.png">
+    <?php Metas::getMetas();?>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <?php include(_INCLUDES_._ADMIN_.'stylesheets.php'); ?>
+    <script type="text/javascript">
+        const dominio = "<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>";
+        const static_token = "<?=!empty($_SESSION['token']) ? $_SESSION['token'] : '';?>";
+    </script>
+    <?php include(_INCLUDES_._ADMIN_.'javascript_top.php'); ?>
 </head>
-<body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
-<div class="wrapper">
-
-    <!-- Preloader -->
-    <div class="preloader flex-column justify-content-center align-items-center">
-        <img class="animation__wobble" src="<?=_ASSETS_._ADMIN_;?>dist/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
+<body class="hold-transition sidebar-mini layout-fixed outfit-appet">
+<div class="loadingscr d-none">
+    <div class="loader">
+        <i class="fas fa-5x fa-paw fa-beat-fade"></i>
+        <div class="text-bold pt-2">Cargando, espere...</div>
     </div>
-
+</div>
+<!-- Site wrapper -->
+<div class="wrapper">
     <!-- Navbar -->
-    <?php include(_INCLUDES_._ADMIN_.'header.php'); ?>
+    <?php include(_INCLUDES_._ADMIN_.'navbar.php'); ?>
     <!-- /.navbar -->
 
     <!-- Main Sidebar Container -->
-    <?php include(_INCLUDES_._ADMIN_.'left_column.php'); ?>
+    <?php include(_INCLUDES_._ADMIN_.'sidebar.php'); ?>
+
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
-        <?php include(_INCLUDES_._ADMIN_.'breadcrumb.php'); ?>
-        <!-- /.content-header -->
-
-        <!-- Main content -->
-        <section class="content">
-                <?php Render::getAdminPage();?>
-        </section>
+        <?php include(_INCLUDES_._ADMIN_.'header.php'); ?>
+        <?php Render::getAdminPage();?>
         <!-- /.content -->
     </div>
     <!-- /.content-wrapper -->
 
-    <!-- Control Sidebar -->
-    <aside class="control-sidebar control-sidebar-dark">
-        <!-- Control sidebar content goes here -->
-    </aside>
-    <!-- /.control-sidebar -->
+    <?php include(_INCLUDES_._ADMIN_.'footer.php'); ?>
 
-    <!-- Main Footer -->
-    <footer class="main-footer">
-        <?php include(_INCLUDES_._ADMIN_.'footer.php'); ?>
+    <?php include(_INCLUDES_._ADMIN_.'modals.php'); ?>
 
-    </footer>
 </div>
 <!-- ./wrapper -->
 
-<!-- REQUIRED SCRIPTS -->
-<!-- jQuery -->
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/jquery/jquery.min.js"></script>
-<!-- Bootstrap -->
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- overlayScrollbars -->
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
-<!-- AdminLTE App -->
-<script src="<?=_ASSETS_._ADMIN_;?>dist/js/adminlte.js"></script>
-
-<!-- PAGE PLUGINS -->
-<!-- jQuery Mapael -->
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/jquery-mousewheel/jquery.mousewheel.js"></script>
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/raphael/raphael.min.js"></script>
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/jquery-mapael/jquery.mapael.min.js"></script>
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/jquery-mapael/maps/usa_states.min.js"></script>
-<!-- ChartJS -->
-<script src="<?=_ASSETS_._ADMIN_;?>plugins/chart.js/Chart.min.js"></script>
-
-<!-- AdminLTE for demo purposes -->
-<script src="<?=_ASSETS_._ADMIN_;?>dist/js/demo.js"></script>
-<!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-<script src="<?=_ASSETS_._ADMIN_;?>dist/js/pages/dashboard2.js"></script>
+<?php include(_INCLUDES_._ADMIN_.'javascript_bottom.php'); ?>
 </body>
 </html>
