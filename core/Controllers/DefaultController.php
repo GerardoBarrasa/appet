@@ -4,9 +4,14 @@ class DefaultController extends Controllers
 {
 	public function execute($page)
 	{
+        // Redireccionamos todo a admin
+
+        header('Location: ' . _DOMINIO_._ADMIN_);
+        exit;
+
 		//Layout por defecto
 		Render::$layout = 'front-end';
-		Tools::registerJavascript(_ASSETS_.'jquery/jquery.min.js');
+		Tools::registerJavascript(_JS_._PUBLIC_.'jquery/jquery.min.js');
 
 		$idiomas = Idiomas::getLanguages();
 		foreach( $idiomas as &$idioma )
@@ -55,45 +60,6 @@ class DefaultController extends Controllers
 			);
 
 			Render::page('home',$data);
-		});
-
-		//Pagina de login
-		$this->add('login',function()
-		{
-			$datos_idiomas = Idiomas::getLanguages();
-
-			//Array de datos a enviar a la página
-			$data = array(
-				'datos_idiomas' => $datos_idiomas,
-			);
-
-            Render::actionPage('login', $data);
-		});
-
-		//Pagina de login
-		$this->add('register',function()
-		{
-			$datos_idiomas = Idiomas::getLanguages();
-
-			//Array de datos a enviar a la página
-			$data = array(
-				'datos_idiomas' => $datos_idiomas,
-			);
-
-            Render::actionPage('register', $data);
-		});
-
-		//Pagina de login
-		$this->add('forgot-password',function()
-		{
-			$datos_idiomas = Idiomas::getLanguages();
-
-			//Array de datos a enviar a la página
-			$data = array(
-				'datos_idiomas' => $datos_idiomas,
-			);
-
-            Render::actionPage('forgot-password', $data);
 		});
 
 		$this->add('404',function()

@@ -143,7 +143,7 @@ class Idiomas
 			if( isset($_FILES['icon']) && $_FILES['icon']['size'] > '0' )
 			{
 				$imagenes 	= $_FILES['icon'];
-				$ruta_img = Tools::uploadImage('assets/img/flags/', 'icon', $upd['slug'].'-flag-'.time());
+				$ruta_img = Tools::uploadImage(_RESOURCES_PATH_._COMMON_.'img/flags/', 'icon', $upd['slug'].'-flag-'.time());
 
 				//Guardamos las imagenes en la BD.
 				if( $ruta_img['type'] == 'success' )

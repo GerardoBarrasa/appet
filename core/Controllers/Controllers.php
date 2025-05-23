@@ -17,7 +17,6 @@ class Controllers
 		//Controlador
 		$controller = Tools::getValue('controller', $this->defaultController);
 
-
 		if( $controller == 'default' || $controller == 'admin' )
 		{
 			if( $controller == 'default' )
@@ -51,10 +50,10 @@ class Controllers
 		}
 
 		//Comprobamos custom page
-		if( $controller == 'default' && $page != '' )
+		if( ($controller == 'default' || $controller == 'admin') && $page != '' )
 		{
 			//Buscamos el SLUG en la BBDD.
-			$data_slug = Slugs::getModBySlug($page);
+			$data_slug = Slugs::getModBySlug($page, $controller);
 
 			//Si existe el slug cambiamos el valor de page al MOD_ID
 			if(!empty($data_slug) && isset($data_slug->mod_id) && $data_slug->mod_id != '')
@@ -74,8 +73,31 @@ class Controllers
 
 	private function handleRedirectionDefaultController()
 	{
+        if(isset($_SESSION['lang'])){
+            $lang = Tools::getValue('lang');
+            //Comprobamos que exista el idioma, si no redirigimos al idioma defecto o al de la sesion.
+            $language = Idiomas::getLangBySlug($lang);
+            //Si el idioma existe, actualizamos la sesion, pero si no existe comprobamos si existe la sesion para redirigir a la home o redirigir a la home con el idioma default.
+            if($language)
+            {
+                $_SESSION['id_lang'] = $language->id;
+                $_SESSION['lang'] = $lang;
+            }
+            else{
+                //Si el idioma indicado en la URL es erróneo, tomamos el idioma por defecto
+                $defaultLang 		= Idiomas::getDefaultLanguage();
+                $_SESSION['id_lang'] = $defaultLang->id;
+                $_SESSION['lang'] 	= $defaultLang->slug;
+            }
+        }
+        else{
+            $defaultLang 		= Idiomas::getDefaultLanguage();
+            $_SESSION['id_lang'] = $defaultLang->id;
+            $_SESSION['lang'] 	= $defaultLang->slug;
+        }
+
 		//Idioma en URL en front 
-		if( isset($_GET['lang']) )
+		/*if( isset($_GET['lang']) )
 		{
 			//Obtenemos el parametro idioma de la URL.
 			$lang = Tools::getValue('lang');
@@ -115,7 +137,7 @@ class Controllers
 				$_SESSION['lang'] 	= $defaultLang->slug;
 				header('Location: ' . _DOMINIO_.$defaultLang->slug.'/');
 			}
-		}
+		}*/
 	}
 
 	protected function setPage($value)

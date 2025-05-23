@@ -8,19 +8,19 @@
 	<?php Metas::getMetas();?>
 	<?php Tools::loadFontawesome();?>
 	<?php Tools::loadBootstrap('css');?>
-	<?php include(_INCLUDES_.'stylesheets.php'); ?>
+	<?php include(_JS_._PUBLIC_.'stylesheets.php'); ?>
 	<script type="text/javascript">
 		const dominio = "<?=_DOMINIO_;?>";
 		const static_token = "<?=!empty($_SESSION['token']) ? $_SESSION['token'] : '';?>";
 	</script>
-	<?php include(_INCLUDES_.'javascript_top.php'); ?>
+	<?php include(_JS_._PUBLIC_.'javascript_top.php'); ?>
 </head>
-<body id="<?=$page_name;?>">
+<body>
 	<main>
 		<?php Render::getPage();?>
 	</main>
-	<?php include(_INCLUDES_.'javascript_bottom.php'); ?>
+	<?php include(_JS_._PUBLIC_.'javascript_bottom.php'); ?>
 	<?php Tools::loadBootstrap('js');?>
-	<script type="text/javascript" src="<?=_JS_;?>funks.js?t=1"></script>
+	<script type="text/javascript" src="<?=_JS_._PUBLIC_;?>funks.js?t=1"></script>
 </body>  
 </html>

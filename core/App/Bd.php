@@ -45,9 +45,6 @@ class Bd
 		$this->link = new mysqli($this->server, $this->user, $this->password, $this->database) or Debug::mlog(time(),'','Error al conectar con base de datos');
 		if( $this->link->connect_error )
 			die('Error al conectar con base de datos. '.$this->link->connect_error);
-
-        mysqli_set_charset($this->link, 'utf8');
-        mysqli_report(MYSQLI_REPORT_OFF);
 		return $this->link;
 	}
 
@@ -67,14 +64,12 @@ class Bd
 		if( $this->link != '' )
 		{
 			$l = $this->link;
-			$q = $l->query($sql) or mysqli_error($l);
+			$q = $l->query($sql);
 
-			if( $q )
-				Debug::mlog(time(),$sql,'Ejecutada correctamente');	
-			else {
-                $message = "Error en la consulta: ".$sql.' - '.mysqli_error($l);
-                __log_error($message, 99);
-                Debug::mlog(time(), $sql, mysqli_error($l));
+			if( !$q ){
+                //Debug::mlog(time(), $sql, mysqli_error($l));
+                //error_log(date('Y-m-d H:i:s').' - Query: '.$sql.' - '.mysqli_error($l). "\r\n", 3, log_folder.'error_queries_'.date('Ymd').'.log');
+                __log_error('Query: '.$sql.' - '.mysqli_error($l), 99);
             }
 
 			return $q;
