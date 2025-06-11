@@ -45,14 +45,18 @@ class Autoload
      */
     private function scanDirectory($directory, $namespace = '')
     {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS)
-        );
+        try {
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS)
+            );
 
-        foreach ($iterator as $file) {
-            if ($file->getExtension() === 'php') {
-                $this->registerClassFromFile($file, $namespace);
+            foreach ($iterator as $file) {
+                if ($file->getExtension() === 'php') {
+                    $this->registerClassFromFile($file, $namespace);
+                }
             }
+        } catch (Exception $e) {
+            $this->logError("Error escaneando directorio $directory: " . $e->getMessage());
         }
     }
 
@@ -81,18 +85,32 @@ class Autoload
      */
     private function isValidClassName($className)
     {
+        // Validaciones básicas
+        if (empty($className) || strlen($className) < 2) {
+            return false;
+        }
+
         // Excluir archivos que no son clases
         $excludedFiles = [
             'index', 'config', 'settings', 'core', 'utils',
-            'class_index', 'autoload', 'bootstrap'
+            'class_index', 'autoload', 'bootstrap', 'functions'
         ];
 
         $lowerClassName = strtolower($className);
 
-        // Debe empezar con mayúscula y no estar en la lista de exclusión
+        // Verificar que no esté en la lista de exclusión
+        if (in_array($lowerClassName, $excludedFiles)) {
+            return false;
+        }
+
+        // Verificar que no contenga palabras de test
+        if (strpos($lowerClassName, 'test') !== false) {
+            return false;
+        }
+
+        // Debe empezar con mayúscula y contener solo caracteres válidos
         return ctype_upper($className[0]) &&
-            !in_array($lowerClassName, $excludedFiles) &&
-            !strpos($lowerClassName, 'test') !== false;
+            preg_match('/^[A-Za-z][A-Za-z0-9_]*$/', $className);
     }
 
     /**
@@ -100,8 +118,18 @@ class Autoload
      */
     public function load($className)
     {
+        // Validar que el nombre de clase no esté vacío o sea inválido
+        if (empty($className) || !is_string($className) || strlen($className) < 2) {
+            return false;
+        }
+
         // Limpiar el nombre de la clase (remover namespace si existe)
         $cleanClassName = $this->cleanClassName($className);
+
+        // Validar el nombre limpio
+        if (empty($cleanClassName) || strlen($cleanClassName) < 2) {
+            return false;
+        }
 
         // Buscar en el mapa de clases
         if (isset($this->classMap[$cleanClassName])) {
@@ -124,11 +152,23 @@ class Autoload
      */
     private function cleanClassName($className)
     {
-        // Remover namespaces comunes
-        $className = str_ireplace(['App\\', 'Controllers\\', 'Models\\'], '', $className);
+        // Validar entrada
+        if (!is_string($className) || empty($className)) {
+            return '';
+        }
 
-        // Remover sufijos comunes
-        $className = str_ireplace('Controller', '', $className);
+        // Remover namespaces comunes
+        $className = str_ireplace(['App\\', 'Controllers\\', 'Models\\', 'Funks\\'], '', $className);
+
+        // Remover sufijos comunes pero mantener Controller si es parte del nombre
+        if (strlen($className) > 10 && substr($className, -10) === 'Controller') {
+            // Mantener Controller en el nombre
+        } else {
+            $className = str_ireplace('Controller', '', $className);
+        }
+
+        // Limpiar caracteres extraños
+        $className = preg_replace('/[^A-Za-z0-9_]/', '', $className);
 
         return $className;
     }
@@ -138,6 +178,11 @@ class Autoload
      */
     private function loadByConvention($className)
     {
+        // Validar entrada
+        if (empty($className) || strlen($className) < 2) {
+            return false;
+        }
+
         $possiblePaths = [
             "core/App/{$className}.php",
             "core/Controllers/{$className}Controller.php",
@@ -145,7 +190,8 @@ class Autoload
             "core/Funks/{$className}.php",
             "core/Models/{$className}.php",
             "core/Helpers/{$className}.php",
-            "core/Services/{$className}.php"
+            "core/Services/{$className}.php",
+            "core/Middleware/{$className}.php"
         ];
 
         foreach ($possiblePaths as $path) {
@@ -159,7 +205,11 @@ class Autoload
             }
         }
 
-        $this->logError("Clase no encontrada: $className");
+        // Solo registrar error si es una clase que parece válida
+        if ($this->isValidClassName($className)) {
+            $this->logError("Clase no encontrada: $className");
+        }
+
         return false;
     }
 
@@ -185,7 +235,9 @@ class Autoload
      */
     public function registerClass($className, $filePath)
     {
-        $this->classMap[$className] = $filePath;
+        if (!empty($className) && !empty($filePath)) {
+            $this->classMap[$className] = $filePath;
+        }
     }
 
     /**
@@ -193,17 +245,31 @@ class Autoload
      */
     public function isRegistered($className)
     {
+        if (empty($className)) {
+            return false;
+        }
+
         $cleanClassName = $this->cleanClassName($className);
         return isset($this->classMap[$cleanClassName]);
     }
 
     /**
-     * Log de errores
+     * Log de errores mejorado
      */
     private function logError($message)
     {
+        // Solo registrar si el mensaje no está vacío y es útil
+        if (empty($message) || strlen($message) < 10) {
+            return;
+        }
+
+        // Evitar spam de logs para clases de una sola letra o inválidas
+        if (preg_match('/Clase no encontrada: [a-z]$/', $message)) {
+            return;
+        }
+
         if (function_exists('__log_error')) {
-            __log_error("Autoload: $message");
+            __log_error("Autoload: $message", 0, 'autoload');
         } else {
             error_log("Autoload: $message");
         }
@@ -214,13 +280,47 @@ class Autoload
      */
     public function debug()
     {
-        if (_DEBUG_) {
+        if (defined('_DEBUG_') && _DEBUG_) {
             echo "<h3>Clases registradas en Autoload:</h3>";
             echo "<pre>";
             foreach ($this->classMap as $class => $path) {
-                echo "$class => $path\n";
+                echo htmlspecialchars("$class => $path") . "\n";
             }
             echo "</pre>";
+
+            echo "<h3>Estadísticas:</h3>";
+            echo "<pre>";
+            echo "Total de clases registradas: " . count($this->classMap) . "\n";
+            echo "Directorios escaneados: " . count($this->directories) . "\n";
+            echo "</pre>";
         }
+    }
+
+    /**
+     * Obtiene estadísticas del autoloader
+     */
+    public function getStats()
+    {
+        $stats = [
+            'total_classes' => count($this->classMap),
+            'directories_scanned' => count($this->directories),
+            'classes_by_type' => []
+        ];
+
+        foreach ($this->classMap as $class => $path) {
+            if (strpos($path, 'Controllers/') !== false) {
+                $stats['classes_by_type']['Controllers'] = ($stats['classes_by_type']['Controllers'] ?? 0) + 1;
+            } elseif (strpos($path, 'Funks/') !== false) {
+                $stats['classes_by_type']['Funks'] = ($stats['classes_by_type']['Funks'] ?? 0) + 1;
+            } elseif (strpos($path, 'App/') !== false) {
+                $stats['classes_by_type']['App'] = ($stats['classes_by_type']['App'] ?? 0) + 1;
+            } elseif (strpos($path, 'Middleware/') !== false) {
+                $stats['classes_by_type']['Middleware'] = ($stats['classes_by_type']['Middleware'] ?? 0) + 1;
+            } else {
+                $stats['classes_by_type']['Others'] = ($stats['classes_by_type']['Others'] ?? 0) + 1;
+            }
+        }
+
+        return $stats;
     }
 }

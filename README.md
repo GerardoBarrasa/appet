@@ -1157,3 +1157,140 @@ performance_log('Heavy Operation', $start, ['records' => count($result)]);
 Los errores PHP y SQL se registran automáticamente sin necesidad de código adicional.
 
 El sistema ahora proporciona **visibilidad completa** de lo que ocurre en la aplicación, con herramientas profesionales para debugging y monitoreo.
+
+## Cambios en el sistema Autoload
+
+## **🔧 Correcciones Principales:**
+
+### **1. Validación Robusta de Nombres de Clase:**
+
+- **Verificación de entrada** - No procesa strings vacíos o de una sola letra
+- **Validación de caracteres** - Solo acepta nombres válidos de clase PHP
+- **Filtrado de nombres inválidos** - Evita procesar caracteres sueltos como "s"
+
+
+### **2. Manejo de Errores Mejorado:**
+
+- **Prevención de spam** en logs para clases inválidas
+- **Try-catch** en operaciones de archivos
+- **Validaciones múltiples** antes de registrar errores
+
+
+### **3. Limpieza de Nombres de Clase:**
+
+- **Regex para caracteres válidos** - Solo letras, números y guiones bajos
+- **Preservación de "Controller"** en nombres apropiados
+- **Eliminación de caracteres extraños**
+
+
+### **4. Funciones de Debug Añadidas:**
+
+- **`getStats()`** - Estadísticas del autoloader
+- **`debug()`** mejorado con más información
+- **Logging específico** para autoload
+
+
+### **5. Validaciones Adicionales:**
+
+- **Longitud mínima** de nombres de clase (2 caracteres)
+- **Verificación de tipo** (debe ser string)
+- **Exclusión de archivos** que no son clases
+
+
+## **🚀 Nuevas Características:**
+
+### **Método de Estadísticas:**
+
+```php
+$autoload = Autoload::getInstance();
+$stats = $autoload->getStats();
+// Retorna información detallada sobre clases cargadas
+```
+
+### **Debug Mejorado:**
+
+```php
+$autoload->debug(); // Muestra todas las clases registradas
+```
+
+### **Logging Específico:**
+
+Los errores del autoloader ahora se guardan en `debug_autoload_AAAAMMDD.log`
+
+## **🔍 Diagnóstico del Problema:**
+
+El error "Clase no encontrada: s" probablemente se debía a:
+
+1. **Procesamiento de caracteres sueltos** como nombres de clase
+2. **Falta de validación** en la entrada del autoloader
+3. **Posible corrupción** en el procesamiento de strings
+
+
+Con estas correcciones, el autoloader ahora:
+
+- ✅ **Valida todas las entradas** antes de procesarlas
+- ✅ **Ignora nombres inválidos** sin generar errores
+- ✅ **Registra solo errores útiles** en los logs
+- ✅ **Maneja excepciones** de forma robusta
+
+## **🔧 Correcciones Principales:**
+
+### **1. Carga Manual de Clases Críticas:**
+
+- **Verificación de existencia** antes de usar las clases
+- **Carga manual** de `Controllers.php` si no está disponible
+- **Validación de middleware** antes de registrarlos
+
+
+### **2. Manejo Robusto de Errores:**
+
+- **Try-catch** alrededor de la inicialización de Controllers
+- **Logging detallado** de errores de carga
+- **Fallback graceful** si algo falla
+
+
+### **3. Verificaciones de Dependencias:**
+
+- **Comprobación de clases middleware** antes de registrarlas
+- **Validación de Idiomas** antes de configurar multiidioma
+- **Verificación de AdminController** antes del middleware de auth
+
+
+### **4. Debug Mejorado:**
+
+- **Información detallada** en caso de error fatal
+- **Modo debug** que muestra el estado del autoloader
+- **Logs específicos** para errores del core
+
+
+### **5. Carga Segura de Middleware:**
+
+```php
+$middlewareClasses = [
+    'SecurityMiddleware' => 'core/Middleware/SecurityMiddleware.php',
+    'LoggingMiddleware' => 'core/Middleware/LoggingMiddleware.php',
+    'AuthMiddleware' => 'core/Middleware/AuthMiddleware.php'
+];
+```
+
+## **🚀 Mejoras Implementadas:**
+
+### **Inicialización Robusta:**
+
+- ✅ **Carga manual** de clases críticas si el autoloader falla
+- ✅ **Verificación de existencia** antes de usar cualquier clase
+- ✅ **Manejo de excepciones** con información útil
+
+
+### **Logging Detallado:**
+
+- ✅ **Errores del core** en archivo separado
+- ✅ **Información de contexto** en todos los logs
+- ✅ **Debug del autoloader** en caso de error
+
+
+### **Fallback Graceful:**
+
+- ✅ **Mensaje amigable** para usuarios finales
+- ✅ **Información técnica** para desarrolladores en modo debug
+- ✅ **Continuidad** del sistema aunque falten algunos componentes
