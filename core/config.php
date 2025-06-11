@@ -30,6 +30,7 @@ define( '_ADMIN_', 'admin/' );
 define( '_PUBLIC_', 'public/' );
 define( '_COMMON_', 'common/' );
 define( '_WARNING_MAIL_', 'info@equipo5.es' );
+define( '_REDIRECT_TO_ADMIN_', true ); // Nueva constante para controlar la redirección
 $_SESSION['admin_vars']['entorno'] = _ADMIN_;
 
 /* Configuracion de Base de datos */

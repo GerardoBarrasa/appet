@@ -87,4 +87,8 @@
   array (
     'path' => 'Funks/Mascotas.php'
   ),
+  'Mascota' =>
+  array (
+    'path' => 'Funks/Mascota.php'
+  ),
 ); ?>

@@ -61,14 +61,26 @@ function __log_error($message = 'Error inesperado', int $type = 3, string $fiche
         default:// Error general
             $tipo = 3;
     }
-    !is_array($message) ?: $message = json_encode($message);
+    !is_array($message) && !is_object($message) ?: $message = json_encode($message);
     $destiny = $destino == '' ? log_folder."{$name}_".date('Ymd').".log" : $destino;
     $description = date('Y-m-d H:i:s')." - ".$message."\r\n";
     return error_log($description, $tipo, $destiny);
 }
 
+// Registrar middleware global
+Controllers::registerGlobalMiddleware('before', ['SecurityMiddleware', 'handle']);
+Controllers::registerGlobalMiddleware('before', ['LoggingMiddleware', 'handleBefore']);
+Controllers::registerGlobalMiddleware('after', ['LoggingMiddleware', 'handleAfter']);
+
+// Registrar middleware de autenticación solo para admin
+Controllers::registerGlobalMiddleware('before', function($controller) {
+    if ($controller instanceof AdminController) {
+        AuthMiddleware::handle($controller);
+    }
+});
+
 if( _MULTI_LANGUAGE_ )
-     Idiomas::setLanguage();
+    Idiomas::setLanguage();
 
 $controllers = new Controllers;
 $controllers->load();
