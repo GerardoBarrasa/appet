@@ -72,10 +72,10 @@ class Bd
             $this->link->set_charset("utf8mb4");
 
         } catch (PDOException $e) {
-            __log_error('Database PDO connection failed: ' . $e->getMessage(), 99);
+            $this->logSqlError('PDO Connection Error', '', $e->getMessage());
             die('Error al conectar con base de datos PDO: ' . $e->getMessage());
         } catch (Exception $e) {
-            __log_error('Database MySQLi connection failed: ' . $e->getMessage(), 99);
+            $this->logSqlError('MySQLi Connection Error', '', $e->getMessage());
             die('Error al conectar con base de datos MySQLi: ' . $e->getMessage());
         }
 
@@ -99,6 +99,28 @@ class Bd
         }
     }
 
+    /**
+     * Registra errores SQL en el log específico
+     */
+    private function logSqlError($operation, $sql, $error, $params = [])
+    {
+        $logData = [
+            'operation' => $operation,
+            'sql' => $sql,
+            'error' => $error,
+            'params' => $params,
+            'server' => $this->server,
+            'database' => $this->database
+        ];
+
+        __log_error($logData, 99);
+
+        // También registrar en debug de BD para compatibilidad
+        if (_DEBUG_ && isset($_SESSION)) {
+            $_SESSION['debug']['bd'][] = [time(), $sql, $error];
+        }
+    }
+
     // ==========================================
     // MÉTODOS SEGUROS CON PDO (RECOMENDADOS)
     // ==========================================
@@ -108,12 +130,23 @@ class Bd
      */
     public function prepare($sql, $params = [])
     {
+        $startTime = microtime(true);
+
         try {
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute($params);
+            $result = $stmt->execute($params);
+
+            if (_DEBUG_) {
+                performance_log('PDO Prepare/Execute', $startTime, [
+                    'sql' => $sql,
+                    'params' => $params,
+                    'rows_affected' => $stmt->rowCount()
+                ]);
+            }
+
             return $stmt;
         } catch (PDOException $e) {
-            __log_error('Prepared query failed: ' . $sql . ' - Error: ' . $e->getMessage(), 99);
+            $this->logSqlError('PDO Prepare/Execute', $sql, $e->getMessage(), $params);
             throw new Exception('Query execution failed: ' . $e->getMessage());
         }
     }
@@ -123,9 +156,14 @@ class Bd
      */
     public function fetchRowSafe($sql, $params = [], $fetchMode = PDO::FETCH_OBJ)
     {
-        $stmt = $this->prepare($sql, $params);
-        $result = $stmt->fetch($fetchMode);
-        return $result ?: false;
+        try {
+            $stmt = $this->prepare($sql, $params);
+            $result = $stmt->fetch($fetchMode);
+            return $result ?: false;
+        } catch (Exception $e) {
+            $this->logSqlError('Fetch Row Safe', $sql, $e->getMessage(), $params);
+            return false;
+        }
     }
 
     /**
@@ -133,8 +171,13 @@ class Bd
      */
     public function fetchAllSafe($sql, $params = [], $fetchMode = PDO::FETCH_OBJ)
     {
-        $stmt = $this->prepare($sql, $params);
-        return $stmt->fetchAll($fetchMode);
+        try {
+            $stmt = $this->prepare($sql, $params);
+            return $stmt->fetchAll($fetchMode);
+        } catch (Exception $e) {
+            $this->logSqlError('Fetch All Safe', $sql, $e->getMessage(), $params);
+            return [];
+        }
     }
 
     /**
@@ -142,8 +185,13 @@ class Bd
      */
     public function fetchValueSafe($sql, $params = [])
     {
-        $stmt = $this->prepare($sql, $params);
-        return $stmt->fetchColumn();
+        try {
+            $stmt = $this->prepare($sql, $params);
+            return $stmt->fetchColumn();
+        } catch (Exception $e) {
+            $this->logSqlError('Fetch Value Safe', $sql, $e->getMessage(), $params);
+            return false;
+        }
     }
 
     /**
@@ -151,8 +199,13 @@ class Bd
      */
     public function countRowsSafe($sql, $params = [])
     {
-        $stmt = $this->prepare($sql, $params);
-        return $stmt->rowCount();
+        try {
+            $stmt = $this->prepare($sql, $params);
+            return $stmt->rowCount();
+        } catch (Exception $e) {
+            $this->logSqlError('Count Rows Safe', $sql, $e->getMessage(), $params);
+            return 0;
+        }
     }
 
     /**
@@ -170,7 +223,7 @@ class Bd
             $stmt = $this->prepare($sql, $data);
             return $this->pdo->lastInsertId();
         } catch (Exception $e) {
-            __log_error("Insert failed on table {$table}: " . $e->getMessage(), 99);
+            $this->logSqlError('Insert Safe', $sql, $e->getMessage(), $data);
             return false;
         }
     }
@@ -194,7 +247,7 @@ class Bd
             $stmt = $this->prepare($sql, $allParams);
             return $stmt->rowCount();
         } catch (Exception $e) {
-            __log_error("Update failed on table {$table}: " . $e->getMessage(), 99);
+            $this->logSqlError('Update Safe', $sql, $e->getMessage(), $allParams);
             return false;
         }
     }
@@ -210,7 +263,7 @@ class Bd
             $stmt = $this->prepare($sql, $whereParams);
             return $stmt->rowCount();
         } catch (Exception $e) {
-            __log_error("Delete failed on table {$table}: " . $e->getMessage(), 99);
+            $this->logSqlError('Delete Safe', $sql, $e->getMessage(), $whereParams);
             return false;
         }
     }
@@ -225,8 +278,16 @@ class Bd
     public function beginTransaction()
     {
         if (!$this->inTransaction) {
-            $this->pdo->beginTransaction();
-            $this->inTransaction = true;
+            try {
+                $this->pdo->beginTransaction();
+                $this->inTransaction = true;
+
+                if (_DEBUG_) {
+                    debug_log('Transaction started', 'DB_TRANSACTION');
+                }
+            } catch (PDOException $e) {
+                $this->logSqlError('Begin Transaction', '', $e->getMessage());
+            }
         }
         return $this;
     }
@@ -237,8 +298,16 @@ class Bd
     public function commit()
     {
         if ($this->inTransaction) {
-            $this->pdo->commit();
-            $this->inTransaction = false;
+            try {
+                $this->pdo->commit();
+                $this->inTransaction = false;
+
+                if (_DEBUG_) {
+                    debug_log('Transaction committed', 'DB_TRANSACTION');
+                }
+            } catch (PDOException $e) {
+                $this->logSqlError('Commit Transaction', '', $e->getMessage());
+            }
         }
         return $this;
     }
@@ -249,8 +318,16 @@ class Bd
     public function rollback()
     {
         if ($this->inTransaction) {
-            $this->pdo->rollback();
-            $this->inTransaction = false;
+            try {
+                $this->pdo->rollback();
+                $this->inTransaction = false;
+
+                if (_DEBUG_) {
+                    debug_log('Transaction rolled back', 'DB_TRANSACTION');
+                }
+            } catch (PDOException $e) {
+                $this->logSqlError('Rollback Transaction', '', $e->getMessage());
+            }
         }
         return $this;
     }
@@ -268,7 +345,7 @@ class Bd
             return $result;
         } catch (Exception $e) {
             $this->rollback();
-            __log_error('Transaction failed: ' . $e->getMessage(), 99);
+            $this->logSqlError('Transaction Callback', '', $e->getMessage());
             throw $e;
         }
     }
@@ -287,7 +364,13 @@ class Bd
             $q = $l->query($sql);
 
             if (!$q) {
-                __log_error('Query: ' . $sql . ' - ' . mysqli_error($l), 99);
+                $error = mysqli_error($l);
+                $this->logSqlError('Legacy Query', $sql, $error);
+            } else {
+                // Registrar consulta exitosa en debug
+                if (_DEBUG_ && isset($_SESSION)) {
+                    $_SESSION['debug']['bd'][] = [time(), $sql, 'Ejecutada correctamente'];
+                }
             }
 
             return $q;
@@ -312,11 +395,13 @@ class Bd
     {
         if ($this->link != '') {
             $l = $this->link;
-            $q = $l->query($sql) or mysqli_error($l);
+            $q = $l->query($sql);
             if ($q) {
                 return 'Ejecutada correctamente';
             } else {
-                return mysqli_error($l);
+                $error = mysqli_error($l);
+                $this->logSqlError('Get Response', $sql, $error);
+                return $error;
             }
         } else {
             return false;
