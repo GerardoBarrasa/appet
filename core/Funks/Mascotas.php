@@ -4,20 +4,20 @@ class Mascotas
 {
     public static function getMascotaById($id_mascota)
     {
-        $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ?: " AND m.id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
+        $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ? '' : " AND m.id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
         return Bd::getInstance()->fetchRow("SELECT m.*, mg.nombre AS GENERO, mt.nombre AS TIPO FROM mascotas m INNER JOIN mascotas_tipo mt ON m.tipo=mt.id INNER JOIN mascotas_genero mg ON m.genero=mg.id WHERE 1 AND m.id='$id_mascota' $filtro_cuidador");
     }
 
     public static function getMascotaBySlug($slug)
     {
-        $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ?: " AND id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
-        return Bd::getInstance()->fetchRow("SELECT * FROM mascotas WHERE ! AND slug='$slug' $filtro_cuidador");
+        $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ? '' : " AND id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
+        return Bd::getInstance()->fetchRow("SELECT * FROM mascotas WHERE 1 AND slug='$slug' $filtro_cuidador");
     }
 
     //Funcion que devuelve las mascotas filtradas
     public static function getMascotasFiltered($comienzo, $limite, $applyLimit=true)
     {
-        $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ?: " AND m.id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
+        $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ? '' : " AND m.id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
         //Obtenemos variables de filtros
         $filter_busqueda    = (isset($_REQUEST['busqueda'])) ? Tools::getValue('busqueda', '') : '';
 
@@ -25,7 +25,7 @@ class Mascotas
         if( $filter_busqueda != '' )
             $whereBusqueda = " AND (m.nombre LIKE '%".$filter_busqueda."%' OR m.alias LIKE '%".$filter_busqueda."%' OR m.slug LIKE '%".$filter_busqueda."%')";
 
-        if($applyLimit && $comienzo && $limite)
+        if($applyLimit && $comienzo !== null && $limite !== null)
             $limit = "LIMIT $comienzo, $limite";
         else
             $limit = "";
