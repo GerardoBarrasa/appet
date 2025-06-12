@@ -15,13 +15,13 @@ class Admin
 
         // Usar consulta preparada para prevenir SQL injection
         $datos = $db->fetchRowSafe(
-            "SELECT *, NOW() AS last_access FROM usuarios_admin WHERE email = ? AND password = ?",
+            "SELECT id_usuario_admin FROM usuarios_admin WHERE email = ? AND password = ?",
             [$usuario, $password]
         );
 
         if ($datos) {
-            $_SESSION['admin_panel'] = (object)$datos;
-            return true;
+            //$_SESSION['admin_panel'] = (object)$datos;
+            return Admin::getUsuarioDataById($datos->id_usuario_admin);
         }
         return false;
     }
