@@ -127,6 +127,11 @@ class Controllers
         return $this->rendered;
     }
 
+    public function getCurrentPage()
+    {
+        return $this->getPage();
+    }
+
     protected function add($page,$data)
     {
         if ( $page == $this->getPage() )
