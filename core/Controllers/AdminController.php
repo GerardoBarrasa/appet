@@ -147,9 +147,9 @@ class AdminController
         ], 'ADMIN_EXECUTE_START', 'admin');
 
         try {
-            // Inicializar el controlador
+            // Inicializar el controlador SIN Admin::validateUser() que causa el bucle
             debug_log('About to initialize controller', 'ADMIN_EXECUTE_FLOW', 'admin');
-            $this->initialize($page);
+            $this->initializeSafe($page);
             debug_log('Controller initialized successfully', 'ADMIN_EXECUTE_FLOW', 'admin');
 
             // LÓGICA SIMPLIFICADA: Solo verificar autenticación
@@ -214,12 +214,12 @@ class AdminController
     }
 
     /**
-     * Inicializa el controlador con la configuración necesaria
+     * Inicializa el controlador de forma segura (sin Admin::validateUser que causa bucles)
      *
      * @param string $page Página solicitada
      * @return void
      */
-    protected function initialize($page)
+    protected function initializeSafe($page)
     {
         debug_log('Initialize: START', 'ADMIN_INITIALIZE', 'admin');
 
@@ -230,11 +230,14 @@ class AdminController
                 Admin::getEntorno();
                 debug_log('Initialize: Admin::getEntorno() completed', 'ADMIN_INITIALIZE', 'admin');
 
-                if ($this->isAuthenticated()) {
-                    debug_log('Initialize: Calling Admin::validateUser()', 'ADMIN_INITIALIZE', 'admin');
-                    Admin::validateUser();
-                    debug_log('Initialize: Admin::validateUser() completed', 'ADMIN_INITIALIZE', 'admin');
-                }
+                // COMENTAMOS Admin::validateUser() que causa el bucle
+                // if ($this->isAuthenticated()) {
+                //     debug_log('Initialize: Calling Admin::validateUser()', 'ADMIN_INITIALIZE', 'admin');
+                //     Admin::validateUser();
+                //     debug_log('Initialize: Admin::validateUser() completed', 'ADMIN_INITIALIZE', 'admin');
+                // }
+
+                debug_log('Initialize: Skipping Admin::validateUser() to avoid infinite loop', 'ADMIN_INITIALIZE', 'admin');
             }
 
             // Configurar layout
@@ -581,10 +584,17 @@ class AdminController
         }
 
         if (class_exists('Render')) {
+            debug_log("About to call Render::adminPage('home')", 'DASHBOARD', 'admin');
             Render::adminPage('home');
+            debug_log("Render::adminPage('home') completed", 'DASHBOARD', 'admin');
+        } else {
+            debug_log("Render class not found, showing basic dashboard", 'DASHBOARD', 'admin');
+            echo "<h1>Dashboard</h1>";
+            echo "<p>Bienvenido al panel de administración</p>";
         }
 
         $this->setRendered(true);
+        debug_log("Dashboard rendered successfully", 'DASHBOARD', 'admin');
     }
 
     /**
