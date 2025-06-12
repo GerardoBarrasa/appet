@@ -44,7 +44,8 @@ class AdminController extends Controllers
 		Tools::registerJavascript(_RESOURCES_._ADMIN_.'js/custom.js?v='.time(), 'top');
 
 		Render::$layout_data = array(
-			'idiomas' => Idiomas::getLanguagesAdminForm()
+			'idiomas' => Idiomas::getLanguagesAdminForm(),
+            'mod' => $this->getPageTitle($page)
 		);
 
 		//Inicio - Página de login o dashboard
@@ -537,6 +538,27 @@ class AdminController extends Controllers
 			exit;
 		}
 	}
+
+    private function getPageTitle($page)
+    {
+        $titles = [
+            '' => 'Dashboard',
+            'home' => 'Dashboard',
+            'idiomas' => 'Idiomas',
+            'administrar-idioma' => 'Administrar Idioma',
+            'traducciones' => 'Traducciones',
+            'traduccion' => 'Traducción',
+            'slugs' => 'Páginas Meta',
+            'administrar-slug' => 'Administrar Slug',
+            'usuarios-admin' => 'Usuarios Admin',
+            'usuario-admin' => 'Usuario Admin',
+            'mascotas' => 'Mascotas',
+            'mascota' => 'Mascota',
+            '404' => 'Página no encontrada'
+        ];
+
+        return $titles[$page] ?? ucfirst(str_replace('-', ' ', $page));
+    }
 
 	protected function loadTraducciones()
 	{
