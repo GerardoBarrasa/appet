@@ -25,7 +25,7 @@ class CacheMiddleware
      */
     public static function handleBefore($controller)
     {
-        $page = $controller->getCurrentPage();
+        $page = $controller->getPage();
 
         // Solo cachear rutas específicas
         if (!isset(self::$cacheableRoutes[$page])) {
@@ -55,7 +55,7 @@ class CacheMiddleware
      */
     public static function handleAfter($controller)
     {
-        $page = $controller->getCurrentPage();
+        $page = $controller->getPage();
 
         // Solo cachear rutas específicas
         if (!isset(self::$cacheableRoutes[$page])) {
@@ -84,7 +84,7 @@ class CacheMiddleware
     {
         $factors = [
             get_class($controller),
-            $controller->getCurrentPage(),
+            $controller->getPage(),
             $_SESSION['lang'] ?? 'es',
             $_SERVER['REQUEST_URI'] ?? ''
         ];

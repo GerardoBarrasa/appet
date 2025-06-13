@@ -208,7 +208,7 @@ class ApiController extends Controllers
             return;
         }
 
-        $ip = Tools::getClientIP();
+        $ip = $this->getClientIP();
         $key = 'api_rate_limit_' . md5($ip);
 
         if (!isset($_SESSION[$key])) {
@@ -796,7 +796,7 @@ class ApiController extends Controllers
             'timestamp' => time(),
             'method' => $_SERVER['REQUEST_METHOD'],
             'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-            'ip' => Tools::getClientIP()
+            'ip' => $this->getClientIP()
         ];
 
         $this->sendSuccess($response);
@@ -856,7 +856,7 @@ class ApiController extends Controllers
     {
         $logData = [
             'timestamp' => date('Y-m-d H:i:s'),
-            'ip' => Tools::getClientIP(),
+            'ip' => $this->getClientIP(),
             'method' => $_SERVER['REQUEST_METHOD'],
             'endpoint' => $endpoint,
             'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',

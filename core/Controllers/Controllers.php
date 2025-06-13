@@ -264,7 +264,7 @@ class Controllers
         if (isset($_GET['controller'])) {
             $controllerName = ucfirst($_GET['controller']) . 'Controller';
             $page = isset($_GET['mod']) ? $_GET['mod'] : '';
-
+        
             // Log de controlador determinado por $_GET
             debug_log([
                 'source' => 'GET parameter',
@@ -272,13 +272,13 @@ class Controllers
                 'controller_class' => $controllerName,
                 'page' => $page
             ], 'CONTROLLER_FROM_GET', 'routing');
-
+        
             return [
                 'controller' => $controllerName,
                 'page' => $page
             ];
         }
-
+    
         // Si no hay segmentos, determinar controlador por defecto
         if (empty($segments)) {
             return $this->getDefaultController();

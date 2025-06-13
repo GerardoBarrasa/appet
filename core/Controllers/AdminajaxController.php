@@ -14,12 +14,12 @@ class AdminajaxController extends Controllers
     var $comienzo = 0;
     var $limite = 10;
     var $pagina = 1;
-
+    
     /**
      * Indica si la acción ya ha sido renderizada
      */
     protected $rendered = false;
-
+    
     /**
      * Página actual que se está procesando
      */
@@ -103,7 +103,7 @@ class AdminajaxController extends Controllers
     {
         // Establecer la página actual
         $this->currentPage = $page;
-
+        
         // Configurar layout
         Render::$layout = false;
 
@@ -576,9 +576,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['nombre', 'codigo', 'slug']);
-
+            
             $result = Idiomas::crearIdioma();
-
+            
             if ($result) {
                 $this->log("Idioma creado: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess(['message' => 'Idioma creado correctamente']);
@@ -600,9 +600,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'nombre', 'codigo', 'slug']);
-
+            
             $result = Idiomas::actualizarIdioma();
-
+            
             if ($result) {
                 $this->log("Idioma actualizado: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess(['message' => 'Idioma actualizado correctamente']);
@@ -624,14 +624,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-
+            
             if (!$id) {
                 $this->sendError('ID de idioma no válido');
                 return;
             }
-
+            
             $result = Idiomas::eliminarIdioma($id);
-
+            
             if ($result) {
                 $this->log("Idioma eliminado: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Idioma eliminado correctamente']);
@@ -692,9 +692,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['slug', 'id_idioma', 'url']);
-
+            
             $result = Slugs::crearSlug();
-
+            
             if ($result) {
                 $this->log("Slug creado: " . Tools::getValue('slug'), 'info');
                 $this->sendSuccess(['message' => 'Slug creado correctamente']);
@@ -716,9 +716,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'slug', 'id_idioma', 'url']);
-
+            
             $result = Slugs::actualizarSlug();
-
+            
             if ($result) {
                 $this->log("Slug actualizado: " . Tools::getValue('slug'), 'info');
                 $this->sendSuccess(['message' => 'Slug actualizado correctamente']);
@@ -740,14 +740,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-
+            
             if (!$id) {
                 $this->sendError('ID de slug no válido');
                 return;
             }
-
+            
             $result = Slugs::eliminarSlug($id);
-
+            
             if ($result) {
                 $this->log("Slug eliminado: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Slug eliminado correctamente']);
@@ -808,9 +808,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['clave', 'id_idioma', 'valor']);
-
+            
             $result = Traducciones::crearTraduccion();
-
+            
             if ($result) {
                 $this->log("Traducción creada: " . Tools::getValue('clave'), 'info');
                 $this->sendSuccess(['message' => 'Traducción creada correctamente']);
@@ -832,9 +832,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'clave', 'id_idioma', 'valor']);
-
+            
             $result = Traducciones::actualizarTraduccion();
-
+            
             if ($result) {
                 $this->log("Traducción actualizada: " . Tools::getValue('clave'), 'info');
                 $this->sendSuccess(['message' => 'Traducción actualizada correctamente']);
@@ -856,14 +856,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-
+            
             if (!$id) {
                 $this->sendError('ID de traducción no válido');
                 return;
             }
-
+            
             $result = Traducciones::eliminarTraduccion($id);
-
+            
             if ($result) {
                 $this->log("Traducción eliminada: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Traducción eliminada correctamente']);
@@ -954,9 +954,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['nombre', 'tipo', 'id_cuidador']);
-
+            
             $result = Mascotas::crearMascota();
-
+            
             if ($result) {
                 $this->log("Mascota creada: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess([
@@ -981,9 +981,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'nombre', 'tipo']);
-
+            
             $result = Mascotas::actualizarMascota();
-
+            
             if ($result) {
                 $this->log("Mascota actualizada: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess(['message' => 'Mascota actualizada correctamente']);
@@ -1005,14 +1005,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-
+            
             if (!$id) {
                 $this->sendError('ID de mascota no válido');
                 return;
             }
-
+            
             $result = Mascotas::eliminarMascota($id);
-
+            
             if ($result) {
                 $this->log("Mascota eliminada: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Mascota eliminada correctamente']);
@@ -1143,9 +1143,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['nombre', 'email']);
-
+            
             $result = Cuidador::crearCuidador();
-
+            
             if ($result) {
                 $this->log("Cuidador creado: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess([
@@ -1170,9 +1170,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'nombre', 'email']);
-
+            
             $result = Cuidador::actualizarCuidador();
-
+            
             if ($result) {
                 $this->log("Cuidador actualizado: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess(['message' => 'Cuidador actualizado correctamente']);
@@ -1194,14 +1194,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-
+            
             if (!$id) {
                 $this->sendError('ID de cuidador no válido');
                 return;
             }
-
+            
             $result = Cuidador::eliminarCuidador($id);
-
+            
             if ($result) {
                 $this->log("Cuidador eliminado: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Cuidador eliminado correctamente']);
@@ -1263,9 +1263,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['nombre', 'tipo']);
-
+            
             $result = Caracteristicas::crearCaracteristica();
-
+            
             if ($result) {
                 $this->log("Característica creada: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess([
@@ -1290,9 +1290,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'nombre', 'tipo']);
-
+            
             $result = Caracteristicas::actualizarCaracteristica();
-
+            
             if ($result) {
                 $this->log("Característica actualizada: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess(['message' => 'Característica actualizada correctamente']);
@@ -1314,14 +1314,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-
+            
             if (!$id) {
                 $this->sendError('ID de característica no válido');
                 return;
             }
-
+            
             $result = Caracteristicas::eliminarCaracteristica($id);
-
+            
             if ($result) {
                 $this->log("Característica eliminada: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Característica eliminada correctamente']);
@@ -1564,39 +1564,39 @@ class AdminajaxController extends Controllers
         try {
             $tipo = Tools::getValue('tipo');
             $formato = Tools::getValue('formato', 'csv');
-
+            
             if (!in_array($formato, ['csv', 'json', 'excel'])) {
                 $this->sendError('Formato no soportado');
                 return;
             }
-
+            
             $data = [];
             $filename = '';
-
+            
             switch ($tipo) {
                 case 'mascotas':
                     $data = Mascotas::getMascotasFiltered(0, 1000, false);
                     $filename = 'mascotas_export_' . date('Ymd');
                     break;
-
+                    
                 case 'cuidadores':
                     $data = Cuidador::getCuidadoresFiltered(0, 1000, false);
                     $filename = 'cuidadores_export_' . date('Ymd');
                     break;
-
+                    
                 default:
                     $this->sendError('Tipo de exportación no válido');
                     return;
             }
-
+            
             $result = '';
-
+            
             if ($formato === 'csv') {
                 $result = $this->generateCSV($data);
             } elseif ($formato === 'json') {
                 $result = json_encode($data);
             }
-
+            
             $this->sendSuccess([
                 'data' => $result,
                 'filename' => $filename . '.' . $formato
@@ -1618,13 +1618,13 @@ class AdminajaxController extends Controllers
         if (empty($data)) {
             return '';
         }
-
+        
         $csv = '';
         $headers = array_keys((array)$data[0]);
-
+        
         // Cabeceras
         $csv .= implode(',', $headers) . "\n";
-
+        
         // Datos
         foreach ($data as $row) {
             $rowData = [];
@@ -1635,7 +1635,7 @@ class AdminajaxController extends Controllers
             }
             $csv .= implode(',', $rowData) . "\n";
         }
-
+        
         return $csv;
     }
 
@@ -1648,35 +1648,35 @@ class AdminajaxController extends Controllers
     {
         try {
             $tipo = Tools::getValue('tipo');
-
+            
             if (!isset($_FILES['archivo']) || $_FILES['archivo']['error'] !== UPLOAD_ERR_OK) {
                 $this->sendError('Error al subir el archivo');
                 return;
             }
-
+            
             $file = $_FILES['archivo'];
             $extension = Tools::getExtension($file['name']);
-
+            
             if ($extension !== 'csv') {
                 $this->sendError('Solo se permiten archivos CSV');
                 return;
             }
-
+            
             $content = file_get_contents($file['tmp_name']);
             $lines = explode("\n", $content);
             $headers = str_getcsv(array_shift($lines));
-
+            
             $data = [];
             foreach ($lines as $line) {
                 if (empty(trim($line))) continue;
-
+                
                 $row = str_getcsv($line);
                 $data[] = array_combine($headers, $row);
             }
-
+            
             $imported = 0;
             $errors = [];
-
+            
             switch ($tipo) {
                 case 'mascotas':
                     foreach ($data as $index => $row) {
@@ -1691,12 +1691,12 @@ class AdminajaxController extends Controllers
                         }
                     }
                     break;
-
+                    
                 default:
                     $this->sendError('Tipo de importación no válido');
                     return;
             }
-
+            
             $this->log("Importación completada: {$imported} registros importados, " . count($errors) . " errores", 'info');
             $this->sendSuccess([
                 'message' => 'Importación completada',

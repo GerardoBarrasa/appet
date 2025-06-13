@@ -17,7 +17,7 @@ class LoggingMiddleware
     {
         $logData = [
             'timestamp' => date('Y-m-d H:i:s'),
-            'ip' => Tools::getClientIP($controller),
+            'ip' => self::getClientIP($controller),
             'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
             'uri' => $_SERVER['REQUEST_URI'] ?? '',
             'user_agent' => self::getUserAgent(),
@@ -53,6 +53,23 @@ class LoggingMiddleware
         );
 
         debug_log($logMessage, 'INFO', 'requests');
+    }
+
+    /**
+     * Obtiene la IP del cliente de forma segura
+     *
+     * @param mixed $controller Instancia del controlador
+     * @return string
+     */
+    private static function getClientIP($controller)
+    {
+        // Intentar usar el método del controlador si existe
+        if (method_exists($controller, 'getClientIP')) {
+            return $controller->getClientIP();
+        }
+
+        // Usar el método centralizado en Tools
+        return Tools::getClientIP();
     }
 
     /**

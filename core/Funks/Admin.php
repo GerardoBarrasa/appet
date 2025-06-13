@@ -366,7 +366,7 @@ class Admin
 
         return (int)$db->fetchValueSafe($sql, $params) > 0;
     }
-
+    
     /**
      * Obtiene el total de usuarios administradores
      *
