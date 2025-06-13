@@ -277,8 +277,17 @@ class AdminController
             // Configurar datos del layout
             if (class_exists('Idiomas') && class_exists('Render')) {
                 debug_log('Initialize: Setting layout data', 'ADMIN_INITIALIZE', 'admin');
+
+                // Determinar el título del módulo basado en la página actual
+                $moduleName = 'Dashboard';
+                if (!empty($page)) {
+                    // Convertir formato-url a Formato Url (capitalizar palabras)
+                    $moduleName = ucwords(str_replace('-', ' ', $page));
+                }
+
                 Render::$layout_data = [
-                    'idiomas' => Idiomas::getLanguagesAdminForm()
+                    'idiomas' => Idiomas::getLanguagesAdminForm(),
+                    'mod' => $moduleName // Añadir el nombre del módulo para el header
                 ];
             }
 
