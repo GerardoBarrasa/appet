@@ -253,13 +253,32 @@ class Controllers
     }
 
     /**
-     * Determina qué controlador usar basado en la URI
+     * Determina qué controlador usar basado en la URI y parámetros GET
      *
      * @param array $segments
      * @return array
      */
     protected function determineController($segments)
     {
+        // Si hay un controlador especificado en $_GET, usarlo
+        if (isset($_GET['controller'])) {
+            $controllerName = ucfirst($_GET['controller']) . 'Controller';
+            $page = isset($_GET['mod']) ? $_GET['mod'] : '';
+
+            // Log de controlador determinado por $_GET
+            debug_log([
+                'source' => 'GET parameter',
+                'controller_param' => $_GET['controller'],
+                'controller_class' => $controllerName,
+                'page' => $page
+            ], 'CONTROLLER_FROM_GET', 'routing');
+
+            return [
+                'controller' => $controllerName,
+                'page' => $page
+            ];
+        }
+
         // Si no hay segmentos, determinar controlador por defecto
         if (empty($segments)) {
             return $this->getDefaultController();
@@ -269,38 +288,6 @@ class Controllers
 
         // Verificar si es una ruta de administración
         if ($this->isAdminRoute($firstSegment)) {
-            return [
-                'controller' => 'AdminController',
-                'page' => isset($segments[1]) ? $segments[1] : ''
-            ];
-        }
-
-        // Verificar si es una ruta de tipo appet-*
-        if (!empty($firstSegment) && strpos($firstSegment, 'appet-') === 0) {
-            debug_log([
-                'special_route' => 'appet',
-                'segment' => $firstSegment,
-                'userslug' => substr($firstSegment, 6) // Extraer el userslug (después de "appet-")
-            ], 'ROUTING_APPET', 'routing');
-
-            // Guardar el userslug en $_REQUEST para que esté disponible en el controlador
-            $_REQUEST['userslug'] = substr($firstSegment, 6);
-
-            // Si hay un segundo segmento, es el mod
-            if (isset($segments[1])) {
-                $_REQUEST['mod'] = $segments[1];
-            }
-
-            // Si hay un tercer segmento, es data
-            if (isset($segments[2])) {
-                $_REQUEST['data'] = $segments[2];
-            }
-
-            // Si hay un cuarto segmento, es data2
-            if (isset($segments[3])) {
-                $_REQUEST['data2'] = $segments[3];
-            }
-
             return [
                 'controller' => 'AdminController',
                 'page' => isset($segments[1]) ? $segments[1] : ''
