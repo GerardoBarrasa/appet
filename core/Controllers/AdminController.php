@@ -146,6 +146,23 @@ class AdminController
             'request_uri' => $_SERVER['REQUEST_URI'] ?? 'unknown'
         ], 'ADMIN_EXECUTE_START', 'admin');
 
+        // Verificar si es una ruta de tipo appet-*
+        if (isset($_REQUEST['userslug'])) {
+            debug_log([
+                'special_route' => 'appet',
+                'userslug' => $_REQUEST['userslug'],
+                'mod' => $_REQUEST['mod'] ?? '',
+                'data' => $_REQUEST['data'] ?? '',
+                'data2' => $_REQUEST['data2'] ?? ''
+            ], 'ADMIN_APPET_ROUTE', 'admin');
+
+            // Si tenemos un mod, usarlo como página
+            if (isset($_REQUEST['mod'])) {
+                $page = $_REQUEST['mod'];
+                $this->setPage($page);
+            }
+        }
+
         try {
             // Inicializar el controlador SIN Admin::validateUser() que causa el bucle
             debug_log('About to initialize controller', 'ADMIN_EXECUTE_FLOW', 'admin');
@@ -236,6 +253,13 @@ class AdminController
                 //     Admin::validateUser();
                 //     debug_log('Initialize: Admin::validateUser() completed', 'ADMIN_INITIALIZE', 'admin');
                 // }
+
+                // Ahora que el enrutamiento está corregido, podemos volver a usar validateUser
+                if ($this->isAuthenticated()) {
+                    debug_log('Initialize: Calling Admin::validateUser()', 'ADMIN_INITIALIZE', 'admin');
+                    Admin::validateUser();
+                    debug_log('Initialize: Admin::validateUser() completed', 'ADMIN_INITIALIZE', 'admin');
+                }
 
                 debug_log('Initialize: Skipping Admin::validateUser() to avoid infinite loop', 'ADMIN_INITIALIZE', 'admin');
             }

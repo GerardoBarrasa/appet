@@ -275,6 +275,38 @@ class Controllers
             ];
         }
 
+        // Verificar si es una ruta de tipo appet-*
+        if (!empty($firstSegment) && strpos($firstSegment, 'appet-') === 0) {
+            debug_log([
+                'special_route' => 'appet',
+                'segment' => $firstSegment,
+                'userslug' => substr($firstSegment, 6) // Extraer el userslug (después de "appet-")
+            ], 'ROUTING_APPET', 'routing');
+
+            // Guardar el userslug en $_REQUEST para que esté disponible en el controlador
+            $_REQUEST['userslug'] = substr($firstSegment, 6);
+
+            // Si hay un segundo segmento, es el mod
+            if (isset($segments[1])) {
+                $_REQUEST['mod'] = $segments[1];
+            }
+
+            // Si hay un tercer segmento, es data
+            if (isset($segments[2])) {
+                $_REQUEST['data'] = $segments[2];
+            }
+
+            // Si hay un cuarto segmento, es data2
+            if (isset($segments[3])) {
+                $_REQUEST['data2'] = $segments[3];
+            }
+
+            return [
+                'controller' => 'AdminController',
+                'page' => isset($segments[1]) ? $segments[1] : ''
+            ];
+        }
+
         // Verificar rutas especiales
         $specialRoutes = [
             'api' => 'ApiController',
