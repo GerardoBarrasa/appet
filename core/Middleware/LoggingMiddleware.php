@@ -17,7 +17,7 @@ class LoggingMiddleware
     {
         $logData = [
             'timestamp' => date('Y-m-d H:i:s'),
-            'ip' => self::getClientIP($controller),
+            'ip' => Tools::getClientIP($controller),
             'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
             'uri' => $_SERVER['REQUEST_URI'] ?? '',
             'user_agent' => self::getUserAgent(),
@@ -53,36 +53,6 @@ class LoggingMiddleware
         );
 
         debug_log($logMessage, 'INFO', 'requests');
-    }
-
-    /**
-     * Obtiene la IP del cliente de forma segura
-     *
-     * @param mixed $controller Instancia del controlador
-     * @return string
-     */
-    private static function getClientIP($controller)
-    {
-        // Intentar usar el método del controlador si existe
-        if (method_exists($controller, 'getClientIP')) {
-            return $controller->getClientIP();
-        }
-
-        // Fallback a método estático
-        $ipKeys = ['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'];
-
-        foreach ($ipKeys as $key) {
-            if (array_key_exists($key, $_SERVER) === true) {
-                foreach (explode(',', $_SERVER[$key]) as $ip) {
-                    $ip = trim($ip);
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
-                        return $ip;
-                    }
-                }
-            }
-        }
-
-        return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
     }
 
     /**
@@ -172,7 +142,7 @@ class LoggingMiddleware
         }
 
         // Información de IP
-        $sessionData['client_ip'] = self::getClientIP($controller);
+        $sessionData['client_ip'] = Tools::getClientIP();
 
         if (!empty($sessionData)) {
             debug_log([
@@ -201,7 +171,7 @@ class LoggingMiddleware
 
         if ($controller) {
             $errorData['controller'] = get_class($controller);
-            $errorData['client_ip'] = self::getClientIP($controller);
+            $errorData['client_ip'] = Tools::getClientIP();
         }
 
         debug_log($errorData, 'ERROR', 'middleware_errors');

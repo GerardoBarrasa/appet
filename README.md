@@ -541,7 +541,7 @@ if ($this->isPostRequest()) {
     // Manejar petición POST
 }
 
-$clientIP = $this->getClientIP();
+$clientIP = Tools::getClientIP();
 ```
 
 ### **Sistema de Logging**

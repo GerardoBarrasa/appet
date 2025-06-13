@@ -92,7 +92,7 @@ class AjaxController extends Controllers
             return;
         }
 
-        $ip = $this->getClientIP();
+        $ip = Tools::getClientIP();
         $key = 'ajax_rate_limit_' . md5($ip);
 
         if (!isset($_SESSION[$key])) {

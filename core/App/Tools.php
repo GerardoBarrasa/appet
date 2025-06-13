@@ -1259,4 +1259,117 @@ class Tools
         return $imagedata;
     }
 
+    /**
+     * Obtiene la IP del cliente de forma segura
+     *
+     * @return string
+     */
+    public static function getClientIP()
+    {
+        // Verificar cabeceras de proxy
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            if (isset($headers['X-Forwarded-For'])) {
+                return $headers['X-Forwarded-For'];
+            }
+        }
+
+        // Verificar variables de servidor comunes para proxies
+        $ipKeys = [
+            'HTTP_CLIENT_IP',
+            'HTTP_X_FORWARDED_FOR',
+            'HTTP_X_FORWARDED',
+            'HTTP_X_CLUSTER_CLIENT_IP',
+            'HTTP_FORWARDED_FOR',
+            'HTTP_FORWARDED',
+            'REMOTE_ADDR'
+        ];
+
+        foreach ($ipKeys as $key) {
+            if (isset($_SERVER[$key])) {
+                // Si contiene múltiples IPs, tomar la primera
+                if (strpos($_SERVER[$key], ',') !== false) {
+                    $ips = explode(',', $_SERVER[$key]);
+                    return trim($ips[0]);
+                }
+                return $_SERVER[$key];
+            }
+        }
+
+        // Si no se encuentra ninguna IP, devolver una predeterminada
+        return '0.0.0.0';
+    }
+
+    /**
+     * Valida si una dirección IP es válida
+     *
+     * @param string $ip Dirección IP a validar
+     * @param bool $allowPrivate Permitir IPs privadas
+     * @return bool
+     */
+    public static function isValidIP($ip, $allowPrivate = true)
+    {
+        $flags = FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6;
+
+        if (!$allowPrivate) {
+            $flags |= FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
+        }
+
+        return filter_var($ip, FILTER_VALIDATE_IP, $flags) !== false;
+    }
+
+    /**
+     * Verifica si una IP está en una lista blanca
+     *
+     * @param string $ip IP a verificar
+     * @param array $whitelist Lista de IPs permitidas
+     * @return bool
+     */
+    public static function isIPInWhitelist($ip, $whitelist = [])
+    {
+        // Lista blanca predeterminada
+        $defaultWhitelist = [
+            '127.0.0.1',
+            '::1'
+        ];
+
+        $whitelist = array_merge($defaultWhitelist, $whitelist);
+
+        // Verificar coincidencia exacta
+        if (in_array($ip, $whitelist)) {
+            return true;
+        }
+
+        // Verificar rangos CIDR
+        foreach ($whitelist as $range) {
+            if (strpos($range, '/') !== false) {
+                if (self::isIPInCIDR($ip, $range)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Verifica si una IP está en un rango CIDR
+     *
+     * @param string $ip IP a verificar
+     * @param string $cidr Rango CIDR (ej: 192.168.1.0/24)
+     * @return bool
+     */
+    public static function isIPInCIDR($ip, $cidr)
+    {
+        list($subnet, $bits) = explode('/', $cidr);
+
+        // Convertir IP y subred a binario
+        $ipBinary = ip2long($ip);
+        $subnetBinary = ip2long($subnet);
+        $mask = -1 << (32 - $bits);
+
+        // Comparar usando la máscara
+        return ($ipBinary & $mask) === ($subnetBinary & $mask);
+    }
+
 }

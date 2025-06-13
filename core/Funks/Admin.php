@@ -366,4 +366,15 @@ class Admin
 
         return (int)$db->fetchValueSafe($sql, $params) > 0;
     }
+
+    /**
+     * Obtiene el total de usuarios administradores
+     *
+     * @return int
+     */
+    public static function getTotalUsuarios()
+    {
+        $db = Bd::getInstance();
+        return (int)$db->fetchValueSafe("SELECT COUNT(*) FROM usuarios_admin");
+    }
 }

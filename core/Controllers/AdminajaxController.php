@@ -142,7 +142,7 @@ class AdminajaxController extends Controllers
             return;
         }
 
-        $ip = $this->getClientIP();
+        $ip = Tools::getClientIP();
         $userId = $_SESSION['admin_panel']->id_usuario_admin ?? 0;
         $key = 'ajax_rate_limit_' . md5($ip . '_' . $userId);
 
@@ -230,16 +230,6 @@ class AdminajaxController extends Controllers
         $this->add('ajax-create-slug', [$this, 'createSlug']);
         $this->add('ajax-update-slug', [$this, 'updateSlug']);
         $this->add('ajax-delete-slug', [$this, 'deleteSlug']);
-
-        // ==========================================
-        // TRADUCCIONES
-        // ==========================================
-
-        $this->add('ajax-get-traductions-filtered', [$this, 'getTraduccionesFiltered']);
-        $this->add('ajax-create-traduccion', [$this, 'createTraduccion']);
-        $this->add('ajax-update-traduccion', [$this, 'updateTraduccion']);
-        $this->add('ajax-delete-traduccion', [$this, 'deleteTraduccion']);
-        $this->add('ajax-regenerar-cache-traducciones', [$this, 'regenerarCacheTraducciones']);
 
         // ==========================================
         // MASCOTAS
@@ -547,73 +537,7 @@ class AdminajaxController extends Controllers
         }
     }
 
-    // ==========================================
-    // MÉTODOS PARA TRADUCCIONES
-    // ==========================================
 
-    /**
-     * Obtiene traducciones filtradas
-     *
-     * @return void
-     */
-    public function getTraduccionesFiltered()
-    {
-        try {
-            $comienzo = (int)Tools::getValue('comienzo', 0);
-            $limite = (int)Tools::getValue('limite', 10);
-            $pagina = (int)Tools::getValue('pagina', 1);
-
-            $traducciones = Traducciones::getTraduccionesWithFiltros($comienzo, $limite, true);
-
-            $data = [
-                'comienzo' => $comienzo,
-                'limite' => $limite,
-                'pagina' => $pagina,
-                'traducciones' => $traducciones['listado'],
-                'total' => $traducciones['total']
-            ];
-
-            $html = Render::getAjaxPage('admin_traducciones', $data);
-
-            if (!empty($html)) {
-                $this->sendSuccess(['html' => $html]);
-            } else {
-                $this->sendError('Error cargando el contenido');
-            }
-        } catch (Exception $e) {
-            $this->log("Error en getTraduccionesFiltered: " . $e->getMessage(), 'error');
-            $this->sendError('Error interno del servidor');
-        }
-    }
-
-    /**
-     * Regenera el cache de traducciones
-     *
-     * @return void
-     */
-    public function regenerarCacheTraducciones()
-    {
-        try {
-            $idiomas = Idiomas::getLanguages();
-            $regenerados = 0;
-
-            foreach ($idiomas as $idioma) {
-                $archivo = _PATH_ . 'translations/' . $idioma->slug . '.php';
-                if (Traducciones::regenerarCacheTraduccionesByIdioma($idioma->id, $archivo)) {
-                    $regenerados++;
-                }
-            }
-
-            $this->log("Cache de traducciones regenerado para {$regenerados} idiomas", 'info');
-            $this->sendSuccess([
-                'message' => "Cache regenerado para {$regenerados} idiomas",
-                'regenerados' => $regenerados
-            ]);
-        } catch (Exception $e) {
-            $this->log("Error en regenerarCacheTraducciones: " . $e->getMessage(), 'error');
-            $this->sendError('Error al regenerar el cache');
-        }
-    }
 
     // ==========================================
     // MÉTODOS PARA MASCOTAS
@@ -993,13 +917,4 @@ class AdminajaxController extends Controllers
         ]));
     }
 
-    /**
-     * Carga las traducciones para el panel de administración
-     *
-     * @return void
-     */
-    protected function loadTraducciones()
-    {
-        $this->loadTraduccionesAdmin();
-    }
 }
