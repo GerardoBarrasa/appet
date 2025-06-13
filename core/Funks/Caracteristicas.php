@@ -559,7 +559,7 @@ class Caracteristicas
             $params[] = 1;
         }
 
-        $sql .= " ORDER BY c.orden ASC, c.nombre ASC";
+        $sql .= " ORDER BY c.nombre ASC";
 
         return $db->fetchAllSafe($sql, $params);
     }
