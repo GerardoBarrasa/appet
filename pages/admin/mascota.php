@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var $mascota
+ * @var $caracteristicas
+ */
 $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'.jpg') ? _RESOURCES_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'.jpg' : _RESOURCES_ . _COMMON_ .'img/petType_'.$mascota->tipo.'_default.png';
 ?>
 <!-- Main content -->
@@ -62,7 +66,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$masc
                                                 <input type="text" value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> slider form-control" data-slider-min="<?=min($values)?>" data-slider-max="<?=max($values)?>" data-slider-step="1" data-slider-value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-slider-orientation="horizontal" data-slider-selection="before" data-slider-tooltip="show" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onchange="compruebaCambios(this)">
                                             </div>
                                         </div>
-                                        <i class="fa fa-question-circle text-info fs-4" data-toggle="tooltip" title="<?=$cr->texto_ayuda?>"></i>
+                                        <i class="fa fa-question-circle text-info fs-4 pl-2" data-toggle="tooltip" title="<?=$cr->texto_ayuda?>"></i>
                                     </div>
                                
                             <?php }

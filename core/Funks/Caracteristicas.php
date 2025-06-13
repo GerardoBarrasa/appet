@@ -234,10 +234,10 @@ class Caracteristicas
         if (!$this->id) return [];
 
         $sql = "SELECT m.*, mc.valor 
-                FROM mascotas m 
-                INNER JOIN mascotas_caracteristicas mc ON m.id = mc.id_mascota 
-                WHERE mc.id_caracteristica = ? 
-                ORDER BY m.nombre";
+               FROM mascotas m 
+               INNER JOIN mascotas_caracteristicas mc ON m.id = mc.id_mascota 
+               WHERE mc.id_caracteristica = ? 
+               ORDER BY m.nombre";
 
         return $this->db->fetchAllSafe($sql, [$this->id]);
     }
@@ -258,11 +258,11 @@ class Caracteristicas
         if ($this->tipo === 'text' || $this->tipo === 'textarea') {
             $stats['valores_comunes'] = $this->db->fetchAllSafe(
                 "SELECT valor, COUNT(*) as cantidad 
-                 FROM mascotas_caracteristicas 
-                 WHERE id_caracteristica = ? AND valor != '' 
-                 GROUP BY valor 
-                 ORDER BY cantidad DESC 
-                 LIMIT 10",
+                FROM mascotas_caracteristicas 
+                WHERE id_caracteristica = ? AND valor != '' 
+                GROUP BY valor 
+                ORDER BY cantidad DESC 
+                LIMIT 10",
                 [$this->id]
             );
         }
@@ -271,10 +271,10 @@ class Caracteristicas
         if ($this->tipo === 'select' || $this->tipo === 'radio') {
             $stats['distribucion_valores'] = $this->db->fetchAllSafe(
                 "SELECT valor, COUNT(*) as cantidad 
-                 FROM mascotas_caracteristicas 
-                 WHERE id_caracteristica = ? 
-                 GROUP BY valor 
-                 ORDER BY cantidad DESC",
+                FROM mascotas_caracteristicas 
+                WHERE id_caracteristica = ? 
+                GROUP BY valor 
+                ORDER BY cantidad DESC",
                 [$this->id]
             );
         }
@@ -441,47 +441,91 @@ class Caracteristicas
 
         // Iniciar transacción para asegurar consistencia
         return $db->transaction(function($db) use ($idmascota) {
-            // Procesar cada característica enviada en el POST
-            foreach ($_POST as $clave => $valor) {
-                // Ignorar el campo idmascota
-                if ($clave == 'idmascota') {
-                    continue;
-                }
+            // Verificar si tenemos evaluations en el POST
+            if (isset($_POST['evaluations']) && is_array($_POST['evaluations'])) {
+                foreach ($_POST['evaluations'] as $evaluation) {
+                    if (isset($evaluation['id']) && isset($evaluation['value'])) {
+                        $idCaracteristica = (int)$evaluation['id'];
+                        $valor = $evaluation['value'];
 
-                // Verificar si la clave es una característica (formato: caracteristica_X)
-                if (strpos($clave, 'caracteristica_') === 0) {
-                    $idCaracteristica = (int)substr($clave, strlen('caracteristica_'));
+                        if ($idCaracteristica > 0) {
+                            // Si es un array (checkbox), convertir a string
+                            if (is_array($valor)) {
+                                $valor = implode(',', $valor);
+                            }
 
-                    if ($idCaracteristica > 0) {
-                        // Si es un array (checkbox), convertir a string
-                        if (is_array($valor)) {
-                            $valor = implode(',', $valor);
-                        }
-
-                        // Primero verificamos si ya existe esta característica para esta mascota
-                        $existente = $db->fetchRowSafe(
-                            "SELECT id FROM mascotas_caracteristicas WHERE id_mascota = ? AND id_caracteristica = ?",
-                            [$idmascota, $idCaracteristica]
-                        );
-
-                        if ($existente) {
-                            // Actualizar el valor existente
-                            $db->updateSafe(
-                                'mascotas_caracteristicas',
-                                ['valor' => $valor],
-                                'id_mascota = ? AND id_caracteristica = ?',
+                            // Verificar si ya existe esta característica para esta mascota
+                            $existente = $db->fetchRowSafe(
+                                "SELECT id_mascota FROM mascotas_caracteristicas WHERE id_mascota = ? AND id_caracteristica = ?",
                                 [$idmascota, $idCaracteristica]
                             );
-                        } else {
-                            // Insertar nuevo valor
-                            $db->insertSafe(
-                                'mascotas_caracteristicas',
-                                [
-                                    'id_mascota' => $idmascota,
-                                    'id_caracteristica' => $idCaracteristica,
-                                    'valor' => $valor
-                                ]
+
+                            if ($existente) {
+                                // Actualizar el valor existente
+                                $db->updateSafe(
+                                    'mascotas_caracteristicas',
+                                    ['valor' => $valor],
+                                    'id_mascota = ? AND id_caracteristica = ?',
+                                    [$idmascota, $idCaracteristica]
+                                );
+                            } else {
+                                // Insertar nuevo valor
+                                $db->insertSafe(
+                                    'mascotas_caracteristicas',
+                                    [
+                                        'id_mascota' => $idmascota,
+                                        'id_caracteristica' => $idCaracteristica,
+                                        'valor' => $valor
+                                    ]
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            // Formato tradicional (POST con caracteristica_X)
+            else {
+                foreach ($_POST as $clave => $valor) {
+                    // Ignorar el campo idmascota
+                    if ($clave == 'idmascota') {
+                        continue;
+                    }
+
+                    // Verificar si la clave es una característica (formato: caracteristica_X)
+                    if (strpos($clave, 'caracteristica_') === 0) {
+                        $idCaracteristica = (int)substr($clave, strlen('caracteristica_'));
+
+                        if ($idCaracteristica > 0) {
+                            // Si es un array (checkbox), convertir a string
+                            if (is_array($valor)) {
+                                $valor = implode(',', $valor);
+                            }
+
+                            // Primero verificamos si ya existe esta característica para esta mascota
+                            $existente = $db->fetchRowSafe(
+                                "SELECT id_mascota FROM mascotas_caracteristicas WHERE id_mascota = ? AND id_caracteristica = ?",
+                                [$idmascota, $idCaracteristica]
                             );
+
+                            if ($existente) {
+                                // Actualizar el valor existente
+                                $db->updateSafe(
+                                    'mascotas_caracteristicas',
+                                    ['valor' => $valor],
+                                    'id_mascota = ? AND id_caracteristica = ?',
+                                    [$idmascota, $idCaracteristica]
+                                );
+                            } else {
+                                // Insertar nuevo valor
+                                $db->insertSafe(
+                                    'mascotas_caracteristicas',
+                                    [
+                                        'id_mascota' => $idmascota,
+                                        'id_caracteristica' => $idCaracteristica,
+                                        'valor' => $valor
+                                    ]
+                                );
+                            }
                         }
                     }
                 }
@@ -706,10 +750,10 @@ class Caracteristicas
         $limit = (int)$limit;
 
         $sql = "SELECT c.*, COUNT(mc.id_mascota) as total_mascotas 
-                FROM caracteristicas c 
-                INNER JOIN mascotas_caracteristicas mc ON c.id = mc.id_caracteristica 
-                GROUP BY c.id 
-                ORDER BY total_mascotas DESC, c.nombre ASC";
+               FROM caracteristicas c 
+               INNER JOIN mascotas_caracteristicas mc ON c.id = mc.id_caracteristica 
+               GROUP BY c.id, c.nombre 
+               ORDER BY total_mascotas DESC, c.nombre";
 
         if ($limit > 0) {
             $sql .= " LIMIT ?";
@@ -745,13 +789,11 @@ class Caracteristicas
         }
 
         $sql = "SELECT * FROM caracteristicas 
-                WHERE (nombre LIKE ? OR descripcion LIKE ? OR slug LIKE ?) 
-                AND estado = 1 
-                ORDER BY nombre 
-                LIMIT ?";
+               WHERE (nombre LIKE ? OR slug LIKE ?) 
+               ORDER BY nombre 
+               LIMIT ?";
 
         return $db->fetchAllSafe($sql, [
-            "%{$termino}%",
             "%{$termino}%",
             "%{$termino}%",
             (int)$limite
