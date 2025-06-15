@@ -271,3 +271,12 @@ a.bg-secondary:focus, a.bg-secondary:hover, button.bg-secondary:focus, button.bg
     align-items: center;
     flex-flow: column;
 }
+
+.list-group-item .editable i{
+    opacity: 0;
+    cursor: pointer;
+    font-size: 0.8em !important;
+}
+.list-group-item:hover .editable i{
+    opacity: 1;
+}

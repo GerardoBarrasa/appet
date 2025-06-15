@@ -89,7 +89,8 @@ class AdminajaxController extends Controllers
             'ajax-search-global',
             'ajax-get-stats',
             'ajax-export-data',
-            'ajax-import-data'
+            'ajax-import-data',
+            'ajax-save-data'
         ]
     ];
 
@@ -284,6 +285,7 @@ class AdminajaxController extends Controllers
         $this->add('ajax-get-stats', [$this, 'getStats']);
         $this->add('ajax-export-data', [$this, 'exportData']);
         $this->add('ajax-import-data', [$this, 'importData']);
+        $this->add('ajax-save-data', [$this, 'saveData']);
     }
 
     /**
@@ -1386,17 +1388,28 @@ class AdminajaxController extends Controllers
     public function getContenidoModal()
     {
         try {
-            $tipo = Tools::getValue('tipo');
-            $id = Tools::getValue('id');
+            $tipo       = Tools::getValue('type');
+            $id         = Tools::getValue('id');
+            $contenido  = Tools::getValue('content');
 
             $data = [];
-            $template = '';
 
             switch ($tipo) {
                 case 'mascota':
                     $data['mascota'] = Mascotas::getMascotaById($id);
                     $data['caracteristicas'] = Caracteristicas::getCaracteristicasByMascota($id);
-                    $template = 'admin_modal_mascota';
+                    switch ($contenido) {
+                        case 'nombre':
+                            $data['titulo'] = "Editar nombre y alias para ".$data['mascota']->nombre;
+                            $data['body']   = "mascota_editar_nombre";
+                            $template       = 'admin_modal_mascota';
+                            break;
+                        default:
+                            $data['titulo'] = "Editar datos de ".$data['mascota']->nombre;
+                            $data['body']   = "";
+                            $template       = 'admin_modal_mascota';
+                            break;
+                    }
                     break;
 
                 case 'cuidador':
@@ -1711,6 +1724,73 @@ class AdminajaxController extends Controllers
         } catch (Exception $e) {
             $this->log("Error en importData: " . $e->getMessage(), 'error');
             $this->sendError('Error al importar datos');
+        }
+    }
+
+    /**
+     * Guarda datos
+     *
+     * @return void
+     */
+    public function saveData()
+    {
+        try {
+            $tipo   = Tools::getValue('tipo');
+            $action = Tools::getValue('action');
+            $id     = Tools::getValue('id');
+
+            $errors = [];
+            $url    = '';
+
+            switch ($tipo) {
+                case 'mascota':
+                    $mascota = Mascotas::getMascotaById($id);
+                    switch ($action) {
+                        case 'mascota_editar_nombre':
+                            $nombre = Tools::getValue('nombre');
+                            $alias  = Tools::getValue('alias');
+                            if(!$nombre) {
+                                $this->sendError('El nombre es obligatorio');
+                                return;
+                            }
+                            $datos = [
+                                'tipo'      => 1,
+                                'nombre'    => $nombre,
+                                'alias'     => $alias
+                            ];
+                            $result = Mascotas::actualizarMascota($id, $datos);
+                            if (!$result) {
+                                $this->sendError('Error al actualizar dato de la mascota');
+                            }
+                            else{
+                                $mascota = Mascotas::getMascotaById($id);
+                                $url = _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'mascota/' . $mascota->slug . '-' . $mascota->id.'/';
+                            }
+                            break;
+
+                        default:
+                            $this->sendError('Acción de guardado no definida');
+                            return;
+                    }
+                    break;
+
+                default:
+                    $this->sendError('Tipo de guardado de datos no válido');
+                    return;
+            }
+
+            $this->log("Guardado de datos completado." . count($errors) . " errores", 'info');
+            $response = [
+                'message' => 'Guardado completado',
+                'errors' => $errors
+            ];
+            if(!empty($url)) {
+                $response['url'] = $url;
+            }
+            $this->sendSuccess($response);
+        } catch (Exception $e) {
+            $this->log("Error en saveData: " . $e->getMessage(), 'error');
+            $this->sendError('Error al guardar datos');
         }
     }
 

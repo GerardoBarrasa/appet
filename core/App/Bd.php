@@ -240,8 +240,37 @@ class Bd
 
         $sql = "UPDATE {$table} SET " . implode(', ', $setParts) . " WHERE {$where}";
 
-        // Combinar parámetros de datos y WHERE
-        $allParams = array_merge($data, $whereParams);
+        // Combinar parámetros de datos y WHERE usando nombres únicos para WHERE
+        $allParams = $data;
+
+        // Si whereParams es un array asociativo, añadirlo directamente
+        if (is_array($whereParams) && !empty($whereParams)) {
+            // Si es array indexado, convertir a nombrado
+            if (isset($whereParams[0])) {
+                // Reemplazar ? en WHERE con parámetros nombrados
+                $whereParamNames = [];
+                $whereIndex = 0;
+                $newWhere = preg_replace_callback('/\?/', function($matches) use (&$whereParamNames, &$whereIndex) {
+                    $paramName = 'where_param_' . $whereIndex;
+                    $whereParamNames[] = $paramName;
+                    $whereIndex++;
+                    return ':' . $paramName;
+                }, $where);
+
+                // Actualizar la consulta SQL
+                $sql = "UPDATE {$table} SET " . implode(', ', $setParts) . " WHERE {$newWhere}";
+
+                // Añadir parámetros WHERE con nombres únicos
+                foreach ($whereParams as $index => $value) {
+                    if (isset($whereParamNames[$index])) {
+                        $allParams[$whereParamNames[$index]] = $value;
+                    }
+                }
+            } else {
+                // Es array asociativo, añadir directamente
+                $allParams = array_merge($allParams, $whereParams);
+            }
+        }
 
         try {
             $stmt = $this->prepare($sql, $allParams);

@@ -2,7 +2,7 @@
 
 class Mascotas
 {
-    // Propiedades de la clase (para uso como objeto)
+    // Propiedades de la clase que coinciden con la estructura real de la tabla
     private $id;
     private $id_cuidador;
     private $slug;
@@ -19,9 +19,6 @@ class Mascotas
     private $ultimo_celo;
     private $notas_internas;
     private $observaciones;
-    private $estado;
-    private $fecha_creacion;
-    private $fecha_actualizacion;
 
     // Instancia de la base de datos
     private $db;
@@ -31,7 +28,6 @@ class Mascotas
         $this->esterilizado = 0; // Valor por defecto
         $this->peso = 0;
         $this->edad = 0;
-        $this->estado = 1;
         $this->notas_internas = '';
         $this->observaciones = '';
         $this->alias = '';
@@ -58,9 +54,6 @@ class Mascotas
     public function getUltimoCelo() { return $this->ultimo_celo; }
     public function getNotasInternas() { return $this->notas_internas; }
     public function getObservaciones() { return $this->observaciones; }
-    public function getEstado() { return $this->estado; }
-    public function getFechaCreacion() { return $this->fecha_creacion; }
-    public function getFechaActualizacion() { return $this->fecha_actualizacion; }
 
     // Setters
     public function setId($id) { $this->id = $id; }
@@ -68,10 +61,8 @@ class Mascotas
     public function setSlug($slug) { $this->slug = $slug; }
     public function setNombre($nombre) {
         $this->nombre = $nombre;
-        // Auto-generar slug si no existe
-        if (empty($this->slug)) {
-            $this->slug = $this->generateSlug($nombre);
-        }
+        // Siempre regenerar slug cuando se cambia el nombre
+        $this->slug = $this->generateSlug($nombre);
     }
     public function setAlias($alias) { $this->alias = $alias; }
     public function setTipo($tipo) { $this->tipo = $tipo; }
@@ -85,16 +76,84 @@ class Mascotas
     public function setUltimoCelo($ultimo_celo) { $this->ultimo_celo = $ultimo_celo; }
     public function setNotasInternas($notas_internas) { $this->notas_internas = $notas_internas; }
     public function setObservaciones($observaciones) { $this->observaciones = $observaciones; }
-    public function setEstado($estado) { $this->estado = $estado; }
-    public function setFechaCreacion($fecha_creacion) { $this->fecha_creacion = $fecha_creacion; }
-    public function setFechaActualizacion($fecha_actualizacion) { $this->fecha_actualizacion = $fecha_actualizacion; }
 
-    // Método para generar slug automáticamente
+    // Método para generar slug automáticamente con lógica de unicidad
     private function generateSlug($text) {
-        $text = strtolower($text);
+        $slug_base = $this->createUrlSafeSlug($text);
+        return $this->ensureUniqueSlug($slug_base);
+    }
+
+    // Método para crear un slug seguro para URL
+    private function createUrlSafeSlug($text) {
+        $text = strtolower(trim($text));
+        $text = preg_replace('/[áàäâ]/u', 'a', $text);
+        $text = preg_replace('/[éèëê]/u', 'e', $text);
+        $text = preg_replace('/[íìïî]/u', 'i', $text);
+        $text = preg_replace('/[óòöô]/u', 'o', $text);
+        $text = preg_replace('/[úùüû]/u', 'u', $text);
+        $text = preg_replace('/[ñ]/u', 'n', $text);
+        $text = preg_replace('/[ç]/u', 'c', $text);
         $text = preg_replace('/[^a-z0-9\s-]/', '', $text);
         $text = preg_replace('/[\s-]+/', '-', $text);
         return trim($text, '-');
+    }
+
+    // Método para asegurar que el slug sea único
+    private function ensureUniqueSlug($slug_base) {
+        $slug = $slug_base;
+
+        // Verificar si el slug base ya existe
+        if (!$this->isSlugUnique($slug)) {
+            // Intentar con el slug del cuidador
+            $cuidador_slug = $this->getCuidadorSlug();
+            if ($cuidador_slug) {
+                $slug = $slug_base . '-' . $cuidador_slug;
+
+                // Si aún existe, usar el ID de la mascota
+                if (!$this->isSlugUnique($slug)) {
+                    if ($this->id) {
+                        $slug = $slug_base . '-' . $cuidador_slug . '-' . $this->id;
+                    } else {
+                        // Si no tenemos ID aún (nueva mascota), usar timestamp
+                        $slug = $slug_base . '-' . $cuidador_slug . '-' . time();
+                    }
+                }
+            } else {
+                // Si no hay slug de cuidador, usar ID directamente
+                if ($this->id) {
+                    $slug = $slug_base . '-' . $this->id;
+                } else {
+                    // Si no tenemos ID aún, usar timestamp
+                    $slug = $slug_base . '-' . time();
+                }
+            }
+        }
+
+        return $slug;
+    }
+
+    // Método para verificar si un slug es único
+    private function isSlugUnique($slug) {
+        $params = [$slug];
+        $sql = "SELECT COUNT(*) FROM mascotas WHERE slug = ?";
+
+        if ($this->id) {
+            $sql .= " AND id != ?";
+            $params[] = $this->id;
+        }
+
+        $count = (int)$this->db->fetchValueSafe($sql, $params);
+        return $count === 0;
+    }
+
+    // Método para obtener el slug del cuidador
+    private function getCuidadorSlug() {
+        if (!$this->id_cuidador) {
+            return null;
+        }
+
+        $sql = "SELECT slug FROM cuidadores WHERE id = ?";
+        return $this->db->fetchValueSafe($sql, [$this->id_cuidador]);
     }
 
     // Método para cargar una mascota por ID
@@ -138,9 +197,6 @@ class Mascotas
         $this->ultimo_celo = $data['ultimo_celo'] ?? null;
         $this->notas_internas = $data['notas_internas'] ?? '';
         $this->observaciones = $data['observaciones'] ?? '';
-        $this->estado = $data['estado'] ?? 1;
-        $this->fecha_creacion = $data['fecha_creacion'] ?? null;
-        $this->fecha_actualizacion = $data['fecha_actualizacion'] ?? null;
     }
 
     // Método para guardar (crear o actualizar)
@@ -154,6 +210,9 @@ class Mascotas
 
     // Método para crear nueva mascota
     private function create() {
+        // Si el slug contiene timestamp, necesitamos regenerarlo después de obtener el ID
+        $needs_slug_update = strpos($this->slug, '-' . time()) !== false;
+
         $data = [
             'id_cuidador' => $this->id_cuidador,
             'slug' => $this->slug,
@@ -169,18 +228,22 @@ class Mascotas
             'esterilizado' => $this->esterilizado,
             'ultimo_celo' => $this->ultimo_celo,
             'notas_internas' => $this->notas_internas,
-            'observaciones' => $this->observaciones,
-            'estado' => $this->estado,
-            'fecha_creacion' => date('Y-m-d H:i:s'),
-            'fecha_actualizacion' => date('Y-m-d H:i:s')
+            'observaciones' => $this->observaciones
         ];
+
+        error_log("DEBUG - Datos para INSERT: " . print_r($data, true));
 
         $result = $this->db->insertSafe('mascotas', $data);
 
         if ($result) {
             $this->id = $this->db->lastId();
-            $this->fecha_creacion = $data['fecha_creacion'];
-            $this->fecha_actualizacion = $data['fecha_actualizacion'];
+
+            // Si necesitamos actualizar el slug con el ID real
+            if ($needs_slug_update) {
+                $this->slug = $this->generateSlug($this->nombre);
+                $this->db->updateSafe('mascotas', ['slug' => $this->slug], 'id = :mascota_id', ['mascota_id' => $this->id]);
+            }
+
             return true;
         }
         return false;
@@ -188,6 +251,8 @@ class Mascotas
 
     // Método para actualizar mascota existente
     private function update() {
+        error_log("DEBUG - Iniciando update() para mascota ID: " . $this->id);
+
         $data = [
             'id_cuidador' => $this->id_cuidador,
             'slug' => $this->slug,
@@ -203,18 +268,20 @@ class Mascotas
             'esterilizado' => $this->esterilizado,
             'ultimo_celo' => $this->ultimo_celo,
             'notas_internas' => $this->notas_internas,
-            'observaciones' => $this->observaciones,
-            'estado' => $this->estado,
-            'fecha_actualizacion' => date('Y-m-d H:i:s')
+            'observaciones' => $this->observaciones
         ];
 
-        $result = $this->db->updateSafe('mascotas', $data, 'id = ?', [$this->id]);
+        error_log("DEBUG - Datos para UPDATE: " . print_r($data, true));
 
-        if ($result) {
-            $this->fecha_actualizacion = $data['fecha_actualizacion'];
+        $result = $this->db->updateSafe('mascotas', $data, 'id = :mascota_id', ['mascota_id' => $this->id]);
+
+        if ($result !== false) {
+            error_log("DEBUG - Update exitoso, filas afectadas: " . $result);
             return true;
+        } else {
+            error_log("DEBUG - Update falló");
+            return false;
         }
-        return false;
     }
 
     // Método para eliminar mascota
@@ -229,10 +296,10 @@ class Mascotas
         if (!$this->id) return [];
 
         $sql = "SELECT c.*, mc.valor 
-                FROM caracteristicas c 
-                INNER JOIN mascotas_caracteristicas mc ON c.id = mc.id_caracteristica 
-                WHERE mc.id_mascota = ? 
-                ORDER BY c.nombre";
+               FROM caracteristicas c 
+               INNER JOIN mascotas_caracteristicas mc ON c.id = mc.id_caracteristica 
+               WHERE mc.id_mascota = ? 
+               ORDER BY c.nombre";
 
         return $this->db->fetchAllSafe($sql, [$this->id]);
     }
@@ -245,7 +312,7 @@ class Mascotas
 
         // Verificar si ya existe
         $existente = $this->db->fetchRowSafe(
-            "SELECT id FROM mascotas_caracteristicas WHERE id_mascota = ? AND id_caracteristica = ?",
+            "SELECT id_mascota FROM mascotas_caracteristicas WHERE id_mascota = ? AND id_caracteristica = ?",
             [$this->id, $id_caracteristica]
         );
 
@@ -254,8 +321,8 @@ class Mascotas
             return $this->db->updateSafe(
                 'mascotas_caracteristicas',
                 ['valor' => $valor],
-                'id_mascota = ? AND id_caracteristica = ?',
-                [$this->id, $id_caracteristica]
+                'id_mascota = :mascota_id AND id_caracteristica = :caracteristica_id',
+                ['mascota_id' => $this->id, 'caracteristica_id' => $id_caracteristica]
             );
         } else {
             // Insertar
@@ -286,15 +353,18 @@ class Mascotas
             $errors[] = "El nombre es obligatorio";
         }
 
-        if (empty($this->id_cuidador)) {
+        // Solo validar id_cuidador si no tenemos ID (nueva mascota)
+        if (!$this->id && empty($this->id_cuidador)) {
             $errors[] = "El cuidador es obligatorio";
         }
 
-        if (empty($this->tipo)) {
+        // Solo validar tipo si no tenemos ID (nueva mascota)
+        if (!$this->id && empty($this->tipo)) {
             $errors[] = "El tipo de mascota es obligatorio";
         }
 
-        if (empty($this->genero)) {
+        // Solo validar género si no tenemos ID (nueva mascota)
+        if (!$this->id && empty($this->genero)) {
             $errors[] = "El género es obligatorio";
         }
 
@@ -312,6 +382,10 @@ class Mascotas
             if ($count > 0) {
                 $errors[] = "El slug ya existe";
             }
+        }
+
+        if (!empty($errors)) {
+            error_log("DEBUG - Errores de validación en mascota ID {$this->id}: " . print_r($errors, true));
         }
 
         return $errors;
@@ -335,10 +409,7 @@ class Mascotas
             'esterilizado' => $this->esterilizado,
             'ultimo_celo' => $this->ultimo_celo,
             'notas_internas' => $this->notas_internas,
-            'observaciones' => $this->observaciones,
-            'estado' => $this->estado,
-            'fecha_creacion' => $this->fecha_creacion,
-            'fecha_actualizacion' => $this->fecha_actualizacion
+            'observaciones' => $this->observaciones
         ];
     }
 
@@ -358,10 +429,10 @@ class Mascotas
         $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ? '' : " AND m.id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
 
         $sql = "SELECT m.*, mg.nombre AS GENERO, mt.nombre AS TIPO 
-                FROM mascotas m 
-                INNER JOIN mascotas_tipo mt ON m.tipo=mt.id 
-                INNER JOIN mascotas_genero mg ON m.genero=mg.id 
-                WHERE m.id = ? {$filtro_cuidador}";
+               FROM mascotas m 
+               INNER JOIN mascotas_tipo mt ON m.tipo=mt.id 
+               INNER JOIN mascotas_genero mg ON m.genero=mg.id 
+               WHERE m.id = ? {$filtro_cuidador}";
 
         return $db->fetchRowSafe($sql, [(int)$id_mascota]);
     }
@@ -410,11 +481,11 @@ class Mascotas
         $whereClause = implode(' AND ', $whereConditions);
 
         $sql = "SELECT m.*, mg.nombre AS GENERO, mt.nombre AS TIPO 
-                FROM mascotas m 
-                INNER JOIN mascotas_tipo mt ON m.tipo=mt.id 
-                INNER JOIN mascotas_genero mg ON m.genero=mg.id 
-                WHERE {$whereClause} {$filtro_cuidador} 
-                ORDER BY m.id DESC";
+               FROM mascotas m 
+               INNER JOIN mascotas_tipo mt ON m.tipo=mt.id 
+               INNER JOIN mascotas_genero mg ON m.genero=mg.id 
+               WHERE {$whereClause} {$filtro_cuidador} 
+               ORDER BY m.id DESC";
 
         if ($applyLimit && $comienzo !== null && $limite !== null) {
             $sql .= " LIMIT ?, ?";
@@ -438,99 +509,6 @@ class Mascotas
             return $mascota->delete();
         }
         return false;
-    }
-
-    // ==========================================
-    // MÉTODOS ESTÁTICOS ADICIONALES
-    // ==========================================
-
-    /**
-     * Obtiene todas las mascotas de un cuidador
-     *
-     * @param int $id_cuidador ID del cuidador
-     * @param bool $solo_activas Solo mascotas activas
-     * @return array
-     */
-    public static function getAllByCuidador($id_cuidador, $solo_activas = true)
-    {
-        $db = Bd::getInstance();
-        $id_cuidador = (int)$id_cuidador;
-
-        $sql = "SELECT m.*, mg.nombre AS GENERO, mt.nombre AS TIPO 
-                FROM mascotas m 
-                INNER JOIN mascotas_tipo mt ON m.tipo=mt.id 
-                INNER JOIN mascotas_genero mg ON m.genero=mg.id 
-                WHERE m.id_cuidador = ?";
-
-        $params = [$id_cuidador];
-
-        if ($solo_activas) {
-            $sql .= " AND m.estado = ?";
-            $params[] = 1;
-        }
-
-        $sql .= " ORDER BY m.nombre";
-
-        return $db->fetchAllSafe($sql, $params, PDO::FETCH_OBJ);
-    }
-
-    /**
-     * Obtiene todas las mascotas
-     *
-     * @param bool $solo_activas Solo mascotas activas
-     * @return array
-     */
-    public static function getAll($solo_activas = true)
-    {
-        $db = Bd::getInstance();
-
-        $sql = "SELECT m.*, mg.nombre AS GENERO, mt.nombre AS TIPO 
-                FROM mascotas m 
-                INNER JOIN mascotas_tipo mt ON m.tipo=mt.id 
-                INNER JOIN mascotas_genero mg ON m.genero=mg.id 
-                WHERE 1";
-
-        $params = [];
-
-        if ($solo_activas) {
-            $sql .= " AND m.estado = ?";
-            $params[] = 1;
-        }
-
-        $sql .= " ORDER BY m.nombre";
-
-        return $db->fetchAllSafe($sql, $params, PDO::FETCH_OBJ);
-    }
-
-    /**
-     * Busca mascotas por nombre
-     *
-     * @param string $nombre Nombre a buscar
-     * @param int $limite Límite de resultados
-     * @return array
-     */
-    public static function searchByName($nombre, $limite = 10)
-    {
-        $db = Bd::getInstance();
-
-        if (empty($nombre)) {
-            return [];
-        }
-
-        $sql = "SELECT m.*, mg.nombre AS GENERO, mt.nombre AS TIPO 
-                FROM mascotas m 
-                INNER JOIN mascotas_tipo mt ON m.tipo=mt.id 
-                INNER JOIN mascotas_genero mg ON m.genero=mg.id 
-                WHERE (m.nombre LIKE ? OR m.alias LIKE ?) 
-                AND m.estado = 1 
-                ORDER BY m.nombre 
-                LIMIT ?";
-
-        return $db->fetchAllSafe($sql, [
-            "%{$nombre}%",
-            "%{$nombre}%",
-            (int)$limite
-        ], PDO::FETCH_OBJ);
     }
 
     /**
@@ -593,10 +571,15 @@ class Mascotas
             $id_mascota = (int)Tools::getValue('id_mascota');
         }
 
+        error_log("DEBUG - actualizarMascota llamado con ID: {$id_mascota}");
+
         $mascota = new self();
         if (!$mascota->loadById($id_mascota)) {
+            error_log("DEBUG - No se pudo cargar la mascota con ID: {$id_mascota}");
             return false;
         }
+
+        error_log("DEBUG - Mascota cargada correctamente: " . $mascota->getNombre());
 
         if ($datos === null) {
             $datos = [
@@ -620,15 +603,30 @@ class Mascotas
             }
         }
 
+        error_log("DEBUG - Datos a actualizar: " . print_r($datos, true));
+
         // Actualizar propiedades
         foreach ($datos as $key => $value) {
             $setter = 'set' . ucfirst(str_replace('_', '', ucwords($key, '_')));
             if (method_exists($mascota, $setter)) {
+                error_log("DEBUG - Llamando método: {$setter} con valor: {$value}");
                 $mascota->$setter($value);
+            } else {
+                error_log("DEBUG - Método {$setter} no existe");
             }
         }
 
-        return $mascota->save();
+        // Validar antes de guardar
+        $errors = $mascota->validate();
+        if (!empty($errors)) {
+            error_log("DEBUG - Errores de validación: " . print_r($errors, true));
+            return false;
+        }
+
+        $result = $mascota->save();
+        error_log("DEBUG - Resultado de save(): " . ($result ? 'true' : 'false'));
+
+        return $result;
     }
 
     /**
@@ -645,18 +643,18 @@ class Mascotas
 
         $stats['por_tipo'] = $db->fetchAllSafe(
             "SELECT mt.nombre, COUNT(*) as cantidad 
-             FROM mascotas m 
-             INNER JOIN mascotas_tipo mt ON m.tipo = mt.id 
-             GROUP BY m.tipo 
-             ORDER BY cantidad DESC"
+            FROM mascotas m 
+            INNER JOIN mascotas_tipo mt ON m.tipo = mt.id 
+            GROUP BY m.tipo 
+            ORDER BY cantidad DESC"
         );
 
         $stats['por_genero'] = $db->fetchAllSafe(
             "SELECT mg.nombre, COUNT(*) as cantidad 
-             FROM mascotas m 
-             INNER JOIN mascotas_genero mg ON m.genero = mg.id 
-             GROUP BY m.genero 
-             ORDER BY cantidad DESC"
+            FROM mascotas m 
+            INNER JOIN mascotas_genero mg ON m.genero = mg.id 
+            GROUP BY m.genero 
+            ORDER BY cantidad DESC"
         );
 
         return $stats;
@@ -667,55 +665,86 @@ class Mascotas
      *
      * @param string $nombre Nombre de la mascota
      * @param int $id_mascota ID de la mascota (para excluirlo)
+     * @param int $id_cuidador ID del cuidador
      * @return string
      */
-    public static function generarSlugUnico($nombre, $id_mascota = 0)
+    public static function generarSlugUnico($nombre, $id_mascota = 0, $id_cuidador = 0)
     {
         $db = Bd::getInstance();
-        $slug_base = Tools::urlAmigable($nombre);
+
+        // Crear slug base seguro para URL
+        $slug_base = self::createStaticUrlSafeSlug($nombre);
         $slug = $slug_base;
-        $contador = 1;
 
-        while (true) {
-            $params = [$slug];
-            $sql = "SELECT COUNT(*) FROM mascotas WHERE slug = ?";
+        // Verificar si el slug base ya existe
+        $params = [$slug];
+        $sql = "SELECT COUNT(*) FROM mascotas WHERE slug = ?";
 
-            if ($id_mascota > 0) {
-                $sql .= " AND id != ?";
-                $params[] = (int)$id_mascota;
+        if ($id_mascota > 0) {
+            $sql .= " AND id != ?";
+            $params[] = (int)$id_mascota;
+        }
+
+        $count = (int)$db->fetchValueSafe($sql, $params);
+
+        if ($count > 0) {
+            // Intentar con el slug del cuidador
+            if ($id_cuidador > 0) {
+                $cuidador_slug = $db->fetchValueSafe("SELECT slug FROM cuidadores WHERE id = ?", [$id_cuidador]);
+                if ($cuidador_slug) {
+                    $slug = $slug_base . '-' . $cuidador_slug;
+
+                    // Verificar si este slug existe
+                    $params = [$slug];
+                    $sql = "SELECT COUNT(*) FROM mascotas WHERE slug = ?";
+
+                    if ($id_mascota > 0) {
+                        $sql .= " AND id != ?";
+                        $params[] = (int)$id_mascota;
+                    }
+
+                    $count = (int)$db->fetchValueSafe($sql, $params);
+
+                    // Si aún existe, usar el ID de la mascota
+                    if ($count > 0 && $id_mascota > 0) {
+                        $slug = $slug_base . '-' . $cuidador_slug . '-' . $id_mascota;
+                    }
+                }
+            } else if ($id_mascota > 0) {
+                // Si no hay cuidador, usar directamente el ID
+                $slug = $slug_base . '-' . $id_mascota;
             }
-
-            $count = (int)$db->fetchValueSafe($sql, $params);
-
-            if ($count === 0) {
-                break;
-            }
-
-            $slug = $slug_base . '-' . $contador;
-            $contador++;
         }
 
         return $slug;
     }
 
     /**
+     * Método estático para crear slug seguro para URL
+     */
+    private static function createStaticUrlSafeSlug($text) {
+        $text = strtolower(trim($text));
+        $text = preg_replace('/[áàäâ]/u', 'a', $text);
+        $text = preg_replace('/[éèëê]/u', 'e', $text);
+        $text = preg_replace('/[íìïî]/u', 'i', $text);
+        $text = preg_replace('/[óòöô]/u', 'o', $text);
+        $text = preg_replace('/[úùüû]/u', 'u', $text);
+        $text = preg_replace('/[ñ]/u', 'n', $text);
+        $text = preg_replace('/[ç]/u', 'c', $text);
+        $text = preg_replace('/[^a-z0-9\s-]/', '', $text);
+        $text = preg_replace('/[\s-]+/', '-', $text);
+        return trim($text, '-');
+    }
+
+    /**
      * Obtiene el número total de mascotas
      *
-     * @param bool $solo_activas Solo mascotas activas
+     * @param bool $solo_activas Solo mascotas activas (no aplicable ya que no hay columna estado)
      * @return int
      */
     public static function getTotalMascotas($solo_activas = false)
     {
         $db = Bd::getInstance();
-
-        $sql = "SELECT COUNT(*) FROM mascotas";
-        $params = [];
-
-        if ($solo_activas) {
-            $sql .= " WHERE estado = ?";
-            $params[] = 1;
-        }
-
-        return (int)$db->fetchValueSafe($sql, $params);
+        return (int)$db->fetchValueSafe("SELECT COUNT(*) FROM mascotas");
     }
 }

@@ -33,6 +33,12 @@ function ajax_call(url, data, callback) {
     })
 }
 
+// Función para cerrar modal manualmente
+function closeModal(modalId) {
+    modalId = modalId || "modalGeneral"
+    $("#" + modalId).modal("hide")
+}
+
 // Función para cargar mascotas
 function ajax_get_mascotas_admin(comienzo, limite, pagina) {
     $(".loadingscr").removeClass("d-none")
@@ -78,7 +84,7 @@ function modalGeneral(element) {
     var data = {
         type: $(element).data("type"),
         content: $(element).data("content"),
-        idmascota: $(element).data("idmascota"),
+        id: $(element).data("id"),
     }
 
     ajax_call(dominio + "adminajax/ajax-contenido-modal/", data, (response) => {
@@ -183,6 +189,128 @@ function compruebaCambios(element) {
     }
 }
 
+// Función para guardar datos de formulario (adaptada para usar ajax_call original)
+function saveData(formName) {
+    const loadingscr = $(".loadingscr")
+    loadingscr.removeClass("d-none")
+
+    var form = $("#" + formName)[0]
+
+    // Convertir FormData a objeto JavaScript compatible con ajax_call
+    var data = serializeFormToObject(form)
+
+    // Debug: mostrar los datos que se van a enviar
+    console.log("Datos a enviar:", data)
+
+    ajax_call(dominio + "adminajax/ajax-save-data/", data, (response) => {
+        // Si la respuesta es un string, intentar parsearlo
+        if (typeof response === "string") {
+            try {
+                response = JSON.parse(response)
+            } catch (e) {
+                if (typeof toastr !== "undefined") {
+                    toastr.error("Error en el formato de respuesta del servidor")
+                }
+                loadingscr.addClass("d-none")
+                return
+            }
+        }
+
+        if (response && response.type === "success") {
+            if (typeof toastr !== "undefined") {
+                toastr.success("Datos guardados correctamente")
+            }
+            // Cerrar modal si existe
+            closeModal("modalGeneral")
+            // Si viene en la respuesta un parámetro url no vacío, redirigimos
+            if (response.url) {
+                window.location.href = response.url
+            }
+        } else {
+            if (typeof toastr !== "undefined") {
+                toastr.error(response.error || response.html || "Error al guardar los datos")
+            }
+        }
+        loadingscr.addClass("d-none")
+    })
+}
+
+
+// Función para convertir FormData a objeto JavaScript
+function formDataToObject(formData) {
+    var object = {}
+
+    formData.forEach((value, key) => {
+        // Verificar si la clave ya existe
+        if (object.hasOwnProperty(key)) {
+            // Si ya existe, convertir a array o añadir al array existente
+            if (!Array.isArray(object[key])) {
+                object[key] = [object[key]]
+            }
+            object[key].push(value)
+        } else {
+            // Si es la primera vez que vemos esta clave
+            object[key] = value
+        }
+    })
+
+    return object
+}
+
+// Función alternativa para serializar formulario (más completa)
+function serializeFormToObject(form) {
+    var formData = new FormData(form)
+    var object = {}
+
+    // Procesar todos los campos del formulario
+    $(form)
+        .find("input, select, textarea")
+        .each(function () {
+            var $field = $(this)
+            var name = $field.attr("name")
+            var type = $field.attr("type")
+
+            if (!name) return // Saltar campos sin nombre
+
+            switch (type) {
+                case "checkbox":
+                    if ($field.is(":checked")) {
+                        if (object[name]) {
+                            // Si ya existe, convertir a array
+                            if (!Array.isArray(object[name])) {
+                                object[name] = [object[name]]
+                            }
+                            object[name].push($field.val())
+                        } else {
+                            object[name] = $field.val()
+                        }
+                    }
+                    break
+
+                case "radio":
+                    if ($field.is(":checked")) {
+                        object[name] = $field.val()
+                    }
+                    break
+
+                case "file":
+                    // Para archivos, podríamos necesitar un manejo especial
+                    // Por ahora, solo incluimos el nombre del archivo
+                    if ($field[0].files && $field[0].files.length > 0) {
+                        object[name] = $field[0].files[0].name
+                    }
+                    break
+
+                default:
+                    // text, email, password, hidden, textarea, select, etc.
+                    object[name] = $field.val()
+                    break
+            }
+        })
+
+    return object
+}
+
 // Inicialización cuando el documento está listo
 $(document).ready(() => {
     // Inicializar sliders si existen
@@ -213,4 +341,30 @@ $(document).ready(() => {
             hideMethod: "fadeOut",
         }
     }
+
+    // Event listener para cerrar modales manualmente
+    $(document).on("click", '[data-dismiss="modal"], [data-bs-dismiss="modal"]', function (e) {
+        e.preventDefault()
+        var modalId = $(this).closest(".modal").attr("id") || "modalGeneral"
+        closeModal(modalId)
+    })
+
+    // Event listener para cerrar modal al hacer clic fuera
+    $(document).on("click", ".modal", function (e) {
+        if (e.target === this) {
+            var modalId = $(this).attr("id") || "modalGeneral"
+            closeModal(modalId)
+        }
+    })
+
+    // Event listener para cerrar modal con tecla Escape
+    $(document).on("keydown", (e) => {
+        if (e.key === "Escape" || e.keyCode === 27) {
+            if ($(".modal.show").length > 0) {
+                var modalId = $(".modal.show").attr("id") || "modalGeneral"
+                closeModal(modalId)
+            }
+        }
+    })
 })
+

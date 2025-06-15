@@ -3,7 +3,7 @@
  * @var $mascota
  * @var $caracteristicas
  */
-$image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'.jpg') ? _RESOURCES_.'private/mascotas/'.$mascota->id.'/'.$mascota->slug.'_'.$mascota->id.'.jpg' : _RESOURCES_ . _COMMON_ .'img/petType_'.$mascota->tipo.'_default.png';
+$image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile.jpg') ? _RESOURCES_.'private/mascotas/'.$mascota->id.'/profile.jpg' : _RESOURCES_ . _COMMON_ .'img/petType_'.$mascota->tipo.'_default.png';
 ?>
 <!-- Main content -->
 <section class="content">
@@ -18,22 +18,34 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$masc
                             <img class="profile-user-img img-fluid img-circle w-100" src="<?=$image?>" alt="<?=$mascota->nombre?>">
                         </div>
 
-                        <h3 class="profile-username clickable text-center" title="Click para cambiar" data-toggle="tooltip" data-type="mascota" data-content="nombre" data-idmascota="<?=$mascota->id?>" onclick="modalGeneral(this)"><?=$mascota->nombre?><?=$mascota->alias == '' ? '' : '<span class="small"> ('.$mascota->alias.')</span>'?></h3>
+                        <h3 class="profile-username clickable text-center" title="Click para cambiar" data-toggle="tooltip" data-type="mascota" data-content="nombre" data-id="<?=$mascota->id?>" onclick="modalGeneral(this)"><?=$mascota->nombre?><?=$mascota->alias == '' ? '' : '<span class="small"> ('.$mascota->alias.')</span>'?></h3>
 
                         <p class="text-muted text-center"><?=$mascota->GENERO?><?=$mascota->raza == '' ?: ' '.$mascota->raza?></p>
 
                         <ul class="list-group list-group-unbordered mb-3">
                             <li class="list-group-item">
                                 <i class="fa fa-weight-hanging"></i>
-                                <b>Peso</b> <a class="float-right"><?=$mascota->peso == 0 ? '---' : $mascota->peso.'Kg'?></a>
+                                <b>Peso</b>
+                                <a class="float-right editable">
+                                    <i class="fa fa-pencil text-muted"></i>
+                                    <?=$mascota->peso == 0 ? '---' : $mascota->peso.'Kg'?>
+                                </a>
                             </li>
                             <li class="list-group-item">
                                 <i class="fa fa-syringe"></i>
-                                <b>Esterilizado/a</b> <a class="float-right<?=$mascota->esterilizado == 1 ? ' text-success' : ''?>"><?=$mascota->esterilizado == 1 ? 'Sí' : 'No'?></a>
+                                <b>Esterilizado/a</b>
+                                <a class="float-right editable <?=$mascota->esterilizado == 1 ? ' text-success' : ''?>">
+                                    <i class="fa fa-pencil text-muted"></i>
+                                    <?=$mascota->esterilizado == 1 ? 'Sí' : 'No'?>
+                                </a>
                             </li>
                             <li class="list-group-item">
                                 <i class="fa fa-clock"></i>
-                                <b>Edad (años)</b> <a class="float-right"><?=$mascota->nacimiento_fecha != '' ? Tools::calcularAniosTranscurridos($mascota->nacimiento_fecha).' <span class="small">(nació el ' . Tools::fecha($mascota->nacimiento_fecha).')</span>' : ($mascota->edad == 0 ? '---' : $mascota->edad .' <span class="small">a día ' . Tools::fecha($mascota->edad_fecha)).'</span>'?></a>
+                                <b>Edad (años)</b>
+                                <a class="float-right editable">
+                                    <i class="fa fa-pencil text-muted"></i>
+                                    <?=$mascota->nacimiento_fecha != '' ? Tools::calcularAniosTranscurridos($mascota->nacimiento_fecha).' <span class="small">(nació el ' . Tools::fecha($mascota->nacimiento_fecha).')</span>' : ($mascota->edad == 0 ? '---' : Tools::calcularAniosTranscurridos($mascota->edad_fecha)+$mascota->edad .' <span class="small">('.$mascota->edad.' a día ' . Tools::fecha($mascota->edad_fecha)).')</span>'?>
+                                </a>
                             </li>
                         </ul>
 
@@ -81,25 +93,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/'.$masc
                             <?php }?>
                             <hr class="border-1 bg-secondary">
                         <?php } ?>
-                        <p class="text-muted">Santa Pola</p>
 
-                        <hr>
-
-                        <strong><i class="fas fa-pencil-alt mr-1"></i> Skills</strong>
-
-                        <p class="text-muted">
-                            <span class="tag tag-danger">UI Design</span>
-                            <span class="tag tag-success">Coding</span>
-                            <span class="tag tag-info">Javascript</span>
-                            <span class="tag tag-warning">PHP</span>
-                            <span class="tag tag-primary">Node.js</span>
-                        </p>
-
-                        <hr>
-
-                        <strong><i class="far fa-file-alt mr-1"></i> Notes</strong>
-
-                        <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fermentum enim neque.</p>
                     </div>
                     <!-- /.card-body -->
                 </div>
