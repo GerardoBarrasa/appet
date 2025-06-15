@@ -1414,6 +1414,9 @@ class AdminajaxController extends Controllers
                             $data['titulo'] = "Editar género y raza de ".$data['mascota']->nombre;
                             $data['generos'] = Generos::getTodosLosGeneros();
                             break;
+                        case 'edad':
+                            $data['titulo'] = "Determinar la edad de ".$data['mascota']->nombre;
+                            break;
                         default:
                             $data['titulo'] = "Editar datos de ".$data['mascota']->nombre;
                             $data['body']   = "";
@@ -1823,6 +1826,38 @@ class AdminajaxController extends Controllers
                                 'genero'  => $genero,
                                 'raza'    => $raza
                             ];
+                            $result = Mascotas::actualizarMascota($id, $datos);
+                            if (!$result) {
+                                $this->sendError('Error al actualizar dato de la mascota');
+                            } else{
+                                $reload = true;
+                            }
+                            break;
+                        case 'mascota_editar_edad':
+                            $nacimiento_fecha = Tools::getValue('nacimiento_fecha');
+                            $edad             = Tools::getValue('edad');
+                            $edad_fecha       = Tools::getValue('edad_fecha');
+                            if(!Tools::validarFecha($nacimiento_fecha)){
+                                if($edad <= 0){
+                                    $this->sendError('Debes indicar la fecha de nacimiento o la edad que tiene ahora mismo');
+                                    return;
+                                }
+                                Tools::validarFecha($edad_fecha) ?: $edad_fecha = date('Y-m-d');
+                                $datos = [
+                                    'tipo'              => 1,
+                                    'edad'              => $edad,
+                                    'edad_fecha'        => $edad_fecha,
+                                    'nacimiento_fecha'  => null
+                                ];
+                            }
+                            else{
+                                $datos = [
+                                    'tipo'              => 1,
+                                    'nacimiento_fecha'  => $nacimiento_fecha,
+                                    'edad'              => 0,
+                                    'edad_fecha'        => ''
+                                ];
+                            }
                             $result = Mascotas::actualizarMascota($id, $datos);
                             if (!$result) {
                                 $this->sendError('Error al actualizar dato de la mascota');
