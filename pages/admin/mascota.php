@@ -96,7 +96,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                                         $values = explode(',', $cr->valores);?>
                                         <div class="d-flex align-items-center justify-content-between">
                                             <div class="col-12">
-                                                <textarea rows="5" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> form-control form-text" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onkeyup="compruebaCambios(this)"><?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?></textarea>
+                                                <textarea rows="5" style="height: 70px" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> form-control form-text" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onkeyup="compruebaCambios(this)"><?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?></textarea>
                                             </div>
                                         </div>
 
