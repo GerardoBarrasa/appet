@@ -56,46 +56,51 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                 <!-- /.card -->
 
                 <!-- About Me Box -->
-                <div class="card card-primary">
-                    <div class="card-header">
-                        <h3 class="card-title">Sobre mi</h3>
-                    </div>
-                    <!-- /.card-header -->
-                    <div class="card-body">
-                        <?php $cnom = '';
-                        foreach ($caracteristicas as $cr){
-                            if($cnom != $cr->nombre){//Cambiamos de característica?>
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <span><i class="fa <?=$cr->ico?> mr-1"></i> <strong><?=$cr->nombre?>:</strong></span>
-                                    <i class="fa fa-save fs-4 text-secondary clickable d-none save_<?=Tools::urlAmigable($cr->nombre)?>" data-toggle="tooltip" title="Guardar evaluación para <?=$cr->nombre?>" onclick="saveEvaluation('<?=$mascota->id?>','evaluate_<?=Tools::urlAmigable($cr->nombre)?>')"></i>
-                                </div>
-                            <?php $cnom = $cr->nombre;}
-                            if($cr->tipo == 'escala'){
-                                $values = explode(',', $cr->valores);?>
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div class="col-11">
-                                            <div class="slider-yellow">
-                                                <input type="text" value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> slider form-control" data-slider-min="<?=min($values)?>" data-slider-max="<?=max($values)?>" data-slider-step="1" data-slider-value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-slider-orientation="horizontal" data-slider-selection="before" data-slider-tooltip="show" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onchange="compruebaCambios(this)">
+
+                <div class="accordion" id="aboutme">
+                    <div class="accordion-item">
+                        <h3 class="accordion-header">
+                            <div class="accordion-button clickable" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Sobre mi
+                            </div>
+                        </h3>
+                        <div id="collapseOne" class="accordion-collapse collapse show666666666666" data-bs-parent="#aboutme">
+                            <div class="accordion-body">
+                                <?php $cnom = '';
+                                foreach ($caracteristicas as $cr){
+                                    if($cnom != $cr->nombre){//Cambiamos de característica?>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span><i class="fa <?=$cr->ico?> mr-1"></i> <strong><?=$cr->nombre?>:</strong></span>
+                                            <i class="fa fa-save fs-4 text-secondary clickable d-none save_<?=Tools::urlAmigable($cr->nombre)?>" data-toggle="tooltip" title="Guardar evaluación para <?=$cr->nombre?>" onclick="saveEvaluation('<?=$mascota->id?>','evaluate_<?=Tools::urlAmigable($cr->nombre)?>')"></i>
+                                        </div>
+                                    <?php $cnom = $cr->nombre;}
+                                    if($cr->tipo == 'escala'){
+                                        $values = explode(',', $cr->valores);?>
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="col-11">
+                                                    <div class="slider-yellow">
+                                                        <input type="text" value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> slider form-control" data-slider-min="<?=min($values)?>" data-slider-max="<?=max($values)?>" data-slider-step="1" data-slider-value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-slider-orientation="horizontal" data-slider-selection="before" data-slider-tooltip="show" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onchange="compruebaCambios(this)">
+                                                    </div>
+                                                </div>
+                                                <i class="fa fa-question-circle text-info fs-4 pl-2" data-toggle="tooltip" title="<?=$cr->texto_ayuda?>"></i>
+                                            </div>
+
+                                    <?php }
+                                    if($cr->tipo == 'texto'){
+                                        $values = explode(',', $cr->valores);?>
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div class="col-12">
+                                                <textarea rows="5" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> form-control form-text" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onkeyup="compruebaCambios(this)"><?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?></textarea>
                                             </div>
                                         </div>
-                                        <i class="fa fa-question-circle text-info fs-4 pl-2" data-toggle="tooltip" title="<?=$cr->texto_ayuda?>"></i>
-                                    </div>
-                               
-                            <?php }
-                            if($cr->tipo == 'texto'){
-                                $values = explode(',', $cr->valores);?>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="col-12">
-                                        <textarea rows="5" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> form-control form-text" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onkeyup="compruebaCambios(this)"><?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : '' ?></textarea>
-                                    </div>
-                                </div>
 
-                            <?php }?>
-                            <hr class="border-1 bg-secondary">
-                        <?php } ?>
+                                    <?php }?>
+                                    <hr class="border-1 bg-secondary">
+                                <?php } ?>
 
+                            </div>
+                        </div>
                     </div>
-                    <!-- /.card-body -->
                 </div>
                 <!-- /.card -->
             </div>
