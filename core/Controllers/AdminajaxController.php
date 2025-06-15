@@ -1404,6 +1404,11 @@ class AdminajaxController extends Controllers
                             $data['body']   = "mascota_editar_nombre";
                             $template       = 'admin_modal_mascota';
                             break;
+                        case 'peso':
+                            $data['titulo'] = "Editar peso para ".$data['mascota']->nombre;
+                            $data['body']   = "mascota_editar_peso";
+                            $template       = 'admin_modal_mascota';
+                            break;
                         default:
                             $data['titulo'] = "Editar datos de ".$data['mascota']->nombre;
                             $data['body']   = "";
@@ -1741,6 +1746,7 @@ class AdminajaxController extends Controllers
 
             $errors = [];
             $url    = '';
+            $reload = false;
 
             switch ($tipo) {
                 case 'mascota':
@@ -1767,6 +1773,23 @@ class AdminajaxController extends Controllers
                                 $url = _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'mascota/' . $mascota->slug . '-' . $mascota->id.'/';
                             }
                             break;
+                        case 'mascota_editar_peso':
+                            $peso = (int)Tools::getValue('peso');
+                            if(!$peso || $peso <= 0) {
+                                $this->sendError('El peso es obligatorio y debe ser positivo');
+                                return;
+                            }
+                            $datos = [
+                                'tipo'    => 1,
+                                'peso'    => $peso
+                            ];
+                            $result = Mascotas::actualizarMascota($id, $datos);
+                            if (!$result) {
+                                $this->sendError('Error al actualizar dato de la mascota');
+                            } else{
+                                $reload = true;
+                            }
+                            break;
 
                         default:
                             $this->sendError('Acción de guardado no definida');
@@ -1786,6 +1809,9 @@ class AdminajaxController extends Controllers
             ];
             if(!empty($url)) {
                 $response['url'] = $url;
+            }
+            if($reload){
+                $response['reload'] = true;
             }
             $this->sendSuccess($response);
         } catch (Exception $e) {

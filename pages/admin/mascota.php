@@ -23,7 +23,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                         <p class="text-muted text-center"><?=$mascota->GENERO?><?=$mascota->raza == '' ?: ' '.$mascota->raza?></p>
 
                         <ul class="list-group list-group-unbordered mb-3">
-                            <li class="list-group-item">
+                            <li class="list-group-item clickable" data-type="mascota" data-content="peso" data-id="<?=$mascota->id?>" onclick="modalGeneral(this)">
                                 <i class="fa fa-weight-hanging"></i>
                                 <b>Peso</b>
                                 <a class="float-right editable">

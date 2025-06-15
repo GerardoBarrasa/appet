@@ -1,10 +1,11 @@
 <?php
 /**
+ * @var $body
  * @var $mascota
  */
 ?>
-<form name="mascota_editar_nombre" id="mascota_editar_nombre" method="POST" action="">
-    <input type="hidden" name="action" value="mascota_editar_nombre">
+<form name="mascota_editar_nombre" id="<?=$body?>" method="POST" action="">
+    <input type="hidden" name="action" value="<?=$body?>">
     <input type="hidden" name="tipo" value="mascota">
     <input type="hidden" name="id" value="<?=$mascota->id?>">
 <div class="col">
@@ -27,7 +28,7 @@
     </div>
     <div class="form-group row">
         <div class="col-12 text-center">
-            <div class="btn btn-outline-secondary" onclick="saveData('mascota_editar_nombre')">Guardar datos</div>
+            <div class="btn btn-outline-secondary" onclick="saveData('<?=$body?>')">Guardar datos</div>
         </div>
     </div>
 </div>

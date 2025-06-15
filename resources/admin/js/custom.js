@@ -226,6 +226,12 @@ function saveData(formName) {
             if (response.url) {
                 window.location.href = response.url
             }
+            if(response.reload) {
+                // Recargar la página tras medio segundo
+                setTimeout(() => {
+                    location.reload()
+                }, 500)
+            }
         } else {
             if (typeof toastr !== "undefined") {
                 toastr.error(response.error || response.html || "Error al guardar los datos")
