@@ -76,7 +76,11 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                                 foreach ($caracteristicas as $cr){
                                     if($cnom != $cr->nombre){//Cambiamos de característica?>
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span><i class="fa <?=$cr->ico?> mr-1"></i> <strong><?=$cr->nombre?>:</strong></span>
+                                            <span>
+                                                <i class="fa <?=$cr->ico?> mr-1"></i>
+                                                <strong><?=$cr->nombre?>: </strong>
+                                                <span class="caracteristicaTag_<?=$cr->id?>"><?=$cr->tipo == 'escala' && isset($mascotaCaracteristicas[$cr->id]) && $mascotaCaracteristicas[$cr->id]->valor > 0 ? $mascotaCaracteristicas[$cr->id]->valor.'/'.max(explode(',', $cr->valores)) : ''?></span>
+                                            </span>
                                             <i class="fa fa-save fs-4 text-secondary clickable d-none save_<?=Tools::urlAmigable($cr->nombre)?>" data-toggle="tooltip" title="Guardar evaluación para <?=$cr->nombre?>" onclick="saveEvaluation('<?=$mascota->id?>','evaluate_<?=Tools::urlAmigable($cr->nombre)?>')"></i>
                                         </div>
                                     <?php $cnom = $cr->nombre;}
@@ -115,14 +119,14 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                 <div class="card">
                     <div class="card-header p-2">
                         <ul class="nav nav-pills">
-                            <li class="nav-item"><a class="nav-link active" href="#activity" data-toggle="tab">Activity</a></li>
+                            <li class="nav-item"><a class="nav-link active" href="#portada" data-toggle="tab">Portada</a></li>
                             <li class="nav-item"><a class="nav-link" href="#timeline" data-toggle="tab">Timeline</a></li>
                             <li class="nav-item"><a class="nav-link" href="#settings" data-toggle="tab">Settings</a></li>
                         </ul>
                     </div><!-- /.card-header -->
                     <div class="card-body">
                         <div class="tab-content">
-                            <div class="active tab-pane" id="activity">
+                            <div class="active tab-pane" id="portada">
                                 <!-- Post -->
                                 <div class="post">
                                     <div class="user-block">

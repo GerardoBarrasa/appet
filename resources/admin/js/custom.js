@@ -117,6 +117,11 @@ function modalGeneral(element) {
 function saveEvaluation(idmascota, evaluationClass) {
     $(".loadingscr").removeClass("d-none")
 
+    let valorSlider = 0;
+    let maxSlider = 0;
+    let tag = '';
+    let tagspan = '';
+
     var data = {
         idmascota: idmascota,
         evaluations: [],
@@ -124,9 +129,16 @@ function saveEvaluation(idmascota, evaluationClass) {
 
     // Recopilar todos los valores de evaluación
     $("." + evaluationClass).each(function () {
+        let tipo = $(this).data("crtype");
+        let crid = $(this).data("crid");
+        if(tipo === 'escala'){
+            valorSlider = $(this).val();
+            maxSlider   = $(this).data("slider-max");
+            tagspan = $(".caracteristicaTag_" + crid);
+        }
         data.evaluations.push({
-            id: $(this).data("crid"),
-            type: $(this).data("crtype"),
+            id: crid,
+            type: tipo,
             value: $(this).val(),
         })
     })
@@ -156,6 +168,13 @@ function saveEvaluation(idmascota, evaluationClass) {
             $("." + evaluationClass).each(function () {
                 $(this).data("orig", $(this).val())
             })
+            // Actualizar valor de etiqueta
+            if(valorSlider > 0){
+                tag = valorSlider+"/"+maxSlider
+            }
+            if (tag !== '') {
+                tagspan.empty().html(tag)
+            }
         } else {
             if (typeof toastr !== "undefined") {
                 toastr.error(response.error || response.html || "Error al guardar la evaluación")
