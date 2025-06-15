@@ -9,7 +9,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
 <section class="content">
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-sm-5 col-xl-4">
 
                 <!-- Profile Image -->
                 <div class="card card-primary card-outline">
@@ -100,7 +100,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                 <!-- /.card -->
             </div>
             <!-- /.col -->
-            <div class="col-md-9">
+            <div class="col-sm-7 col-xl-8">
                 <div class="card">
                     <div class="card-header p-2">
                         <ul class="nav nav-pills">
