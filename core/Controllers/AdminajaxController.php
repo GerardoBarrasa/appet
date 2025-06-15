@@ -1398,21 +1398,21 @@ class AdminajaxController extends Controllers
                 case 'mascota':
                     $data['mascota'] = Mascotas::getMascotaById($id);
                     $data['caracteristicas'] = Caracteristicas::getCaracteristicasByMascota($id);
+                    $data['body']   = "mascota_editar_".$contenido;
+                    $template       = 'admin_modal_mascota';
                     switch ($contenido) {
                         case 'nombre':
                             $data['titulo'] = "Editar nombre y alias para ".$data['mascota']->nombre;
-                            $data['body']   = "mascota_editar_nombre";
-                            $template       = 'admin_modal_mascota';
                             break;
                         case 'peso':
                             $data['titulo'] = "Editar peso para ".$data['mascota']->nombre;
-                            $data['body']   = "mascota_editar_peso";
-                            $template       = 'admin_modal_mascota';
+                            break;
+                        case 'esterilizado':
+                            $data['titulo'] = "Indicar estado de esterilización para ".$data['mascota']->nombre;
                             break;
                         default:
                             $data['titulo'] = "Editar datos de ".$data['mascota']->nombre;
                             $data['body']   = "";
-                            $template       = 'admin_modal_mascota';
                             break;
                     }
                     break;
@@ -1782,6 +1782,23 @@ class AdminajaxController extends Controllers
                             $datos = [
                                 'tipo'    => 1,
                                 'peso'    => $peso
+                            ];
+                            $result = Mascotas::actualizarMascota($id, $datos);
+                            if (!$result) {
+                                $this->sendError('Error al actualizar dato de la mascota');
+                            } else{
+                                $reload = true;
+                            }
+                            break;
+                        case 'mascota_editar_esterilizado':
+                            $esterilizado = Tools::getValue('esterilizado');
+                            if($esterilizado != 0 && $esterilizado != 1) {
+                                $this->sendError('El estado de esterilización es obligatorio');
+                                return;
+                            }
+                            $datos = [
+                                'tipo'    => 1,
+                                'esterilizado'    => $esterilizado
                             ];
                             $result = Mascotas::actualizarMascota($id, $datos);
                             if (!$result) {

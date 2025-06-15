@@ -31,7 +31,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                                     <?=$mascota->peso == 0 ? '---' : $mascota->peso.'Kg'?>
                                 </a>
                             </li>
-                            <li class="list-group-item">
+                            <li class="list-group-item clickable" data-type="mascota" data-content="esterilizado" data-id="<?=$mascota->id?>" onclick="modalGeneral(this)">
                                 <i class="fa fa-syringe"></i>
                                 <b>Esterilizado/a</b>
                                 <a class="float-right editable <?=$mascota->esterilizado == 1 ? ' text-success' : ''?>">
