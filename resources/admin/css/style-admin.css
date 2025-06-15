@@ -280,3 +280,8 @@ a.bg-secondary:focus, a.bg-secondary:hover, button.bg-secondary:focus, button.bg
 .list-group-item:hover .editable i{
     opacity: 1;
 }
+
+.accordion-button:not(.collapsed) {
+    color: #FFFFFF;
+    background-color: var(--colorPrimaryHover);
+}

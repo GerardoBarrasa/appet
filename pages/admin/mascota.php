@@ -64,7 +64,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                                 Sobre mi
                             </div>
                         </h3>
-                        <div id="collapseOne" class="accordion-collapse collapse show666666666666" data-bs-parent="#aboutme">
+                        <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#aboutme">
                             <div class="accordion-body">
                                 <?php $cnom = '';
                                 foreach ($caracteristicas as $cr){
