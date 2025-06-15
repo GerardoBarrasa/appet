@@ -1410,6 +1410,10 @@ class AdminajaxController extends Controllers
                         case 'esterilizado':
                             $data['titulo'] = "Indicar estado de esterilización para ".$data['mascota']->nombre;
                             break;
+                        case 'generoraza':
+                            $data['titulo'] = "Editar género y raza de ".$data['mascota']->nombre;
+                            $data['generos'] = Generos::getTodosLosGeneros();
+                            break;
                         default:
                             $data['titulo'] = "Editar datos de ".$data['mascota']->nombre;
                             $data['body']   = "";
@@ -1799,6 +1803,25 @@ class AdminajaxController extends Controllers
                             $datos = [
                                 'tipo'    => 1,
                                 'esterilizado'    => $esterilizado
+                            ];
+                            $result = Mascotas::actualizarMascota($id, $datos);
+                            if (!$result) {
+                                $this->sendError('Error al actualizar dato de la mascota');
+                            } else{
+                                $reload = true;
+                            }
+                            break;
+                        case 'mascota_editar_generoraza':
+                            $raza = Tools::getValue('raza', 'Mestizo');
+                            !empty($raza) ?: $raza = 'Mestizo';
+                            $genero = Tools::getValue('genero', 3);
+                            if(!Generos::getGeneroById($genero)){
+                                $genero = 3;
+                            }
+                            $datos = [
+                                'tipo'    => 1,
+                                'genero'  => $genero,
+                                'raza'    => $raza
                             ];
                             $result = Mascotas::actualizarMascota($id, $datos);
                             if (!$result) {

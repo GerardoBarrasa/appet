@@ -18,9 +18,15 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                             <img class="profile-user-img img-fluid img-circle w-100" src="<?=$image?>" alt="<?=$mascota->nombre?>">
                         </div>
 
-                        <h3 class="profile-username clickable text-center" title="Click para cambiar" data-toggle="tooltip" data-type="mascota" data-content="nombre" data-id="<?=$mascota->id?>" onclick="modalGeneral(this)"><?=$mascota->nombre?><?=$mascota->alias == '' ? '' : '<span class="small"> ('.$mascota->alias.')</span>'?></h3>
+                        <h3 class="profile-username clickable text-center editable" data-type="mascota" data-content="nombre" data-id="<?=$mascota->id?>" onclick="modalGeneral(this)">
+                            <?=$mascota->nombre?><?=$mascota->alias == '' ? '' : '<span class="small"> ('.$mascota->alias.')</span>'?>
+                            <i class="fa fa-pencil text-muted"></i>
+                        </h3>
 
-                        <p class="text-muted text-center"><?=$mascota->GENERO?><?=$mascota->raza == '' ?: ' '.$mascota->raza?></p>
+                        <p class="text-muted text-center clickable editable" data-type="mascota" data-content="generoraza" data-id="<?=$mascota->id?>" onclick="modalGeneral(this)">
+                            <?=$mascota->GENERO?><?=$mascota->raza == '' ?: ' '.$mascota->raza?>
+                            <i class="fa fa-pencil text-muted"></i>
+                        </p>
 
                         <ul class="list-group list-group-unbordered mb-3">
                             <li class="list-group-item clickable" data-type="mascota" data-content="peso" data-id="<?=$mascota->id?>" onclick="modalGeneral(this)">
@@ -39,7 +45,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                                     <?=$mascota->esterilizado == 1 ? 'Sí' : 'No'?>
                                 </a>
                             </li>
-                            <li class="list-group-item">
+                            <li class="list-group-item clickable" data-type="mascota" data-content="edad" data-id="<?=$mascota->id?>" onclick="modalGeneral(this)">
                                 <i class="fa fa-clock"></i>
                                 <b>Edad (años)</b>
                                 <a class="float-right editable">
