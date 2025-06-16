@@ -24,7 +24,7 @@ if ($total > 0) {
                             </ul>
                         </div>
                         <div class="col-12 col-sm-5 text-center">
-                            <img src="<?= $image?>" width="150" alt="dog-avatar" class="img-circle img-fluid">
+                            <img src="<?= $image?>" alt="dog-avatar" class="img-circle img-fluid">
                         </div>
                     </div>
                 </div>

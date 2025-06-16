@@ -81,7 +81,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                                                 <strong><?=$cr->nombre?>: </strong>
                                                 <span class="caracteristicaTag_<?=$cr->id?>"><?=$cr->tipo == 'escala' && isset($mascotaCaracteristicas[$cr->id]) && $mascotaCaracteristicas[$cr->id]->valor > 0 ? $mascotaCaracteristicas[$cr->id]->valor.'/'.max(explode(',', $cr->valores)) : ''?></span>
                                             </span>
-                                            <i class="fa fa-save fs-4 text-secondary clickable d-none save_<?=Tools::urlAmigable($cr->nombre)?>" data-toggle="tooltip" title="Guardar evaluación para <?=$cr->nombre?>" onclick="saveEvaluation('<?=$mascota->id?>','evaluate_<?=Tools::urlAmigable($cr->nombre)?>')"></i>
+                                            <i class="fa fa-save fs-4 text-secondary clickable d-none save_<?=Tools::urlAmigable($cr->nombre)?>" onclick="saveEvaluation('<?=$mascota->id?>','evaluate_<?=Tools::urlAmigable($cr->nombre)?>')"></i>
                                         </div>
                                     <?php $cnom = $cr->nombre;}
                                     if($cr->tipo == 'escala'){
