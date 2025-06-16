@@ -490,3 +490,113 @@ $(document).ready(() => {
     })
 })
 
+
+/**
+ * Funciones para la página de nueva mascota
+ */
+
+// Función para limpiar el formulario de nueva mascota
+function limpiarFormularioNuevaMascota() {
+    if (confirm("¿Estás seguro de que quieres limpiar todos los campos?")) {
+        document.getElementById("formNuevaMascota").reset()
+        // Ejecutar toggle después de limpiar para resetear visibilidad de campos
+        toggleUltimoCelo()
+    }
+}
+
+// Validación del formulario de nueva mascota
+function validarFormularioNuevaMascota(e) {
+    const nombre = document.getElementById("nombre").value.trim()
+    const alias = document.getElementById("alias").value.trim()
+    const tipo = document.getElementById("tipo").value
+    const genero = document.getElementById("genero").value
+    const cuidador = document.getElementById("id_cuidador").value
+
+    if (!nombre || !alias || !tipo || !genero || !cuidador) {
+        e.preventDefault()
+        if (typeof toastr !== "undefined") {
+            toastr.error("Por favor, completa todos los campos obligatorios marcados con *")
+        } else {
+            alert("Por favor, completa todos los campos obligatorios marcados con *")
+        }
+        return false
+    }
+    return true
+}
+
+// Auto-completar alias basado en nombre si está vacío
+function autoCompletarAlias() {
+    const nombre = document.getElementById("nombre").value.trim()
+    const alias = document.getElementById("alias")
+
+    if (nombre && !alias.value.trim()) {
+        alias.value = nombre
+    }
+}
+
+// Mostrar/ocultar campo de último celo según género y esterilización
+function toggleUltimoCelo() {
+    const generoSelect = document.getElementById("genero")
+    const esterilizadoCheck = document.getElementById("esterilizado")
+    const ultimoCeloInput = document.getElementById("ultimo_celo")
+
+    // Verificar que los elementos existan
+    if (!generoSelect || !esterilizadoCheck || !ultimoCeloInput) {
+        return
+    }
+
+    const genero = generoSelect.value
+    const esterilizado = esterilizadoCheck.checked
+    const ultimoCeloGroup = ultimoCeloInput.closest(".form-group")
+
+    if (!ultimoCeloGroup) {
+        return
+    }
+
+    // Solo mostrar para hembras no esterilizadas
+    // Asumiendo que el valor 2 corresponde a hembra en la base de datos
+    if (genero === "2" && !esterilizado) {
+        ultimoCeloGroup.style.display = "block"
+    } else {
+        ultimoCeloGroup.style.display = "none"
+        ultimoCeloInput.value = ""
+    }
+}
+
+// Inicializar eventos para nueva mascota
+function initNuevaMascotaEvents() {
+    // Validación del formulario
+    const form = document.getElementById("formNuevaMascota")
+    if (form) {
+        form.addEventListener("submit", validarFormularioNuevaMascota)
+    }
+
+    // Auto-completar alias
+    const nombreInput = document.getElementById("nombre")
+    if (nombreInput) {
+        nombreInput.addEventListener("blur", autoCompletarAlias)
+    }
+
+    // Toggle último celo
+    const generoSelect = document.getElementById("genero")
+    const esterilizadoCheck = document.getElementById("esterilizado")
+
+    if (generoSelect) {
+        generoSelect.addEventListener("change", toggleUltimoCelo)
+    }
+
+    if (esterilizadoCheck) {
+        esterilizadoCheck.addEventListener("change", toggleUltimoCelo)
+    }
+
+    // Ejecutar toggle inicial
+    toggleUltimoCelo()
+}
+
+// Ejecutar inicialización cuando el DOM esté listo
+$(document).ready(() => {
+    // Solo inicializar si estamos en la página de nueva mascota
+    if (document.getElementById("formNuevaMascota")) {
+        initNuevaMascotaEvents()
+    }
+})

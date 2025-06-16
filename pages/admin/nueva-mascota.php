@@ -1,0 +1,306 @@
+<?php
+// Verificar autenticación
+if (!isset($_SESSION['admin_panel'])) {
+    header("Location: " . _DOMINIO_ . _ADMIN_);
+    exit;
+}
+
+// Establecer título de la página
+if (class_exists('Metas')) {
+    Metas::$title = "Nueva Mascota";
+}
+?>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+
+        <!-- Formulario de nueva mascota -->
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    Datos de la nueva mascota
+                </h3>
+            </div>
+
+            <form method="post" action="" enctype="multipart/form-data" id="formNuevaMascota">
+                <div class="card-body">
+
+                    <!-- Información básica -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="nombre">
+                                    Nombre <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="nombre"
+                                       name="nombre"
+                                       placeholder="Nombre de la mascota"
+                                       value="<?=Tools::getValue('nombre')?>"
+                                       required>
+                                <small class="form-text text-muted">
+                                    Nombre oficial de la mascota
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="alias">
+                                    Alias <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="alias"
+                                       name="alias"
+                                       placeholder="Alias o apodo"
+                                       value="<?=Tools::getValue('alias')?>"
+                                       required>
+                                <small class="form-text text-muted">
+                                    Nombre por el que se le conoce comúnmente
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tipo y género -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tipo">
+                                    Tipo <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control" id="tipo" name="tipo" required>
+                                    <option value="">Selecciona el tipo</option>
+                                    <?php if (!empty($tipos)): ?>
+                                        <?php foreach ($tipos as $tipo): ?>
+                                            <option value="<?=$tipo->id?>"
+                                                <?=Tools::getValue('tipo') == $tipo->id ? 'selected' : ''?>>
+                                                <?=htmlspecialchars($tipo->nombre)?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="genero">
+                                    Género <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control" id="genero" name="genero" required>
+                                    <option value="">Selecciona el género</option>
+                                    <?php if (!empty($generos)): ?>
+                                        <?php foreach ($generos as $genero): ?>
+                                            <option value="<?=$genero->id?>"
+                                                <?=Tools::getValue('genero') == $genero->id ? 'selected' : ''?>>
+                                                <?=htmlspecialchars($genero->nombre)?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Raza y cuidador -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="raza">Raza</label>
+                                <select class="form-control" id="raza" name="raza">
+                                    <option value="">Selecciona la raza (opcional)</option>
+                                    <?php if (!empty($razas)): ?>
+                                        <?php foreach ($razas as $raza): ?>
+                                            <option value="<?=$raza->id?>"
+                                                <?=Tools::getValue('raza') == $raza->id ? 'selected' : ''?>>
+                                                <?=htmlspecialchars($raza->nombre)?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="id_cuidador">
+                                    Cuidador <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control" id="id_cuidador" name="id_cuidador" required>
+                                    <option value="">Selecciona el cuidador</option>
+                                    <?php if (!empty($cuidadores)): ?>
+                                        <?php foreach ($cuidadores as $cuidador): ?>
+                                            <option value="<?=$cuidador->id?>"
+                                                <?=Tools::getValue('id_cuidador') == $cuidador->id ? 'selected' : ''?>>
+                                                <?=htmlspecialchars($cuidador->nombre)?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información adicional -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="peso">Peso (kg)</label>
+                                <input type="number"
+                                       class="form-control"
+                                       id="peso"
+                                       name="peso"
+                                       placeholder="0.0"
+                                       step="0.1"
+                                       min="0"
+                                       value="<?=Tools::getValue('peso')?>">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="nacimiento_fecha">Fecha de nacimiento</label>
+                                <input type="date"
+                                       class="form-control"
+                                       id="nacimiento_fecha"
+                                       name="nacimiento_fecha"
+                                       value="<?=Tools::getValue('nacimiento_fecha')?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Esterilización -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           id="esterilizado"
+                                           name="esterilizado"
+                                           value="1"
+                                        <?=Tools::getValue('esterilizado') ? 'checked' : ''?>>
+                                    <label class="form-check-label" for="esterilizado">
+                                        Esterilizado/Castrado
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="ultimo_celo">Último celo</label>
+                                <input type="date"
+                                       class="form-control"
+                                       id="ultimo_celo"
+                                       name="ultimo_celo"
+                                       value="<?=Tools::getValue('ultimo_celo')?>">
+                                <small class="form-text text-muted">
+                                    Solo para hembras no esterilizadas
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="notas_internas">Notas internas</label>
+                                <textarea class="form-control"
+                                          id="notas_internas"
+                                          name="notas_internas"
+                                          rows="3"
+                                          placeholder="Notas para uso interno del equipo"><?=Tools::getValue('notas_internas')?></textarea>
+                                <small class="form-text text-muted">
+                                    Información privada para el equipo
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="observaciones">Observaciones</label>
+                                <textarea class="form-control"
+                                          id="observaciones"
+                                          name="observaciones"
+                                          rows="3"
+                                          placeholder="Observaciones generales sobre la mascota"><?=Tools::getValue('observaciones')?></textarea>
+                                <small class="form-text text-muted">
+                                    Información general sobre la mascota
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button type="submit" name="submitCrearMascota" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i>
+                                Crear Mascota
+                            </button>
+                            <button type="button" class="btn btn-secondary ml-2" onclick="limpiarFormularioNuevaMascota()">
+                                <i class="fas fa-eraser mr-2"></i>
+                                Limpiar
+                            </button>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>mascotas/" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Volver a Mascotas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Información de ayuda -->
+        <div class="card card-info">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Información de ayuda
+                </h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-star text-warning mr-2"></i>Campos obligatorios</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Nombre:</strong> Nombre oficial de la mascota</li>
+                            <li><strong>Alias:</strong> Nombre por el que se le conoce</li>
+                            <li><strong>Tipo:</strong> Perro, gato, etc.</li>
+                            <li><strong>Género:</strong> Macho o hembra</li>
+                            <li><strong>Cuidador:</strong> Persona responsable</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-lightbulb text-info mr-2"></i>Consejos útiles</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Slug automático:</strong> Se genera automáticamente basado en el nombre</li>
+                            <li><strong>Peso:</strong> Puedes dejarlo vacío y completarlo más tarde</li>
+                            <li><strong>Fecha de nacimiento:</strong> Ayuda a calcular la edad automáticamente</li>
+                            <li><strong>Último celo:</strong> Solo relevante para hembras no esterilizadas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>

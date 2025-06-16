@@ -434,6 +434,7 @@ class AdminController
             // Gestión de mascotas
             $this->add('mascotas', [$this, 'mascotasAction']);
             $this->add('mascota', [$this, 'mascotaAction']);
+            $this->add('nueva-mascota', [$this, 'nuevaMascotaAction']);
         }
 
         // Página 404
@@ -1138,13 +1139,33 @@ class AdminController
     {
         $this->requireAuth();
 
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Mascotas',
+                'url' => '',
+                'icon' => 'fas fa-paw',
+                'active' => true
+            ]
+        ];
+
         $data = [
             'comienzo' => $this->comienzo,
             'pagina' => $this->pagina,
-            'limite' => $this->limite
+            'limite' => $this->limite,
+            'breadcrumb' => $breadcrumb
         ];
 
         if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
             Render::adminPage('mascotas', $data);
         }
 
@@ -1178,17 +1199,217 @@ class AdminController
         $mascotaCaracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicasByMascotaGrouped($idMascota) : [];
         $caracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicas() : [];
 
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Mascotas',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'mascotas/',
+                'icon' => 'fas fa-paw'
+            ],
+            [
+                'title' => 'Mascota',
+                'url' => '',
+                'icon' => 'fa fa-dog',
+                'active' => true
+            ]
+        ];
+
         $data = [
             'mascota' => $mascota,
             'caracteristicas' => $caracteristicas,
             'mascotaCaracteristicas' => $mascotaCaracteristicas,
+            'breadcrumb' => $breadcrumb
         ];
 
         if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
             Render::adminPage('mascota', $data);
         }
 
         $this->setRendered(true);
+    }
+
+    /**
+     * Acción para crear una nueva mascota
+     *
+     * @return void
+     */
+    public function nuevaMascotaAction()
+    {
+        $this->requireAuth();
+
+        // Procesar formulario de creación
+        if (class_exists('Tools') && Tools::getIsset('submitCrearMascota')) {
+            $this->handleCreateMascota();
+        }
+
+        // Obtener datos necesarios para el formulario
+        $tipos = class_exists('Mascotas') ? $this->getTiposMascota() : [];
+        $generos = class_exists('Mascotas') ? $this->getGenerosMascota() : [];
+        $razas = class_exists('Razas') ? Razas::getRazas() : [];
+        $cuidadores = class_exists('Cuidador') ? $this->getCuidadores() : [];
+
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Mascotas',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'mascotas/',
+                'icon' => 'fas fa-paw'
+            ],
+            [
+                'title' => 'Nueva Mascota',
+                'url' => '',
+                'icon' => 'fas fa-plus',
+                'active' => true
+            ]
+        ];
+
+        $data = [
+            'tipos' => $tipos,
+            'generos' => $generos,
+            'razas' => $razas,
+            'cuidadores' => $cuidadores,
+            'breadcrumb' => $breadcrumb
+        ];
+
+        if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
+        }
+
+        if (class_exists('Metas')) {
+            Metas::$title = "Nueva Mascota";
+        }
+
+        if (class_exists('Render')) {
+            Render::adminPage('nueva-mascota', $data);
+        }
+
+        $this->setRendered(true);
+    }
+
+    /**
+     * Maneja la creación de una nueva mascota
+     *
+     * @return void
+     */
+    protected function handleCreateMascota()
+    {
+        if (!class_exists('Tools') || !class_exists('Mascotas')) {
+            return;
+        }
+
+        // Validar campos requeridos
+        $nombre = Tools::getValue('nombre');
+        $alias = Tools::getValue('alias');
+        $tipo = Tools::getValue('tipo');
+        $genero = Tools::getValue('genero');
+        $id_cuidador = Tools::getValue('id_cuidador');
+
+        $errors = [];
+
+        if (empty($nombre)) {
+            $errors[] = "El nombre es obligatorio";
+        }
+
+        if (empty($alias)) {
+            $errors[] = "El alias es obligatorio";
+        }
+
+        if (empty($tipo)) {
+            $errors[] = "El tipo de mascota es obligatorio";
+        }
+
+        if (empty($genero)) {
+            $errors[] = "El género es obligatorio";
+        }
+
+        if (empty($id_cuidador)) {
+            $errors[] = "El cuidador es obligatorio";
+        }
+
+        if (!empty($errors)) {
+            foreach ($errors as $error) {
+                Tools::registerAlert($error, "error");
+            }
+            return;
+        }
+
+        // Crear la mascota
+        $mascotaId = Mascotas::crearMascota();
+
+        if ($mascotaId) {
+            Tools::registerAlert("Mascota creada correctamente.", "success");
+
+            // Redirigir a la página de edición de la mascota recién creada
+            $adminPath = defined('_ADMIN_') ? _ADMIN_ : 'admin/';
+            header("Location: " . _DOMINIO_ . $adminPath . "mascota/mascota-{$mascotaId}/");
+            exit;
+        } else {
+            Tools::registerAlert("Error al crear la mascota.", "error");
+        }
+    }
+
+    /**
+     * Obtiene los tipos de mascota disponibles
+     *
+     * @return array
+     */
+    protected function getTiposMascota()
+    {
+        if (!class_exists('Bd')) {
+            return [];
+        }
+
+        $db = Bd::getInstance();
+        return $db->fetchAllSafe("SELECT * FROM mascotas_tipo ORDER BY nombre", [], PDO::FETCH_OBJ);
+    }
+
+    /**
+     * Obtiene los géneros de mascota disponibles
+     *
+     * @return array
+     */
+    protected function getGenerosMascota()
+    {
+        if (!class_exists('Bd')) {
+            return [];
+        }
+
+        $db = Bd::getInstance();
+        return $db->fetchAllSafe("SELECT * FROM mascotas_genero ORDER BY nombre", [], PDO::FETCH_OBJ);
+    }
+
+    /**
+     * Obtiene los cuidadores disponibles
+     *
+     * @return array
+     */
+    protected function getCuidadores()
+    {
+        if (!class_exists('Bd')) {
+            return [];
+        }
+
+        $db = Bd::getInstance();
+        $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ? '' : " WHERE id = '".$_SESSION['admin_panel']->cuidador_id."'";
+
+        return $db->fetchAllSafe("SELECT * FROM cuidadores {$filtro_cuidador} ORDER BY nombre", [], PDO::FETCH_OBJ);
     }
 
     /**
