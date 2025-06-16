@@ -40,7 +40,7 @@ if ($total > 0) {
                                 <i class="fas fa-comments"></i>
                             </a>
                             <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>mascota/<?=$mascota->slug.'-'.$mascota->id?>/" class="btn btn-sm btn-primary">
-                                <i class="fas fa-square-up-right"></i> Ver la ficha
+                                <i class="fas fa-magnifying-glass-plus"></i>
                             </a>
                         </div>
                     </div>

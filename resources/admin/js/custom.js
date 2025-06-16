@@ -88,76 +88,79 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
     )
 }
 
-// Función para generar el paginador
+/**
+ * Genera el HTML del paginador
+ */
 function generarPaginador(paginacion) {
-  var paginadorHtml = '<ul class="pagination justify-content-center m-0">'
-
-  // Botón anterior
-  if (paginacion.tiene_anterior) {
-    paginadorHtml += `<li class="page-item">
-      <a class="page-link" href="#" onclick="cambiarPagina(${paginacion.pagina_anterior}); return false;" aria-label="Anterior">
-        <span aria-hidden="true">&laquo;</span>
-      </a>
-    </li>`
-  } else {
-    paginadorHtml += `<li class="page-item disabled">
-      <span class="page-link" aria-label="Anterior">
-        <span aria-hidden="true">&laquo;</span>
-      </span>
-    </li>`
-  }
-
-  // Páginas
-  paginacion.paginas.forEach((pagina) => {
-    if (pagina.separador && pagina.numero > 1) {
-      paginadorHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>'
+    // No mostrar paginador si no hay paginación o solo hay una página
+    if (!paginacion || paginacion.total_paginas <= 1) {
+        $(".paginador").html("")
+        return
     }
 
-    if (pagina.activa) {
-      paginadorHtml += `<li class="page-item active">
-        <span class="page-link">${pagina.numero}</span>
-      </li>`
-    } else {
-      paginadorHtml += `<li class="page-item">
-        <a class="page-link" href="#" onclick="cambiarPagina(${pagina.numero}); return false;">${pagina.numero}</a>
-      </li>`
+    let html = '<nav class="paginador"><ul class="pagination justify-content-center m-0">'
+
+    // Botón anterior - solo mostrar si no estamos en la primera página
+    if (paginacion.tiene_anterior) {
+        html += `<li class="page-item">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${paginacion.pagina_anterior}); return false;" title="Página anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                 </li>`
     }
-  })
 
-  // Botón siguiente
-  if (paginacion.tiene_siguiente) {
-    paginadorHtml += `<li class="page-item">
-      <a class="page-link" href="#" onclick="cambiarPagina(${paginacion.pagina_siguiente}); return false;" aria-label="Siguiente">
-        <span aria-hidden="true">&raquo;</span>
-      </a>
-    </li>`
-  } else {
-    paginadorHtml += `<li class="page-item disabled">
-      <span class="page-link" aria-label="Siguiente">
-        <span aria-hidden="true">&raquo;</span>
-      </span>
-    </li>`
-  }
+    // Páginas
+    paginacion.paginas.forEach((pagina) => {
+        if (pagina.separador) {
+            html += `<li class="page-item disabled">
+                        <span class="page-link">...</span>
+                     </li>`
+        }
 
-  paginadorHtml += "</ul>"
+        if (pagina.activa) {
+            html += `<li class="page-item active">
+                        <span class="page-link">${pagina.numero}</span>
+                     </li>`
+        } else {
+            html += `<li class="page-item">
+                        <a class="page-link" href="#" onclick="cambiarPagina(${pagina.numero}); return false;" title="Ir a página ${pagina.numero}">
+                            ${pagina.numero}
+                        </a>
+                     </li>`
+        }
+    })
 
-  // Información adicional
-  var infoHtml = `<div class="pagination-info text-center mt-2 small text-muted">
-    Mostrando ${Math.min((paginacion.pagina_actual - 1) * paginacion.registros_por_pagina + 1, paginacion.total_registros)} - 
-    ${Math.min(paginacion.pagina_actual * paginacion.registros_por_pagina, paginacion.total_registros)} 
-    de ${paginacion.total_registros} registros
-  </div>`
+    // Botón siguiente - solo mostrar si no estamos en la última página
+    if (paginacion.tiene_siguiente) {
+        html += `<li class="page-item">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${paginacion.pagina_siguiente}); return false;" title="Página siguiente">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                 </li>`
+    }
 
-  // Insertar en el DOM
-  $(".paginador").html(paginadorHtml + infoHtml)
+    html += "</ul></nav>"
+
+    // Información de registros
+    const inicio = (paginacion.pagina_actual - 1) * paginacion.registros_por_pagina + 1
+    const fin = Math.min(paginacion.pagina_actual * paginacion.registros_por_pagina, paginacion.total_registros)
+
+    html += `<div class="pagination-info text-center mt-2">
+                <small class="text-muted">
+                    Mostrando ${inicio}-${fin} de ${paginacion.total_registros} registros
+                </small>
+             </div>`
+
+    // Insertar en el DOM
+    $(".paginador").html(html)
 }
 
-// Función para cambiar de página
-function cambiarPagina(nuevaPagina) {
-  var limite = 12 // Valor por defecto
-  var comienzo = (nuevaPagina - 1) * limite
-
-  ajax_get_mascotas_admin(comienzo, limite, nuevaPagina)
+/**
+ * Cambia a una página específica
+ */
+function cambiarPagina(pagina) {
+    const comienzo = (pagina - 1) * 12 // 12 es el límite por defecto
+    ajax_get_mascotas_admin(comienzo, 12, pagina)
 }
 
 // Función para abrir modal general

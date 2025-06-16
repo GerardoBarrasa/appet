@@ -976,6 +976,11 @@ class AdminajaxController extends Controllers
      */
     private function generarPaginacion($paginaActual, $totalPaginas, $limite, $totalRegistros)
     {
+        // Si no hay páginas o solo hay una, no generar paginación
+        if ($totalPaginas <= 1) {
+            return null;
+        }
+
         $paginacion = [
             'pagina_actual' => $paginaActual,
             'total_paginas' => $totalPaginas,
@@ -993,7 +998,7 @@ class AdminajaxController extends Controllers
         $inicio = max(1, $paginaActual - $rango);
         $fin = min($totalPaginas, $paginaActual + $rango);
 
-        // Siempre mostrar la primera página
+        // Siempre mostrar la primera página si no está en el rango
         if ($inicio > 1) {
             $paginacion['paginas'][] = [
                 'numero' => 1,
@@ -1011,7 +1016,7 @@ class AdminajaxController extends Controllers
             ];
         }
 
-        // Siempre mostrar la última página
+        // Siempre mostrar la última página si no está en el rango
         if ($fin < $totalPaginas) {
             $paginacion['paginas'][] = [
                 'numero' => $totalPaginas,
