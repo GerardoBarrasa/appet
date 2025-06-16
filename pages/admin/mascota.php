@@ -50,7 +50,7 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                                 <b>Edad (años)</b>
                                 <a class="float-right editable">
                                     <i class="fa fa-pencil text-muted"></i>
-                                    <?=$mascota->nacimiento_fecha != '' ? Tools::calcularAniosTranscurridos($mascota->nacimiento_fecha).' <span class="small">(nació el ' . Tools::fecha($mascota->nacimiento_fecha).')</span>' : ($mascota->edad == 0 ? '---' : Tools::calcularAniosTranscurridos($mascota->edad_fecha)+$mascota->edad .' <span class="small">('.$mascota->edad.' a día ' . Tools::fecha($mascota->edad_fecha)).')</span>'?>
+                                    <?=$mascota->nacimiento_fecha != '' && $mascota->nacimiento_fecha != '0000-00-00' ? Tools::calcularAniosTranscurridos($mascota->nacimiento_fecha).' <span class="small">(nació el ' . Tools::fecha($mascota->nacimiento_fecha).')</span>' : ($mascota->edad == 0 ? '---' : Tools::calcularAniosTranscurridos($mascota->edad_fecha)+$mascota->edad .' <span class="small">('.$mascota->edad.' a día ' . Tools::fecha($mascota->edad_fecha).')').'</span>'?>
                                 </a>
                             </li>
                         </ul>
