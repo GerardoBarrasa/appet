@@ -40,16 +40,11 @@ function closeModal(modalId) {
 }
 
 // Función para cargar mascotas
-function ajax_get_mascotas_admin(comienzo = 0, limite = 10, pagina = 1) {
+function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
     // Validar y convertir a números si es necesario
     comienzo = parseInt(comienzo) || 0;
-    limite = parseInt(limite) || 10;
+    limite = parseInt(limite) || 12;
     pagina = parseInt(pagina) || 1;
-
-    // Validaciones adicionales
-    if (limite > 100) limite = 100; // Máximo 100 registros por página
-    if (limite < 1) limite = 10;    // Mínimo 10 registros
-    if (pagina < 1) pagina = 1;     // Página mínima 1
 
     $(".loadingscr").removeClass("d-none")
 
@@ -76,7 +71,9 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 10, pagina = 1) {
             }
 
             if (response && response.type === "success") {
-                $("#page-content").html(response.html)
+                $("#page-content").html(response.html);
+                let total = response.total || 0;
+                $(".totalfound").empty().html(total+' resultado'+(total !== 1 ? 's' : ''))
             } else {
                 if (typeof toastr !== "undefined") {
                     toastr.error(response.error || response.html || "Error al cargar las mascotas")

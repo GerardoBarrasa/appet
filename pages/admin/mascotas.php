@@ -17,14 +17,15 @@
             </div>
         </div>
         <div class="card-body pb-0">
-            <div class="row" id="page-content">
+            <div class="totalfound fs-5 text-right text-secondary w-100" ></div>
+            <div class="row pt-2" id="page-content">
 
             </div>
             <script> ajax_get_mascotas_admin('<?=$comienzo;?>','<?=$limite;?>','<?= $pagina;?>'); </script>
         </div>
         <!-- /.card-body -->
-        <!--<div class="card-footer">
-            <nav aria-label="Contacts Page Navigation">
+        <div class="card-footer">
+            <nav class="paginador">
                 <ul class="pagination justify-content-center m-0">
                     <li class="page-item active"><a class="page-link" href="#">1</a></li>
                     <li class="page-item"><a class="page-link" href="#">2</a></li>
@@ -36,7 +37,7 @@
                     <li class="page-item"><a class="page-link" href="#">8</a></li>
                 </ul>
             </nav>
-        </div>-->
+        </div>
         <!-- /.card-footer -->
     </div>
     <!-- /.card -->

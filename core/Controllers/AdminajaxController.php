@@ -920,7 +920,7 @@ class AdminajaxController extends Controllers
     {
         try {
             $comienzo = (int)Tools::getValue('comienzo', 0);
-            $limite = (int)Tools::getValue('limite', 10);
+            $limite = (int)Tools::getValue('limite', 12);
             $pagina = (int)Tools::getValue('pagina', 1);
 
             $mascotas = Mascotas::getMascotasFiltered($comienzo, $limite);
@@ -937,7 +937,7 @@ class AdminajaxController extends Controllers
             $html = Render::getAjaxPage('admin_mascotas_list', $data);
 
             if (!empty($html)) {
-                $this->sendSuccess(['html' => $html]);
+                $this->sendSuccess(['html' => $html, 'total' => $total]);
             } else {
                 $this->sendError('Error cargando el contenido');
             }
