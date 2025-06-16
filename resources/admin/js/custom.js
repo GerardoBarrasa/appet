@@ -39,7 +39,7 @@ function closeModal(modalId) {
     $("#" + modalId).modal("hide")
 }
 
-// Función para cargar mascotas
+// Función para cargar mascotas con valores por defecto y paginación
 function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
     // Validar y convertir a números si es necesario
     comienzo = parseInt(comienzo) || 0;
@@ -74,6 +74,10 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
                 $("#page-content").html(response.html);
                 let total = response.total || 0;
                 $(".totalfound").empty().html(total+' resultado'+(total !== 1 ? 's' : ''))
+                // Generar paginador si hay información de paginación
+                if (response.pagination) {
+                  generarPaginador(response.pagination)
+                }
             } else {
                 if (typeof toastr !== "undefined") {
                     toastr.error(response.error || response.html || "Error al cargar las mascotas")
@@ -82,6 +86,78 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
             $(".loadingscr").addClass("d-none")
         },
     )
+}
+
+// Función para generar el paginador
+function generarPaginador(paginacion) {
+  var paginadorHtml = '<ul class="pagination justify-content-center m-0">'
+
+  // Botón anterior
+  if (paginacion.tiene_anterior) {
+    paginadorHtml += `<li class="page-item">
+      <a class="page-link" href="#" onclick="cambiarPagina(${paginacion.pagina_anterior}); return false;" aria-label="Anterior">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>`
+  } else {
+    paginadorHtml += `<li class="page-item disabled">
+      <span class="page-link" aria-label="Anterior">
+        <span aria-hidden="true">&laquo;</span>
+      </span>
+    </li>`
+  }
+
+  // Páginas
+  paginacion.paginas.forEach((pagina) => {
+    if (pagina.separador && pagina.numero > 1) {
+      paginadorHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>'
+    }
+
+    if (pagina.activa) {
+      paginadorHtml += `<li class="page-item active">
+        <span class="page-link">${pagina.numero}</span>
+      </li>`
+    } else {
+      paginadorHtml += `<li class="page-item">
+        <a class="page-link" href="#" onclick="cambiarPagina(${pagina.numero}); return false;">${pagina.numero}</a>
+      </li>`
+    }
+  })
+
+  // Botón siguiente
+  if (paginacion.tiene_siguiente) {
+    paginadorHtml += `<li class="page-item">
+      <a class="page-link" href="#" onclick="cambiarPagina(${paginacion.pagina_siguiente}); return false;" aria-label="Siguiente">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>`
+  } else {
+    paginadorHtml += `<li class="page-item disabled">
+      <span class="page-link" aria-label="Siguiente">
+        <span aria-hidden="true">&raquo;</span>
+      </span>
+    </li>`
+  }
+
+  paginadorHtml += "</ul>"
+
+  // Información adicional
+  var infoHtml = `<div class="pagination-info text-center mt-2 small text-muted">
+    Mostrando ${Math.min((paginacion.pagina_actual - 1) * paginacion.registros_por_pagina + 1, paginacion.total_registros)} - 
+    ${Math.min(paginacion.pagina_actual * paginacion.registros_por_pagina, paginacion.total_registros)} 
+    de ${paginacion.total_registros} registros
+  </div>`
+
+  // Insertar en el DOM
+  $(".paginador").html(paginadorHtml + infoHtml)
+}
+
+// Función para cambiar de página
+function cambiarPagina(nuevaPagina) {
+  var limite = 12 // Valor por defecto
+  var comienzo = (nuevaPagina - 1) * limite
+
+  ajax_get_mascotas_admin(comienzo, limite, nuevaPagina)
 }
 
 // Función para abrir modal general

@@ -21,21 +21,12 @@
             <div class="row pt-2" id="page-content">
 
             </div>
-            <script> ajax_get_mascotas_admin('<?=$comienzo;?>','<?=$limite;?>','<?= $pagina;?>'); </script>
+            <script> ajax_get_mascotas_admin(); </script>
         </div>
         <!-- /.card-body -->
         <div class="card-footer">
             <nav class="paginador">
-                <ul class="pagination justify-content-center m-0">
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">4</a></li>
-                    <li class="page-item"><a class="page-link" href="#">5</a></li>
-                    <li class="page-item"><a class="page-link" href="#">6</a></li>
-                    <li class="page-item"><a class="page-link" href="#">7</a></li>
-                    <li class="page-item"><a class="page-link" href="#">8</a></li>
-                </ul>
+
             </nav>
         </div>
         <!-- /.card-footer -->

@@ -922,22 +922,41 @@ class AdminajaxController extends Controllers
             $comienzo = (int)Tools::getValue('comienzo', 0);
             $limite = (int)Tools::getValue('limite', 12);
             $pagina = (int)Tools::getValue('pagina', 1);
+            $busqueda = Tools::getValue('busqueda', '');
 
-            $mascotas = Mascotas::getMascotasFiltered($comienzo, $limite);
-            $total = count(Mascotas::getMascotasFiltered($comienzo, $limite, false));
+            // Obtener mascotas filtradas
+            $mascotas = Mascotas::getMascotasFiltered($comienzo, $limite, true, $busqueda);
+
+            // Obtener total de registros para la paginación
+            $totalRegistros = Mascotas::getTotalMascotasFiltered($busqueda);
+
+            // Calcular información de paginación
+            $totalPaginas = ceil($totalRegistros / $limite);
+            $paginaActual = $pagina;
+
+            // Generar información del paginador
+            $paginacion = $this->generarPaginacion($paginaActual, $totalPaginas, $limite, $totalRegistros);
 
             $data = [
                 'comienzo' => $comienzo,
                 'limite' => $limite,
-                'pagina' => $pagina,
+                'pagina' => $paginaActual,
                 'mascotas' => $mascotas,
-                'total' => $total
+                'total' => $totalRegistros,
+                'total_paginas' => $totalPaginas,
+                'paginacion' => $paginacion
             ];
 
             $html = Render::getAjaxPage('admin_mascotas_list', $data);
 
             if (!empty($html)) {
-                $this->sendSuccess(['html' => $html, 'total' => $total]);
+                $this->sendSuccess([
+                    'html' => $html,
+                    'pagination' => $paginacion,
+                    'total' => $totalRegistros,
+                    'total_pages' => $totalPaginas,
+                    'current_page' => $paginaActual
+                ]);
             } else {
                 $this->sendError('Error cargando el contenido');
             }
@@ -945,6 +964,63 @@ class AdminajaxController extends Controllers
             $this->log("Error en getMascotasAdmin: " . $e->getMessage(), 'error');
             $this->sendError('Error interno del servidor');
         }
+    }
+    /**
+     * Genera la información de paginación
+     *
+     * @param int $paginaActual Página actual
+     * @param int $totalPaginas Total de páginas
+     * @param int $limite Registros por página
+     * @param int $totalRegistros Total de registros
+     * @return array Información de paginación
+     */
+    private function generarPaginacion($paginaActual, $totalPaginas, $limite, $totalRegistros)
+    {
+        $paginacion = [
+            'pagina_actual' => $paginaActual,
+            'total_paginas' => $totalPaginas,
+            'total_registros' => $totalRegistros,
+            'registros_por_pagina' => $limite,
+            'tiene_anterior' => $paginaActual > 1,
+            'tiene_siguiente' => $paginaActual < $totalPaginas,
+            'pagina_anterior' => $paginaActual > 1 ? $paginaActual - 1 : null,
+            'pagina_siguiente' => $paginaActual < $totalPaginas ? $paginaActual + 1 : null,
+            'paginas' => []
+        ];
+
+        // Generar array de páginas para mostrar
+        $rango = 2; // Mostrar 2 páginas antes y después de la actual
+        $inicio = max(1, $paginaActual - $rango);
+        $fin = min($totalPaginas, $paginaActual + $rango);
+
+        // Siempre mostrar la primera página
+        if ($inicio > 1) {
+            $paginacion['paginas'][] = [
+                'numero' => 1,
+                'activa' => false,
+                'separador' => $inicio > 2
+            ];
+        }
+
+        // Páginas del rango
+        for ($i = $inicio; $i <= $fin; $i++) {
+            $paginacion['paginas'][] = [
+                'numero' => $i,
+                'activa' => $i == $paginaActual,
+                'separador' => false
+            ];
+        }
+
+        // Siempre mostrar la última página
+        if ($fin < $totalPaginas) {
+            $paginacion['paginas'][] = [
+                'numero' => $totalPaginas,
+                'activa' => false,
+                'separador' => $fin < $totalPaginas - 1
+            ];
+        }
+
+        return $paginacion;
     }
 
     /**

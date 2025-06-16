@@ -459,23 +459,27 @@ class Mascotas
      * @param int $comienzo Inicio de la paginación
      * @param int $limite Límite de resultados
      * @param bool $applyLimit Aplicar límite o no
+    * @param string $busqueda Término de búsqueda
      * @return array
      */
-    public static function getMascotasFiltered($comienzo, $limite, $applyLimit = true)
+   public static function getMascotasFiltered($comienzo, $limite, $applyLimit = true, $busqueda = '')
     {
         $db = Bd::getInstance();
         $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ? '' : " AND m.id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
 
-        // Obtener variables de filtros
-        $filter_busqueda = Tools::getValue('busqueda', '');
+       // Si no se pasa búsqueda como parámetro, obtenerla de Tools::getValue
+       if ($busqueda === '') {
+           $busqueda = Tools::getValue('busqueda', '');
+       }
+
         $params = [];
         $whereConditions = ["1"];
 
-        if ($filter_busqueda != '') {
+       if ($busqueda != '') {
             $whereConditions[] = "(m.nombre LIKE ? OR m.alias LIKE ? OR m.slug LIKE ?)";
-            $params[] = "%{$filter_busqueda}%";
-            $params[] = "%{$filter_busqueda}%";
-            $params[] = "%{$filter_busqueda}%";
+           $params[] = "%{$busqueda}%";
+           $params[] = "%{$busqueda}%";
+           $params[] = "%{$busqueda}%";
         }
 
         $whereClause = implode(' AND ', $whereConditions);
@@ -494,6 +498,37 @@ class Mascotas
         }
 
         return $db->fetchAllSafe($sql, $params, PDO::FETCH_OBJ);
+    }
+    /**
+     * Obtiene el número total de mascotas filtradas
+     *
+     * @param string $busqueda Término de búsqueda
+     * @return int
+     */
+    public static function getTotalMascotasFiltered($busqueda = '')
+    {
+        $db = Bd::getInstance();
+        $filtro_cuidador = $_SESSION['admin_panel']->cuidador_id == 0 ? '' : " AND m.id_cuidador='".$_SESSION['admin_panel']->cuidador_id."'";
+
+        $params = [];
+        $whereConditions = ["1"];
+
+        if ($busqueda != '') {
+            $whereConditions[] = "(m.nombre LIKE ? OR m.alias LIKE ? OR m.slug LIKE ?)";
+            $params[] = "%{$busqueda}%";
+            $params[] = "%{$busqueda}%";
+            $params[] = "%{$busqueda}%";
+        }
+
+        $whereClause = implode(' AND ', $whereConditions);
+
+        $sql = "SELECT COUNT(*) 
+            FROM mascotas m 
+            INNER JOIN mascotas_tipo mt ON m.tipo=mt.id 
+            INNER JOIN mascotas_genero mg ON m.genero=mg.id 
+            WHERE {$whereClause} {$filtro_cuidador}";
+
+        return (int)$db->fetchValueSafe($sql, $params);
     }
 
     /**
