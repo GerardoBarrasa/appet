@@ -40,7 +40,17 @@ function closeModal(modalId) {
 }
 
 // Función para cargar mascotas
-function ajax_get_mascotas_admin(comienzo, limite, pagina) {
+function ajax_get_mascotas_admin(comienzo = 0, limite = 10, pagina = 1) {
+    // Validar y convertir a números si es necesario
+    comienzo = parseInt(comienzo) || 0;
+    limite = parseInt(limite) || 10;
+    pagina = parseInt(pagina) || 1;
+
+    // Validaciones adicionales
+    if (limite > 100) limite = 100; // Máximo 100 registros por página
+    if (limite < 1) limite = 10;    // Mínimo 10 registros
+    if (pagina < 1) pagina = 1;     // Página mínima 1
+
     $(".loadingscr").removeClass("d-none")
 
     ajax_call(
@@ -342,6 +352,14 @@ $(document).ready(() => {
     if ($(".slider").length > 0) {
         $(".slider").slider()
     }
+
+    $(".debouncefunc").on('keyup', $.debounce(250, function(e) {
+        var functionName = $(this).data('function');
+
+        if (typeof window[functionName] === 'function') {
+            window[functionName](); // Ejecuta la función
+        }
+    }));
 
     // Inicializar tooltips
     $('[data-toggle="tooltip"]').tooltip()

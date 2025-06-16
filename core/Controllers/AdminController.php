@@ -324,6 +324,7 @@ class AdminController
         if (defined('_RESOURCES_') && defined('_ADMIN_')) {
             Tools::registerJavascript(_RESOURCES_ . _ADMIN_ . 'js/adminlte.min.js');
             Tools::registerJavascript(_RESOURCES_ . _ADMIN_ . 'js/custom.js?v=' . time(), 'top');
+            Tools::registerJavascript(_RESOURCES_ . _ADMIN_ . 'js/jquery.ba-throttle-debounce.min.js', 'top');
         }
     }
 

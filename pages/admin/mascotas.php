@@ -8,7 +8,7 @@
                 <div class="col-12 col-md-3 mb-2 mb-md-0 card-title">Gestiona las mascotas</div>
                 <div class="col-12 col-md-7 mb-2 mb-md-0">
                     <form id="formFiltrosAdmin">
-                        <input class="form-control w-100" name="busqueda" id="busqueda" type="text" placeholder="Busca por nombre, raza o por su tutor" data-function="ajax_get_mascotas_admin">
+                        <input class="form-control w-100 debouncefunc" name="busqueda" id="busqueda" type="text" placeholder="Busca por nombre, raza o por su tutor" data-function="ajax_get_mascotas_admin">
                     </form>
                 </div>
                 <div class="col-12 col-md-2 d-flex align-items-center justify-content-around justify-content-md-end mb-2 mb-md-0">
