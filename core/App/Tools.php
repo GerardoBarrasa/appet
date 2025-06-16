@@ -1178,7 +1178,7 @@ class Tools
     /**
      * Guarda un error o un success en la sesion del servidor
      * @param string $msg			Mensaje que irá en el toast
-     * @param bool $success			True si es success, dejar en false si es error
+     * @param string $type			Tipo de alerta (success, error, warning, info)
      * @param int $timer			Timer para que desaparezca el toast
      * @param string $bgColor		Color de fondo del toast
      */
@@ -1191,7 +1191,14 @@ class Tools
                 'timer' => $timer,
                 'background' => $bgColor
             ];
-            $_SESSION['alert'] = $alert;
+
+            // Si no existe el array de alertas, crearlo
+            if (!isset($_SESSION['alerts'])) {
+                $_SESSION['alerts'] = [];
+            }
+
+            // Agregar la nueva alerta al array
+            $_SESSION['alerts'][] = $alert;
         }
     }
 

@@ -496,6 +496,8 @@ $(document).ready(() => {
     $("input[data-bootstrap-switch]").each(function(){
         $(this).bootstrapSwitch('state', $(this).prop('checked'));
     })
+
+    mostrarAlertasPHP()
 })
 
 
@@ -538,5 +540,36 @@ function initNuevaMascotaEvents() {
     const form = document.getElementById("formNuevaMascota")
     if (form) {
         form.addEventListener("submit", validarFormularioNuevaMascota)
+    }
+}
+
+// Función simple para mostrar alertas desde PHP
+function mostrarAlertasPHP() {
+    // Si existe una alerta en la variable global
+    if (typeof window.alerta_php !== "undefined" && window.alerta_php) {
+        const alerta = window.alerta_php
+
+        if (typeof toastr !== "undefined") {
+            // Configurar toastr básico
+            toastr.options = {
+                closeButton: true,
+                timeOut: 5000,
+                positionClass: "toast-top-right",
+            }
+
+            // Mostrar según el tipo
+            if (alerta.type === "success") {
+                toastr.success(alerta.message)
+            } else if (alerta.type === "warning") {
+                toastr.warning(alerta.message)
+            } else if (alerta.type === "info") {
+                toastr.info(alerta.message)
+            } else {
+                toastr.error(alerta.message)
+            }
+        } else {
+            // Fallback si no hay toastr
+            alert(alerta.message)
+        }
     }
 }

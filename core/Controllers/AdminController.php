@@ -1247,6 +1247,13 @@ class AdminController
     {
         $this->requireAuth();
 
+        // Verificar que el usuario sea un cuidador válido
+        if (!isset($_SESSION['admin_panel']->cuidador_id) || $_SESSION['admin_panel']->cuidador_id == 0) {
+            Tools::registerAlert("Solo los cuidadores pueden crear mascotas.", "error");
+            header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
+            exit;
+        }
+
         // Procesar formulario de creación
         if (class_exists('Tools') && Tools::getIsset('submitCrearMascota')) {
             $this->handleCreateMascota();
@@ -1312,20 +1319,13 @@ class AdminController
         }
 
         // Validar campos requeridos
-        $nombre = Tools::getValue('nombre');
-        $alias = Tools::getValue('alias');
-        $tipo = Tools::getValue('tipo');
-        $genero = Tools::getValue('genero');
-        $id_cuidador = Tools::getValue('id_cuidador');
-
-        $errors = [];
+        $nombre         = Tools::getValue('nombre');
+        $tipo           = Tools::getValue('tipo');
+        $genero         = Tools::getValue('genero');
+        $id_cuidador    = $_SESSION['admin_panel']->cuidador_id ?? 0;
 
         if (empty($nombre)) {
             $errors[] = "El nombre es obligatorio";
-        }
-
-        if (empty($alias)) {
-            $errors[] = "El alias es obligatorio";
         }
 
         if (empty($tipo)) {
@@ -1336,30 +1336,116 @@ class AdminController
             $errors[] = "El género es obligatorio";
         }
 
-        if (empty($id_cuidador)) {
-            $errors[] = "El cuidador es obligatorio";
+        if (!$id_cuidador || empty($id_cuidador) || $id_cuidador == 0) {
+            $errors[] = "Solo los cuidadores pueden crear mascotas";
         }
 
         if (!empty($errors)) {
+
             foreach ($errors as $error) {
                 Tools::registerAlert($error, "error");
             }
+
             return;
         }
 
-        // Crear la mascota
-        $mascotaId = Mascotas::crearMascota();
+        debug_log('Validation passed, attempting to create mascota', 'CREATE_MASCOTA_FLOW', 'admin');
 
-        if ($mascotaId) {
-            Tools::registerAlert("Mascota creada correctamente.", "success");
+        // Verificar si el método crearMascota existe
+        if (!method_exists('Mascotas', 'crearMascota')) {
+            debug_log([
+                'step' => 'METHOD_CHECK_FAILED',
+                'class' => 'Mascotas',
+                'method' => 'crearMascota',
+                'available_methods' => get_class_methods('Mascotas')
+            ], 'CREATE_MASCOTA_ERROR', 'admin');
 
-            // Redirigir a la página de edición de la mascota recién creada
-            $adminPath = defined('_ADMIN_') ? _ADMIN_ : 'admin/';
-            header("Location: " . _DOMINIO_ . $adminPath . "mascota/mascota-{$mascotaId}/");
-            exit;
-        } else {
-            Tools::registerAlert("Error al crear la mascota.", "error");
+            Tools::registerAlert("Error interno: método crearMascota no encontrado.", "error");
+            return;
         }
+
+        debug_log('crearMascota method exists, calling it now', 'CREATE_MASCOTA_FLOW', 'admin');
+
+        try {
+            // Preparar los datos para crear la mascota
+            $datosCreacion = [
+                'id_cuidador' => $id_cuidador, // Forzar el ID del cuidador desde la sesión
+                'nombre' => $nombre,
+                'alias' => Tools::getValue('alias'),
+                'tipo' => $tipo,
+                'genero' => $genero,
+                // Incluir otros campos del formulario
+                'raza' => Tools::getValue('raza'),
+                'peso' => Tools::getValue('peso'),
+                'nacimiento_fecha' => Tools::getValue('nacimiento_fecha'),
+                'edad' => Tools::getValue('edad'),
+                'edad_fecha' => Tools::getValue('edad_fecha'),
+                'esterilizado' => Tools::getValue('esterilizado'),
+                'ultimo_celo' => Tools::getValue('ultimo_celo'),
+                'notas_internas' => Tools::getValue('notas_internas'),
+                'observaciones' => Tools::getValue('observaciones')
+            ];
+
+            // Crear la mascota pasando los datos preparados
+            $mascotaId = Mascotas::crearMascota($datosCreacion);
+
+            debug_log([
+                'step' => 'CREATE_MASCOTA_CALLED',
+                'result' => $mascotaId,
+                'result_type' => gettype($mascotaId),
+                'is_numeric' => is_numeric($mascotaId),
+                'is_empty' => empty($mascotaId)
+            ], 'CREATE_MASCOTA_RESULT', 'admin');
+
+            if ($mascotaId && is_numeric($mascotaId) && $mascotaId > 0) {
+                debug_log([
+                    'step' => 'CREATE_SUCCESS',
+                    'mascota_id' => $mascotaId,
+                    'action' => 'redirecting_to_edit_page'
+                ], 'CREATE_MASCOTA_SUCCESS', 'admin');
+
+                Tools::registerAlert("Mascota creada correctamente.", "success");
+
+                // Redirigir a la página de edición de la mascota recién creada
+                $adminPath = defined('_ADMIN_') ? _ADMIN_ : 'admin/';
+                $redirectUrl = _DOMINIO_ . $adminPath . "mascota/mascota-{$mascotaId}/";
+
+                debug_log([
+                    'step' => 'REDIRECT_PREPARED',
+                    'admin_path' => $adminPath,
+                    'redirect_url' => $redirectUrl,
+                    'dominio' => _DOMINIO_
+                ], 'CREATE_MASCOTA_REDIRECT', 'admin');
+
+                header("Location: {$redirectUrl}");
+                exit;
+            } else {
+                debug_log([
+                    'step' => 'CREATE_FAILED',
+                    'mascota_id' => $mascotaId,
+                    'reason' => 'Invalid or empty mascota ID returned'
+                ], 'CREATE_MASCOTA_ERROR', 'admin');
+
+                Tools::registerAlert("Error al crear la mascota.", "error");
+            }
+
+        } catch (Exception $e) {
+            debug_log([
+                'step' => 'EXCEPTION_CAUGHT',
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'stack_trace' => $e->getTraceAsString()
+            ], 'CREATE_MASCOTA_EXCEPTION', 'admin');
+
+            Tools::registerAlert("Error al crear la mascota: " . $e->getMessage(), "error");
+        }
+
+        debug_log([
+            'method' => 'handleCreateMascota',
+            'step' => 'END'
+        ], 'CREATE_MASCOTA_END', 'admin');
     }
 
     /**
