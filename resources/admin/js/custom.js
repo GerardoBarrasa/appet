@@ -78,6 +78,9 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
                 if (response.pagination) {
                   generarPaginador(response.pagination)
                 }
+                else{
+                    $(".paginador").html("") // Limpiar paginador si no hay paginación
+                }
             } else {
                 if (typeof toastr !== "undefined") {
                     toastr.error(response.error || response.html || "Error al cargar las mascotas")
@@ -429,7 +432,7 @@ $(document).ready(() => {
         $(".slider").slider()
     }
 
-    $(".debouncefunc").on('keyup', $.debounce(250, function(e) {
+    $(".debouncefunc").on('keyup', $.debounce(750, function(e) {
         var functionName = $(this).data('function');
 
         if (typeof window[functionName] === 'function') {
