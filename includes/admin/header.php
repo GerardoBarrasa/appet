@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var $breadcrumb
+ */
+?>
 <!-- Content Header (Page header) -->
 <div class="content-header">
     <div class="container-fluid">
@@ -9,7 +14,7 @@
                 <?php if($breadcrumb){?>
                     <ol class="breadcrumb float-sm-right">
                         <?php foreach ($breadcrumb as $bc){?>
-                            <li class="breadcrumb-item <?=$bc['active'] ? 'active' : ''?>">
+                            <li class="breadcrumb-item <?=isset($bc['active']) &&  $bc['active'] ? 'active' : ''?>">
                                 <i class="<?=$bc['icon']?>"></i>
                                 <?php if(empty($bc['url'])){
                                     echo $bc['title'];

@@ -50,15 +50,14 @@ if (class_exists('Metas')) {
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="alias">
-                                    Alias <span class="text-danger">*</span>
+                                    Alias
                                 </label>
                                 <input type="text"
                                        class="form-control"
                                        id="alias"
                                        name="alias"
                                        placeholder="Alias o apodo"
-                                       value="<?=Tools::getValue('alias')?>"
-                                       required>
+                                       value="<?=Tools::getValue('alias')?>">
                                 <small class="form-text text-muted">
                                     Nombre por el que se le conoce comúnmente
                                 </small>
@@ -112,42 +111,15 @@ if (class_exists('Metas')) {
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="raza">Raza</label>
-                                <select class="form-control" id="raza" name="raza">
-                                    <option value="">Selecciona la raza (opcional)</option>
-                                    <?php if (!empty($razas)): ?>
-                                        <?php foreach ($razas as $raza): ?>
-                                            <option value="<?=$raza->id?>"
-                                                <?=Tools::getValue('raza') == $raza->id ? 'selected' : ''?>>
-                                                <?=htmlspecialchars($raza->nombre)?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </select>
+                                <input type="text"
+                                       class="form-control"
+                                       id="raza"
+                                       name="raza"
+                                       placeholder="Indica la raza o razas"
+                                       value="<?=Tools::getValue('raza')?>">
                             </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="id_cuidador">
-                                    Cuidador <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-control" id="id_cuidador" name="id_cuidador" required>
-                                    <option value="">Selecciona el cuidador</option>
-                                    <?php if (!empty($cuidadores)): ?>
-                                        <?php foreach ($cuidadores as $cuidador): ?>
-                                            <option value="<?=$cuidador->id?>"
-                                                <?=Tools::getValue('id_cuidador') == $cuidador->id ? 'selected' : ''?>>
-                                                <?=htmlspecialchars($cuidador->nombre)?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Información adicional -->
-                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="peso">Peso (kg)</label>
@@ -161,7 +133,10 @@ if (class_exists('Metas')) {
                                        value="<?=Tools::getValue('peso')?>">
                             </div>
                         </div>
+                    </div>
 
+                    <!-- Información adicional -->
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="nacimiento_fecha">Fecha de nacimiento</label>
@@ -172,22 +147,56 @@ if (class_exists('Metas')) {
                                        value="<?=Tools::getValue('nacimiento_fecha')?>">
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="row mb-1">
+                                <div class="col-3 col-lg-2">
+                                    <div class="form-group mb-0">
+                                        <label for="edad">años</label>
+                                        <input type="number"
+                                               step="1"
+                                               min="0"
+                                               class="form-control"
+                                               id="edad"
+                                               name="edad"
+                                               value="<?=Tools::getValue('edad')?>">
+                                    </div>
+                                </div>
+                                <div class="col-9 col-lg-10">
+                                    <div class="form-group mb-0">
+                                        <label for="edad_fecha">el día</label>
+                                        <input type="date"
+                                               class="form-control"
+                                               id="edad_fecha"
+                                               name="edad_fecha"
+                                               value="<?=Tools::getValue('edad_fecha')?>">
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Si no conoces la fecha de nacimiento, indica su edad en una fecha concreta
+                                </small>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Esterilización -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label for="esterilizado">
+                                    Esterilizado/Castrado
+                                </label>
                                 <div class="form-check">
                                     <input type="checkbox"
-                                           class="form-check-input"
                                            id="esterilizado"
                                            name="esterilizado"
                                            value="1"
+                                           data-bootstrap-switch
+                                           data-off-color="danger"
+                                           data-on-color="success"
+                                           data-off-text="No"
+                                           data-on-text="Sí"
                                         <?=Tools::getValue('esterilizado') ? 'checked' : ''?>>
-                                    <label class="form-check-label" for="esterilizado">
-                                        Esterilizado/Castrado
-                                    </label>
+
                                 </div>
                             </div>
                         </div>
@@ -283,10 +292,8 @@ if (class_exists('Metas')) {
                         <h5><i class="fas fa-star text-warning mr-2"></i>Campos obligatorios</h5>
                         <ul class="list-unstyled">
                             <li><strong>Nombre:</strong> Nombre oficial de la mascota</li>
-                            <li><strong>Alias:</strong> Nombre por el que se le conoce</li>
                             <li><strong>Tipo:</strong> Perro, gato, etc.</li>
                             <li><strong>Género:</strong> Macho o hembra</li>
-                            <li><strong>Cuidador:</strong> Persona responsable</li>
                         </ul>
                     </div>
                     <div class="col-md-6">
@@ -294,7 +301,7 @@ if (class_exists('Metas')) {
                         <ul class="list-unstyled">
                             <li><strong>Slug automático:</strong> Se genera automáticamente basado en el nombre</li>
                             <li><strong>Peso:</strong> Puedes dejarlo vacío y completarlo más tarde</li>
-                            <li><strong>Fecha de nacimiento:</strong> Ayuda a calcular la edad automáticamente</li>
+                            <li><strong>Edad:</strong> Ayuda a calcular la edad automáticamente, puedes indicar la fecha de nacimiento o una fecha cualquiera y la edad que tenía en ese día, el sistema calculará su edad según pase el tiempo.</li>
                             <li><strong>Último celo:</strong> Solo relevante para hembras no esterilizadas</li>
                         </ul>
                     </div>

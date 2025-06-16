@@ -317,6 +317,7 @@ class AdminController
             Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'jquery-3.7.1.min.js', 'top');
             Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js');
             Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'bootstrap-slider/bootstrap-slider.min.js');
+            Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'bootstrap-switch/js/bootstrap-switch.min.js');
             Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'underscore.js');
             Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'toastar/toastr.min.js');
         }
@@ -1254,8 +1255,6 @@ class AdminController
         // Obtener datos necesarios para el formulario
         $tipos = class_exists('Mascotas') ? $this->getTiposMascota() : [];
         $generos = class_exists('Mascotas') ? $this->getGenerosMascota() : [];
-        $razas = class_exists('Razas') ? Razas::getRazas() : [];
-        $cuidadores = class_exists('Cuidador') ? $this->getCuidadores() : [];
 
         // Crear breadcrumb dinámico
         $breadcrumb = [
@@ -1280,8 +1279,6 @@ class AdminController
         $data = [
             'tipos' => $tipos,
             'generos' => $generos,
-            'razas' => $razas,
-            'cuidadores' => $cuidadores,
             'breadcrumb' => $breadcrumb
         ];
 
