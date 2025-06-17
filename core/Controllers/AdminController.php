@@ -111,86 +111,40 @@ class AdminController
         // Establecer la página actual
         $this->setPage($page);
 
-        // Log detallado de entrada
-        debug_log([
-            'method' => 'AdminController::execute',
-            'step' => 'START',
-            'page' => $page,
-            'authenticated' => $this->isAuthenticated(),
-            'session_admin' => isset($_SESSION['admin_panel']) ? $_SESSION['admin_panel']->email ?? 'unknown' : 'none',
-            'request_method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
-            'client_ip' => Tools::getClientIP(),
-            'request_uri' => $_SERVER['REQUEST_URI'] ?? 'unknown'
-        ], 'ADMIN_EXECUTE_START', 'admin');
-
         // Verificar si es una ruta de tipo appet-*
-        if (isset($_REQUEST['userslug'])) {
-            debug_log([
-                'special_route' => 'appet',
-                'userslug' => $_REQUEST['userslug'],
-                'mod' => $_REQUEST['mod'] ?? '',
-                'data' => $_REQUEST['data'] ?? '',
-                'data2' => $_REQUEST['data2'] ?? ''
-            ], 'ADMIN_APPET_ROUTE', 'admin');
-            
-            // Si tenemos un mod, usarlo como página
-            if (isset($_REQUEST['mod'])) {
-                $page = $_REQUEST['mod'];
-                $this->setPage($page);
-            }
+        if (isset($_REQUEST['userslug']) && isset($_REQUEST['mod'])) {
+            $page = $_REQUEST['mod'];
+            $this->setPage($page);
         }
 
         try {
-            // Inicializar el controlador SIN Admin::validateUser() que causa el bucle
-            debug_log('About to initialize controller', 'ADMIN_EXECUTE_FLOW', 'admin');
             $this->initializeSafe($page);
-            debug_log('Controller initialized successfully', 'ADMIN_EXECUTE_FLOW', 'admin');
-
-            // LÓGICA SIMPLIFICADA: Solo verificar autenticación
             $isAuthenticated = $this->isAuthenticated();
-            debug_log([
-                'step' => 'AUTH_CHECK',
-                'authenticated' => $isAuthenticated,
-                'page' => $page
-            ], 'ADMIN_EXECUTE_FLOW', 'admin');
 
             if (!$isAuthenticated) {
-                // Usuario NO autenticado - mostrar login
-                debug_log('User not authenticated, calling showLogin()', 'ADMIN_EXECUTE_FLOW', 'admin');
                 $this->showLogin();
-                debug_log('showLogin() completed', 'ADMIN_EXECUTE_FLOW', 'admin');
                 return;
             }
 
-            // Usuario autenticado
             if (empty($page)) {
-                // Sin página específica - mostrar dashboard
-                debug_log('Authenticated user, empty page, calling showDashboard()', 'ADMIN_EXECUTE_FLOW', 'admin');
                 $this->showDashboard();
-                debug_log('showDashboard() completed', 'ADMIN_EXECUTE_FLOW', 'admin');
                 return;
             }
 
-            // Página específica - procesar rutas
-            debug_log("Authenticated user, processing page: {$page}", 'ADMIN_EXECUTE_FLOW', 'admin');
             $this->defineRoutes();
 
             if (!$this->executeRoute($page)) {
-                debug_log("Route not found: {$page}", 'ADMIN_EXECUTE_FLOW', 'admin');
                 $this->show404();
                 return;
             }
 
-            debug_log('Route executed successfully', 'ADMIN_EXECUTE_FLOW', 'admin');
-
         } catch (Exception $e) {
             debug_log([
-                'step' => 'EXCEPTION',
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => 'Exception in AdminController::execute',
+                'message' => $e->getMessage(),
+                'page' => $page
             ], 'ADMIN_EXECUTE_ERROR', 'admin');
 
-            // Mostrar error en desarrollo
             if (defined('_DEBUG_') && _DEBUG_) {
                 echo "<h1>Error en AdminController</h1>";
                 echo "<p>" . htmlspecialchars($e->getMessage()) . "</p>";
@@ -199,12 +153,6 @@ class AdminController
                 $this->show404();
             }
         }
-
-        debug_log([
-            'method' => 'AdminController::execute',
-            'step' => 'END',
-            'rendered' => $this->getRendered()
-        ], 'ADMIN_EXECUTE_END', 'admin');
     }
 
     /**
@@ -215,70 +163,39 @@ class AdminController
      */
     protected function initializeSafe($page)
     {
-        debug_log('Initialize: START', 'ADMIN_INITIALIZE', 'admin');
-
         try {
-            // Obtener y validar entorno solo si las clases existen
             if (class_exists('Admin')) {
-                debug_log('Initialize: Calling Admin::getEntorno()', 'ADMIN_INITIALIZE', 'admin');
                 Admin::getEntorno();
-                debug_log('Initialize: Admin::getEntorno() completed', 'ADMIN_INITIALIZE', 'admin');
 
-                // COMENTAMOS Admin::validateUser() que causa el bucle
-                // if ($this->isAuthenticated()) {
-                //     debug_log('Initialize: Calling Admin::validateUser()', 'ADMIN_INITIALIZE', 'admin');
-                //     Admin::validateUser();
-                //     debug_log('Initialize: Admin::validateUser() completed', 'ADMIN_INITIALIZE', 'admin');
-                // }
-
-                // Ahora que el enrutamiento está corregido, podemos volver a usar validateUser
                 if ($this->isAuthenticated()) {
-                    debug_log('Initialize: Calling Admin::validateUser()', 'ADMIN_INITIALIZE', 'admin');
                     Admin::validateUser();
-                    debug_log('Initialize: Admin::validateUser() completed', 'ADMIN_INITIALIZE', 'admin');
                 }
-
-                debug_log('Initialize: Skipping Admin::validateUser() to avoid infinite loop', 'ADMIN_INITIALIZE', 'admin');
             }
 
-            // Configurar layout
             if (class_exists('Render')) {
-                debug_log('Initialize: Setting Render layout', 'ADMIN_INITIALIZE', 'admin');
                 Render::$layout = $this->config['layout'];
             }
 
-            // Registrar assets
-            debug_log('Initialize: Registering assets', 'ADMIN_INITIALIZE', 'admin');
             $this->registerAssets();
 
-            // Configurar datos del layout
             if (class_exists('Idiomas') && class_exists('Render')) {
-                debug_log('Initialize: Setting layout data', 'ADMIN_INITIALIZE', 'admin');
-                
-                // Determinar el título del módulo basado en la página actual
                 $moduleName = 'Dashboard';
                 if (!empty($page)) {
-                    // Convertir formato-url a Formato Url (capitalizar palabras)
                     $moduleName = ucwords(str_replace('-', ' ', $page));
                 }
-                
+
                 Render::$layout_data = [
                     'idiomas' => Idiomas::getLanguagesAdminForm(),
-                    'mod' => $moduleName // Añadir el nombre del módulo para el header
+                    'mod' => $moduleName
                 ];
             }
 
-            // Inicializar paginación
-            debug_log('Initialize: Setting pagination', 'ADMIN_INITIALIZE', 'admin');
             $this->initializePagination();
-
-            debug_log('Initialize: COMPLETED', 'ADMIN_INITIALIZE', 'admin');
 
         } catch (Exception $e) {
             debug_log([
-                'step' => 'INITIALIZE_ERROR',
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => 'Exception in initializeSafe',
+                'message' => $e->getMessage()
             ], 'ADMIN_INITIALIZE_ERROR', 'admin');
             throw $e;
         }
@@ -317,6 +234,7 @@ class AdminController
             Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'jquery-3.7.1.min.js', 'top');
             Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js');
             Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'bootstrap-slider/bootstrap-slider.min.js');
+            Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'bootstrap-switch/js/bootstrap-switch.min.js');
             Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'underscore.js');
             Tools::registerJavascript(_ASSETS_ . _COMMON_ . 'toastar/toastr.min.js');
         }
@@ -324,6 +242,7 @@ class AdminController
         if (defined('_RESOURCES_') && defined('_ADMIN_')) {
             Tools::registerJavascript(_RESOURCES_ . _ADMIN_ . 'js/adminlte.min.js');
             Tools::registerJavascript(_RESOURCES_ . _ADMIN_ . 'js/custom.js?v=' . time(), 'top');
+            Tools::registerJavascript(_RESOURCES_ . _ADMIN_ . 'js/jquery.ba-throttle-debounce.min.js', 'top');
         }
     }
 
@@ -433,6 +352,7 @@ class AdminController
             // Gestión de mascotas
             $this->add('mascotas', [$this, 'mascotasAction']);
             $this->add('mascota', [$this, 'mascotaAction']);
+            $this->add('nueva-mascota', [$this, 'nuevaMascotaAction']);
         }
 
         // Página 404
@@ -498,15 +418,8 @@ class AdminController
      */
     public function showLogin()
     {
-        debug_log([
-            'method' => 'showLogin',
-            'step' => 'START',
-            'already_authenticated' => $this->isAuthenticated()
-        ], 'LOGIN_FLOW', 'admin');
-
         // Si ya está autenticado, mostrar dashboard en su lugar
         if ($this->isAuthenticated()) {
-            debug_log("User already authenticated, showing dashboard instead", 'LOGIN_FLOW', 'admin');
             $this->showDashboard();
             return;
         }
@@ -514,30 +427,19 @@ class AdminController
         $mensajeError = $_SESSION['actions_mensajeError'] ?? '';
         unset($_SESSION['actions_mensajeError']);
 
-        debug_log('Setting Render layout to actions', 'LOGIN_FLOW', 'admin');
         if (class_exists('Render')) {
             Render::$layout = 'actions';
         }
 
         // Procesar formulario de login
         if (isset($_REQUEST['btn-login']) && class_exists('Admin') && class_exists('Tools')) {
-            debug_log('Processing login form submission', 'LOGIN_FLOW', 'admin');
-
             $usuario = Tools::getValue('usuario');
             $password = Tools::md5(Tools::getValue('password'));
 
-            debug_log([
-                'usuario' => $usuario,
-                'login_attempt' => true
-            ], 'LOGIN_ATTEMPT', 'admin');
-
             if (Admin::login($usuario, $password)) {
-                debug_log("Login successful for user: {$usuario}", 'LOGIN_SUCCESS', 'admin');
-
                 // Después del login exitoso, redirigir al dashboard
                 $adminPath = defined('_ADMIN_') ? _ADMIN_ : 'admin/';
                 $dashboardUrl = _DOMINIO_ . $adminPath;
-                debug_log("Redirecting to: {$dashboardUrl}", 'LOGIN_REDIRECT', 'admin');
                 header("Location: {$dashboardUrl}");
                 exit;
             } else {
@@ -550,28 +452,18 @@ class AdminController
             'mensajeError' => $mensajeError,
         ];
 
-        debug_log('Setting page title', 'LOGIN_FLOW', 'admin');
         if (class_exists('Metas')) {
             Metas::$title = "&iexcl;Con&eacute;ctate!";
         }
 
-        debug_log('About to render login page', 'LOGIN_FLOW', 'admin');
         if (class_exists('Render')) {
             Render::adminPage('login', $data);
         } else {
-            debug_log('Render class not found, showing basic login form', 'LOGIN_FLOW', 'admin');
             echo "<h1>Login</h1>";
             echo "<p>Render class not available</p>";
         }
 
-        debug_log('Setting rendered state to true', 'LOGIN_FLOW', 'admin');
         $this->setRendered(true);
-
-        debug_log([
-            'method' => 'showLogin',
-            'step' => 'END',
-            'rendered' => $this->getRendered()
-        ], 'LOGIN_FLOW', 'admin');
     }
 
     /**
@@ -587,24 +479,18 @@ class AdminController
             return;
         }
 
-        debug_log("Showing dashboard for authenticated user", 'DASHBOARD', 'admin');
-
         if (class_exists('Metas')) {
             Metas::$title = "Inicio";
         }
 
         if (class_exists('Render')) {
-            debug_log("About to call Render::adminPage('home')", 'DASHBOARD', 'admin');
             Render::adminPage('home');
-            debug_log("Render::adminPage('home') completed", 'DASHBOARD', 'admin');
         } else {
-            debug_log("Render class not found, showing basic dashboard", 'DASHBOARD', 'admin');
             echo "<h1>Dashboard</h1>";
             echo "<p>Bienvenido al panel de administración</p>";
         }
 
         $this->setRendered(true);
-        debug_log("Dashboard rendered successfully", 'DASHBOARD', 'admin');
     }
 
     /**
@@ -1169,6 +1055,9 @@ class AdminController
             header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'mascotas/');
             exit;
         }
+        // Registrar CSS y JS para Cropper.js
+        Tools::registerStylesheet('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css');
+        Tools::registerJavascript('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js');
 
         $data = explode('-', $requestData);
         $idMascota = $data[1] ?? 0;
@@ -1188,6 +1077,352 @@ class AdminController
         }
 
         $this->setRendered(true);
+    }
+
+    /**
+     * Acción para crear una nueva mascota
+     *
+     * @return void
+     */
+    public function nuevaMascotaAction()
+    {
+        $this->requireAuth();
+
+        // Verificar que el usuario sea un cuidador válido
+        if (!isset($_SESSION['admin_panel']->cuidador_id) || $_SESSION['admin_panel']->cuidador_id == 0) {
+            Tools::registerAlert("Solo los cuidadores pueden crear mascotas.", "error");
+            header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
+            exit;
+        }
+
+        // Registrar CSS y JS para Cropper.js
+        Tools::registerStylesheet('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css');
+        Tools::registerJavascript('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js');
+
+        // Procesar formulario de creación
+        if (class_exists('Tools') && Tools::getIsset('submitCrearMascota')) {
+            $this->handleCreateMascota();
+        }
+
+        // Obtener datos necesarios para el formulario
+        $tipos = class_exists('Mascotas') ? $this->getTiposMascota() : [];
+        $generos = class_exists('Mascotas') ? $this->getGenerosMascota() : [];
+        $razas = class_exists('Razas') ? Razas::getRazas() : [];
+
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Mascotas',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'mascotas/',
+                'icon' => 'fas fa-paw'
+            ],
+            [
+                'title' => 'Nueva Mascota',
+                'url' => '',
+                'icon' => 'fas fa-plus',
+                'active' => true
+            ]
+        ];
+
+        $data = [
+            'tipos' => $tipos,
+            'generos' => $generos,
+            'razas' => $razas,
+            'breadcrumb' => $breadcrumb
+        ];
+
+        if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
+        }
+
+        if (class_exists('Metas')) {
+            Metas::$title = "Nueva Mascota";
+        }
+
+        if (class_exists('Render')) {
+            Render::adminPage('nueva-mascota', $data);
+        }
+
+        $this->setRendered(true);
+    }
+
+    /**
+     * Maneja la creación de una nueva mascota
+     *
+     * @return void
+     */
+    protected function handleCreateMascota()
+    {
+        if (!class_exists('Tools') || !class_exists('Mascotas')) {
+            Tools::registerAlert("Error interno: clases requeridas no encontradas.", "error");
+            return;
+        }
+
+        // Inicializar array de errores
+        $errors = [];
+
+        // Validar campos requeridos
+        $nombre         = Tools::getValue('nombre');
+        $tipo           = Tools::getValue('tipo');
+        $genero         = Tools::getValue('genero');
+        $id_cuidador    = $_SESSION['admin_panel']->cuidador_id ?? 0;
+
+        if (empty($nombre)) {
+            $errors[] = "El nombre es obligatorio";
+        }
+
+        if (empty($tipo)) {
+            $errors[] = "El tipo de mascota es obligatorio";
+        }
+
+        if (empty($genero)) {
+            $errors[] = "El género es obligatorio";
+        }
+
+        if (!$id_cuidador || empty($id_cuidador) || $id_cuidador == 0) {
+            $errors[] = "Solo los cuidadores pueden crear mascotas";
+        }
+
+        // Si hay errores, mostrarlos y salir
+        if (!empty($errors)) {
+            foreach ($errors as $error) {
+                Tools::registerAlert($error, "error");
+            }
+            return;
+        }
+
+        // Verificar si el método crearMascota existe
+        if (!method_exists('Mascotas', 'crearMascota')) {
+            Tools::registerAlert("Error interno: método crearMascota no encontrado.", "error");
+            return;
+        }
+
+        try {
+            // Preparar los datos para crear la mascota
+            $datosCreacion = [
+                'id_cuidador' => $id_cuidador,
+                'nombre' => $nombre,
+                'alias' => Tools::getValue('alias'),
+                'tipo' => $tipo,
+                'genero' => $genero,
+                'raza' => Tools::getValue('raza'),
+                'peso' => Tools::getValue('peso'),
+                'nacimiento_fecha' => Tools::getValue('nacimiento_fecha'),
+                'edad' => Tools::getValue('edad'),
+                'edad_fecha' => Tools::getValue('edad_fecha'),
+                'esterilizado' => Tools::getValue('esterilizado'),
+                'ultimo_celo' => Tools::getValue('ultimo_celo'),
+                'notas_internas' => Tools::getValue('notas_internas'),
+                'observaciones' => Tools::getValue('observaciones')
+            ];
+
+            // Crear la mascota
+            $mascotaId = Mascotas::crearMascota($datosCreacion);
+
+            if ($mascotaId && is_numeric($mascotaId) && $mascotaId > 0) {
+                // Crear directorio de la mascota
+                $this->crearDirectorioMascota($mascotaId);
+
+                // Procesar imagen de perfil si se envió
+                if (!empty(Tools::getValue('cropped_image_data'))) {
+                    $resultadoImagen = $this->procesarImagenPerfil(Tools::getValue('cropped_image_data'), $mascotaId);
+                    if ($resultadoImagen === false) {
+                        Tools::registerAlert("Mascota creada correctamente, pero hubo un error al procesar la imagen de perfil.", "warning");
+                    }
+                }
+                // Limpiar cualquier alerta previa para evitar conflictos
+                if (isset($_SESSION['alerts'])) {
+                    // Solo limpiar si no hay alertas de warning sobre la imagen
+                    $hasWarning = false;
+                    foreach ($_SESSION['alerts'] as $alert) {
+                        if ($alert['type'] === 'warning') {
+                            $hasWarning = true;
+                            break;
+                        }
+                    }
+                    if (!$hasWarning) {
+                        unset($_SESSION['alerts']);
+                    }
+                }
+
+                if (empty($_SESSION['alerts'])) {
+                    Tools::registerAlert("Mascota creada correctamente.", "success");
+                }
+
+                // Redirigir a la página de edición de la mascota recién creada
+                $adminPath = $_SESSION['admin_vars']['entorno'] ?? 'admin/';
+                $redirectUrl = _DOMINIO_ . $adminPath . "mascota/mascota-{$mascotaId}/";
+
+                header("Location: {$redirectUrl}");
+                exit;
+            } else {
+                Tools::registerAlert("Error al crear la mascota. Inténtalo de nuevo.", "error");
+            }
+
+        } catch (Exception $e) {
+            debug_log([
+                'error' => 'Exception in handleCreateMascota',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 'CREATE_MASCOTA_EXCEPTION', 'admin');
+
+            Tools::registerAlert("Error al crear la mascota: " . $e->getMessage(), "error");
+        }
+    }
+
+    /**
+     * Crea el directorio para una mascota específica
+     *
+     * @param int $mascotaId ID de la mascota
+     * @return bool True si se creó correctamente o ya existía
+     */
+    protected function crearDirectorioMascota($mascotaId)
+    {
+        try {
+            $mascotaDir = _PATH_ . "resources/private/mascotas/{$mascotaId}/";
+
+            if (!file_exists($mascotaDir)) {
+                if (!mkdir($mascotaDir, 0777, true)) {
+                    debug_log([
+                        'error' => 'Failed to create mascota directory',
+                        'directory' => $mascotaDir,
+                        'mascota_id' => $mascotaId
+                    ], 'DIRECTORY_CREATION_ERROR', 'admin');
+                    return false;
+                }
+            }
+
+            return true;
+
+        } catch (Exception $e) {
+            debug_log([
+                'error' => 'Exception creating mascota directory',
+                'message' => $e->getMessage(),
+                'mascota_id' => $mascotaId
+            ], 'DIRECTORY_CREATION_EXCEPTION', 'admin');
+            return false;
+        }
+    }
+    /**
+     * Procesa la imagen de perfil recortada y la guarda como profile.jpg
+     *
+     * @param string $imageData Datos de la imagen en base64
+     * @param int $mascotaId ID de la mascota
+     * @return bool True si se procesó correctamente, false en caso de error
+     */
+    protected function procesarImagenPerfil($imageData, $mascotaId)
+    {
+        try {
+            // Decodificar imagen base64
+            $imageData = str_replace('data:image/jpeg;base64,', '', $imageData);
+            $imageData = str_replace(' ', '+', $imageData);
+            $decodedImage = base64_decode($imageData);
+
+            if ($decodedImage === false) {
+                debug_log([
+                    'error' => 'Failed to decode base64 image',
+                    'mascota_id' => $mascotaId
+                ], 'IMAGE_DECODE_ERROR', 'admin');
+                return false;
+            }
+
+            // Crear imagen desde string
+            $sourceImage = imagecreatefromstring($decodedImage);
+            if ($sourceImage === false) {
+                debug_log([
+                    'error' => 'Failed to create image from string',
+                    'mascota_id' => $mascotaId
+                ], 'IMAGE_CREATE_ERROR', 'admin');
+                return false;
+            }
+
+            // Ruta del archivo final
+            $mascotaDir = _PATH_ . "resources/private/mascotas/{$mascotaId}/";
+            $filePath = $mascotaDir . "profile.jpg";
+
+            // Guardar como JPG con calidad 90
+            $result = imagejpeg($sourceImage, $filePath, 90);
+
+            // Liberar memoria
+            imagedestroy($sourceImage);
+
+            if ($result === false) {
+                debug_log([
+                    'error' => 'Failed to save JPG image',
+                    'file_path' => $filePath,
+                    'mascota_id' => $mascotaId
+                ], 'IMAGE_SAVE_ERROR', 'admin');
+                return false;
+            }
+
+            // Verificar que el archivo se creó correctamente
+            if (!file_exists($filePath)) {
+                debug_log([
+                    'error' => 'Image file was not created',
+                    'file_path' => $filePath,
+                    'mascota_id' => $mascotaId
+                ], 'IMAGE_FILE_NOT_FOUND', 'admin');
+                return false;
+            }
+
+            debug_log([
+                'success' => 'Profile image processed successfully',
+                'file_path' => $filePath,
+                'mascota_id' => $mascotaId,
+                'file_size' => filesize($filePath)
+            ], 'IMAGE_PROCESSING_SUCCESS', 'admin');
+
+            return true;
+
+        } catch (Exception $e) {
+            debug_log([
+                'error' => 'Exception processing profile image',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'mascota_id' => $mascotaId
+            ], 'IMAGE_PROCESSING_EXCEPTION', 'admin');
+            return false;
+        }
+    }
+
+    /**
+     * Obtiene los tipos de mascota disponibles
+     *
+     * @return array
+     */
+    protected function getTiposMascota()
+    {
+        if (!class_exists('Bd')) {
+            return [];
+        }
+
+        $db = Bd::getInstance();
+        return $db->fetchAllSafe("SELECT * FROM mascotas_tipo ORDER BY nombre", [], PDO::FETCH_OBJ);
+    }
+
+    /**
+     * Obtiene los géneros de mascota disponibles
+     *
+     * @return array
+     */
+    protected function getGenerosMascota()
+    {
+        if (!class_exists('Bd')) {
+            return [];
+        }
+
+        $db = Bd::getInstance();
+        return $db->fetchAllSafe("SELECT * FROM mascotas_genero ORDER BY nombre", [], PDO::FETCH_OBJ);
     }
 
     /**

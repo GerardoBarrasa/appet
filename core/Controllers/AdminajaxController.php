@@ -14,12 +14,12 @@ class AdminajaxController extends Controllers
     var $comienzo = 0;
     var $limite = 10;
     var $pagina = 1;
-    
+
     /**
      * Indica si la acción ya ha sido renderizada
      */
     protected $rendered = false;
-    
+
     /**
      * Página actual que se está procesando
      */
@@ -69,6 +69,7 @@ class AdminajaxController extends Controllers
             'ajax-delete-mascota',
             'ajax-save-mascota-evaluation',
             'ajax-get-mascota-details',
+            'ajax-update-profile-image',
 
             // Cuidadores
             'ajax-get-cuidadores-admin',
@@ -89,7 +90,8 @@ class AdminajaxController extends Controllers
             'ajax-search-global',
             'ajax-get-stats',
             'ajax-export-data',
-            'ajax-import-data'
+            'ajax-import-data',
+            'ajax-save-data'
         ]
     ];
 
@@ -103,7 +105,7 @@ class AdminajaxController extends Controllers
     {
         // Establecer la página actual
         $this->currentPage = $page;
-        
+
         // Configurar layout
         Render::$layout = false;
 
@@ -254,6 +256,7 @@ class AdminajaxController extends Controllers
         $this->add('ajax-delete-mascota', [$this, 'deleteMascota']);
         $this->add('ajax-save-mascota-evaluation', [$this, 'saveMascotaEvaluation']);
         $this->add('ajax-get-mascota-details', [$this, 'getMascotaDetails']);
+        $this->add('ajax-update-profile-image', [$this, 'updateProfileImage']);
 
         // ==========================================
         // CUIDADORES
@@ -284,6 +287,7 @@ class AdminajaxController extends Controllers
         $this->add('ajax-get-stats', [$this, 'getStats']);
         $this->add('ajax-export-data', [$this, 'exportData']);
         $this->add('ajax-import-data', [$this, 'importData']);
+        $this->add('ajax-save-data', [$this, 'saveData']);
     }
 
     /**
@@ -576,9 +580,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['nombre', 'codigo', 'slug']);
-            
+
             $result = Idiomas::crearIdioma();
-            
+
             if ($result) {
                 $this->log("Idioma creado: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess(['message' => 'Idioma creado correctamente']);
@@ -600,9 +604,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'nombre', 'codigo', 'slug']);
-            
+
             $result = Idiomas::actualizarIdioma();
-            
+
             if ($result) {
                 $this->log("Idioma actualizado: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess(['message' => 'Idioma actualizado correctamente']);
@@ -624,14 +628,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-            
+
             if (!$id) {
                 $this->sendError('ID de idioma no válido');
                 return;
             }
-            
+
             $result = Idiomas::eliminarIdioma($id);
-            
+
             if ($result) {
                 $this->log("Idioma eliminado: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Idioma eliminado correctamente']);
@@ -692,9 +696,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['slug', 'id_idioma', 'url']);
-            
+
             $result = Slugs::crearSlug();
-            
+
             if ($result) {
                 $this->log("Slug creado: " . Tools::getValue('slug'), 'info');
                 $this->sendSuccess(['message' => 'Slug creado correctamente']);
@@ -716,9 +720,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'slug', 'id_idioma', 'url']);
-            
+
             $result = Slugs::actualizarSlug();
-            
+
             if ($result) {
                 $this->log("Slug actualizado: " . Tools::getValue('slug'), 'info');
                 $this->sendSuccess(['message' => 'Slug actualizado correctamente']);
@@ -740,14 +744,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-            
+
             if (!$id) {
                 $this->sendError('ID de slug no válido');
                 return;
             }
-            
+
             $result = Slugs::eliminarSlug($id);
-            
+
             if ($result) {
                 $this->log("Slug eliminado: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Slug eliminado correctamente']);
@@ -808,9 +812,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['clave', 'id_idioma', 'valor']);
-            
+
             $result = Traducciones::crearTraduccion();
-            
+
             if ($result) {
                 $this->log("Traducción creada: " . Tools::getValue('clave'), 'info');
                 $this->sendSuccess(['message' => 'Traducción creada correctamente']);
@@ -832,9 +836,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'clave', 'id_idioma', 'valor']);
-            
+
             $result = Traducciones::actualizarTraduccion();
-            
+
             if ($result) {
                 $this->log("Traducción actualizada: " . Tools::getValue('clave'), 'info');
                 $this->sendSuccess(['message' => 'Traducción actualizada correctamente']);
@@ -856,14 +860,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-            
+
             if (!$id) {
                 $this->sendError('ID de traducción no válido');
                 return;
             }
-            
+
             $result = Traducciones::eliminarTraduccion($id);
-            
+
             if ($result) {
                 $this->log("Traducción eliminada: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Traducción eliminada correctamente']);
@@ -918,24 +922,43 @@ class AdminajaxController extends Controllers
     {
         try {
             $comienzo = (int)Tools::getValue('comienzo', 0);
-            $limite = (int)Tools::getValue('limite', 10);
+            $limite = (int)Tools::getValue('limite', 12);
             $pagina = (int)Tools::getValue('pagina', 1);
+            $busqueda = Tools::getValue('busqueda', '');
 
-            $mascotas = Mascotas::getMascotasFiltered($comienzo, $limite);
-            $total = count(Mascotas::getMascotasFiltered($comienzo, $limite, false));
+            // Obtener mascotas filtradas
+            $mascotas = Mascotas::getMascotasFiltered($comienzo, $limite, true, $busqueda);
+
+            // Obtener total de registros para la paginación
+            $totalRegistros = Mascotas::getTotalMascotasFiltered($busqueda);
+
+            // Calcular información de paginación
+            $totalPaginas = ceil($totalRegistros / $limite);
+            $paginaActual = $pagina;
+
+            // Generar información del paginador
+            $paginacion = $this->generarPaginacion($paginaActual, $totalPaginas, $limite, $totalRegistros);
 
             $data = [
                 'comienzo' => $comienzo,
                 'limite' => $limite,
-                'pagina' => $pagina,
+                'pagina' => $paginaActual,
                 'mascotas' => $mascotas,
-                'total' => $total
+                'total' => $totalRegistros,
+                'total_paginas' => $totalPaginas,
+                'paginacion' => $paginacion
             ];
 
             $html = Render::getAjaxPage('admin_mascotas_list', $data);
 
             if (!empty($html)) {
-                $this->sendSuccess(['html' => $html]);
+                $this->sendSuccess([
+                    'html' => $html,
+                    'pagination' => $paginacion,
+                    'total' => $totalRegistros,
+                    'total_pages' => $totalPaginas,
+                    'current_page' => $paginaActual
+                ]);
             } else {
                 $this->sendError('Error cargando el contenido');
             }
@@ -943,6 +966,68 @@ class AdminajaxController extends Controllers
             $this->log("Error en getMascotasAdmin: " . $e->getMessage(), 'error');
             $this->sendError('Error interno del servidor');
         }
+    }
+    /**
+     * Genera la información de paginación
+     *
+     * @param int $paginaActual Página actual
+     * @param int $totalPaginas Total de páginas
+     * @param int $limite Registros por página
+     * @param int $totalRegistros Total de registros
+     * @return array Información de paginación
+     */
+    private function generarPaginacion($paginaActual, $totalPaginas, $limite, $totalRegistros)
+    {
+        // Si no hay páginas o solo hay una, no generar paginación
+        if ($totalPaginas <= 1) {
+            return null;
+        }
+
+        $paginacion = [
+            'pagina_actual' => $paginaActual,
+            'total_paginas' => $totalPaginas,
+            'total_registros' => $totalRegistros,
+            'registros_por_pagina' => $limite,
+            'tiene_anterior' => $paginaActual > 1,
+            'tiene_siguiente' => $paginaActual < $totalPaginas,
+            'pagina_anterior' => $paginaActual > 1 ? $paginaActual - 1 : null,
+            'pagina_siguiente' => $paginaActual < $totalPaginas ? $paginaActual + 1 : null,
+            'paginas' => []
+        ];
+
+        // Generar array de páginas para mostrar
+        $rango = 2; // Mostrar 2 páginas antes y después de la actual
+        $inicio = max(1, $paginaActual - $rango);
+        $fin = min($totalPaginas, $paginaActual + $rango);
+
+        // Siempre mostrar la primera página si no está en el rango
+        if ($inicio > 1) {
+            $paginacion['paginas'][] = [
+                'numero' => 1,
+                'activa' => false,
+                'separador' => $inicio > 2
+            ];
+        }
+
+        // Páginas del rango
+        for ($i = $inicio; $i <= $fin; $i++) {
+            $paginacion['paginas'][] = [
+                'numero' => $i,
+                'activa' => $i == $paginaActual,
+                'separador' => false
+            ];
+        }
+
+        // Siempre mostrar la última página si no está en el rango
+        if ($fin < $totalPaginas) {
+            $paginacion['paginas'][] = [
+                'numero' => $totalPaginas,
+                'activa' => false,
+                'separador' => $fin < $totalPaginas - 1
+            ];
+        }
+
+        return $paginacion;
     }
 
     /**
@@ -954,9 +1039,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['nombre', 'tipo', 'id_cuidador']);
-            
+
             $result = Mascotas::crearMascota();
-            
+
             if ($result) {
                 $this->log("Mascota creada: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess([
@@ -981,9 +1066,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'nombre', 'tipo']);
-            
+
             $result = Mascotas::actualizarMascota();
-            
+
             if ($result) {
                 $this->log("Mascota actualizada: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess(['message' => 'Mascota actualizada correctamente']);
@@ -1005,14 +1090,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-            
+
             if (!$id) {
                 $this->sendError('ID de mascota no válido');
                 return;
             }
-            
+
             $result = Mascotas::eliminarMascota($id);
-            
+
             if ($result) {
                 $this->log("Mascota eliminada: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Mascota eliminada correctamente']);
@@ -1033,6 +1118,7 @@ class AdminajaxController extends Controllers
     public function saveMascotaEvaluation()
     {
         try {
+            // Obtener idmascota del POST
             $idMascota = (int)Tools::getValue('idmascota');
 
             if (!$idMascota) {
@@ -1040,12 +1126,15 @@ class AdminajaxController extends Controllers
                 return;
             }
 
-            // Verificar que la mascota existe y pertenece al cuidador correcto
+            // Verificar que la mascota existe
             $mascota = Mascotas::getMascotaById($idMascota);
             if (!$mascota) {
                 $this->sendError('Mascota no encontrada');
                 return;
             }
+
+            // Registrar los datos recibidos para depuración
+            $this->log("Datos recibidos para mascota ID {$idMascota}: " . print_r($_POST, true), 'info');
 
             // Actualizar características
             $caracteristicas = Caracteristicas::updateCaracteristicasByMascota($idMascota);
@@ -1057,7 +1146,7 @@ class AdminajaxController extends Controllers
             ]);
         } catch (Exception $e) {
             $this->log("Error en saveMascotaEvaluation: " . $e->getMessage(), 'error');
-            $this->sendError('Error al guardar la evaluación');
+            $this->sendError('Error al guardar la evaluación: ' . $e->getMessage());
         }
     }
 
@@ -1091,6 +1180,169 @@ class AdminajaxController extends Controllers
         } catch (Exception $e) {
             $this->log("Error en getMascotaDetails: " . $e->getMessage(), 'error');
             $this->sendError('Error al obtener los detalles');
+        }
+    }
+
+    /**
+     * Actualiza la imagen de perfil de una mascota
+     *
+     * @return void
+     */
+    public function updateProfileImage()
+    {
+        try {
+            // Validar campos requeridos
+            $this->validateRequiredFields(['mascota_id', 'image_data']);
+
+            $mascotaId = (int)Tools::getValue('mascota_id');
+            $imageData = Tools::getValue('image_data');
+
+            // Validar ID de mascota
+            if (!$mascotaId) {
+                $this->sendError('ID de mascota no válido');
+                return;
+            }
+
+            // Obtener la mascota para verificar permisos
+            $mascota = Mascotas::getMascotaById($mascotaId);
+            if (!$mascota) {
+                $this->log("Intento de actualizar imagen de mascota inexistente: ID {$mascotaId}", 'warning');
+                $this->sendError('Mascota no encontrada');
+                return;
+            }
+
+            // Verificar que el usuario tiene permisos para esta mascota
+            // Esto dependerá de tu lógica de permisos
+            if (!$this->userCanEditMascota($mascotaId)) {
+                $this->log("Intento de actualizar imagen sin permisos: Mascota ID {$mascotaId}", 'warning');
+                $this->sendError('No tienes permisos para modificar esta mascota');
+                return;
+            }
+
+            // Validar datos de imagen
+            if (strpos($imageData, 'data:image/') !== 0) {
+                $this->sendError('Formato de imagen no válido');
+                return;
+            }
+
+            // Directorio de la mascota
+            $mascotaDir = _RESOURCES_PATH_ . 'private/mascotas/' . $mascotaId . '/';
+
+            // Crear directorio si no existe
+            if (!is_dir($mascotaDir)) {
+                if (!mkdir($mascotaDir, 0755, true)) {
+                    $this->log("Error creando directorio para mascota ID {$mascotaId}: {$mascotaDir}", 'error');
+                    $this->sendError('Error creando directorio de la mascota');
+                    return;
+                }
+                $this->log("Directorio creado para mascota ID {$mascotaId}: {$mascotaDir}", 'info');
+            }
+
+            // Procesar imagen
+            $result = $this->processProfileImage($imageData, $mascotaDir, $mascotaId);
+
+            if ($result['success']) {
+                $imageUrl = _RESOURCES_ . 'private/mascotas/' . $mascotaId . '/profile.jpg';
+
+                $this->log("Imagen de perfil actualizada para mascota ID {$mascotaId}", 'info');
+                $this->sendSuccess([
+                    'message' => 'Imagen de perfil actualizada correctamente',
+                    'image_url' => $imageUrl
+                ]);
+            } else {
+                $this->sendError($result['message']);
+            }
+
+        } catch (Exception $e) {
+            $this->log("Error en updateProfileImage: " . $e->getMessage(), 'error');
+            $this->sendError('Error interno del servidor');
+        }
+    }
+
+    /**
+     * Verifica si el usuario puede editar una mascota
+     *
+     * @param int $mascotaId ID de la mascota
+     * @return bool True si puede editar, false si no
+     */
+    private function userCanEditMascota($mascotaId)
+    {
+        // Implementar lógica de permisos según tu sistema
+        // Por ejemplo, verificar si el usuario es el cuidador de la mascota
+        // o si es un administrador
+
+        // Por ahora, permitir a todos los usuarios autenticados
+        // Puedes modificar esto según tus necesidades
+        return isset($_SESSION['admin_panel']);
+    }
+
+    /**
+     * Procesa la imagen de perfil
+     *
+     * @param string $imageData Datos de la imagen en base64
+     * @param string $mascotaDir Directorio de la mascota
+     * @param int $mascotaId ID de la mascota
+     * @return array Resultado del procesamiento
+     */
+    private function processProfileImage($imageData, $mascotaDir, $mascotaId)
+    {
+        try {
+            // Extraer datos de la imagen
+            $imageInfo = explode(',', $imageData);
+            if (count($imageInfo) !== 2) {
+                return ['success' => false, 'message' => 'Formato de imagen no válido'];
+            }
+
+            $imageBase64 = $imageInfo[1];
+            $imageDecoded = base64_decode($imageBase64);
+
+            if (!$imageDecoded) {
+                return ['success' => false, 'message' => 'Error decodificando la imagen'];
+            }
+
+            // Validar tamaño de imagen
+            $maxSize = 5 * 1024 * 1024; // 5MB
+            if (strlen($imageDecoded) > $maxSize) {
+                return ['success' => false, 'message' => 'La imagen es demasiado grande'];
+            }
+
+            // Crear imagen desde string
+            $image = imagecreatefromstring($imageDecoded);
+            if (!$image) {
+                return ['success' => false, 'message' => 'Error procesando la imagen'];
+            }
+
+            // Hacer backup de la imagen anterior si existe
+            $profilePath = $mascotaDir . 'profile.jpg';
+            if (file_exists($profilePath)) {
+                $backupPath = $mascotaDir . 'profile_backup_' . date('Y-m-d_H-i-s') . '.jpg';
+                if (!copy($profilePath, $backupPath)) {
+                    $this->log("No se pudo crear backup de imagen para mascota ID {$mascotaId}", 'warning');
+                }
+            }
+
+            // Guardar como JPG con calidad 90
+            $success = imagejpeg($image, $profilePath, 90);
+
+            // Liberar memoria
+            imagedestroy($image);
+
+            if (!$success) {
+                return ['success' => false, 'message' => 'Error guardando la imagen'];
+            }
+
+            // Verificar que el archivo se guardó correctamente
+            if (!file_exists($profilePath) || filesize($profilePath) === 0) {
+                return ['success' => false, 'message' => 'Error verificando la imagen guardada'];
+            }
+
+            $this->log("Imagen de perfil procesada correctamente para mascota ID {$mascotaId}. Tamaño: " . filesize($profilePath) . " bytes", 'info');
+
+            return ['success' => true, 'message' => 'Imagen procesada correctamente'];
+
+        } catch (Exception $e) {
+            $this->log("Error procesando imagen para mascota ID {$mascotaId}: " . $e->getMessage(), 'error');
+            return ['success' => false, 'message' => 'Error procesando la imagen: ' . $e->getMessage()];
         }
     }
 
@@ -1143,9 +1395,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['nombre', 'email']);
-            
+
             $result = Cuidador::crearCuidador();
-            
+
             if ($result) {
                 $this->log("Cuidador creado: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess([
@@ -1170,9 +1422,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'nombre', 'email']);
-            
+
             $result = Cuidador::actualizarCuidador();
-            
+
             if ($result) {
                 $this->log("Cuidador actualizado: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess(['message' => 'Cuidador actualizado correctamente']);
@@ -1194,14 +1446,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-            
+
             if (!$id) {
                 $this->sendError('ID de cuidador no válido');
                 return;
             }
-            
+
             $result = Cuidador::eliminarCuidador($id);
-            
+
             if ($result) {
                 $this->log("Cuidador eliminado: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Cuidador eliminado correctamente']);
@@ -1263,9 +1515,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['nombre', 'tipo']);
-            
+
             $result = Caracteristicas::crearCaracteristica();
-            
+
             if ($result) {
                 $this->log("Característica creada: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess([
@@ -1290,9 +1542,9 @@ class AdminajaxController extends Controllers
     {
         try {
             $this->validateRequiredFields(['id', 'nombre', 'tipo']);
-            
+
             $result = Caracteristicas::actualizarCaracteristica();
-            
+
             if ($result) {
                 $this->log("Característica actualizada: " . Tools::getValue('nombre'), 'info');
                 $this->sendSuccess(['message' => 'Característica actualizada correctamente']);
@@ -1314,14 +1566,14 @@ class AdminajaxController extends Controllers
     {
         try {
             $id = (int)Tools::getValue('id');
-            
+
             if (!$id) {
                 $this->sendError('ID de característica no válido');
                 return;
             }
-            
+
             $result = Caracteristicas::eliminarCaracteristica($id);
-            
+
             if ($result) {
                 $this->log("Característica eliminada: ID {$id}", 'info');
                 $this->sendSuccess(['message' => 'Característica eliminada correctamente']);
@@ -1382,17 +1634,40 @@ class AdminajaxController extends Controllers
     public function getContenidoModal()
     {
         try {
-            $tipo = Tools::getValue('tipo');
-            $id = Tools::getValue('id');
+            $tipo       = Tools::getValue('type');
+            $id         = Tools::getValue('id');
+            $contenido  = Tools::getValue('content');
 
             $data = [];
-            $template = '';
 
             switch ($tipo) {
                 case 'mascota':
                     $data['mascota'] = Mascotas::getMascotaById($id);
                     $data['caracteristicas'] = Caracteristicas::getCaracteristicasByMascota($id);
-                    $template = 'admin_modal_mascota';
+                    $data['body']   = "mascota_editar_".$contenido;
+                    $template       = 'admin_modal_mascota';
+                    switch ($contenido) {
+                        case 'nombre':
+                            $data['titulo'] = "Editar nombre y alias para ".$data['mascota']->nombre;
+                            break;
+                        case 'peso':
+                            $data['titulo'] = "Editar peso para ".$data['mascota']->nombre;
+                            break;
+                        case 'esterilizado':
+                            $data['titulo'] = "Indicar estado de esterilización para ".$data['mascota']->nombre;
+                            break;
+                        case 'generoraza':
+                            $data['titulo'] = "Editar género y raza de ".$data['mascota']->nombre;
+                            $data['generos'] = Generos::getTodosLosGeneros();
+                            break;
+                        case 'edad':
+                            $data['titulo'] = "Determinar la edad de ".$data['mascota']->nombre;
+                            break;
+                        default:
+                            $data['titulo'] = "Editar datos de ".$data['mascota']->nombre;
+                            $data['body']   = "";
+                            break;
+                    }
                     break;
 
                 case 'cuidador':
@@ -1564,39 +1839,39 @@ class AdminajaxController extends Controllers
         try {
             $tipo = Tools::getValue('tipo');
             $formato = Tools::getValue('formato', 'csv');
-            
+
             if (!in_array($formato, ['csv', 'json', 'excel'])) {
                 $this->sendError('Formato no soportado');
                 return;
             }
-            
+
             $data = [];
             $filename = '';
-            
+
             switch ($tipo) {
                 case 'mascotas':
                     $data = Mascotas::getMascotasFiltered(0, 1000, false);
                     $filename = 'mascotas_export_' . date('Ymd');
                     break;
-                    
+
                 case 'cuidadores':
                     $data = Cuidador::getCuidadoresFiltered(0, 1000, false);
                     $filename = 'cuidadores_export_' . date('Ymd');
                     break;
-                    
+
                 default:
                     $this->sendError('Tipo de exportación no válido');
                     return;
             }
-            
+
             $result = '';
-            
+
             if ($formato === 'csv') {
                 $result = $this->generateCSV($data);
             } elseif ($formato === 'json') {
                 $result = json_encode($data);
             }
-            
+
             $this->sendSuccess([
                 'data' => $result,
                 'filename' => $filename . '.' . $formato
@@ -1618,13 +1893,13 @@ class AdminajaxController extends Controllers
         if (empty($data)) {
             return '';
         }
-        
+
         $csv = '';
         $headers = array_keys((array)$data[0]);
-        
+
         // Cabeceras
         $csv .= implode(',', $headers) . "\n";
-        
+
         // Datos
         foreach ($data as $row) {
             $rowData = [];
@@ -1635,7 +1910,7 @@ class AdminajaxController extends Controllers
             }
             $csv .= implode(',', $rowData) . "\n";
         }
-        
+
         return $csv;
     }
 
@@ -1648,35 +1923,35 @@ class AdminajaxController extends Controllers
     {
         try {
             $tipo = Tools::getValue('tipo');
-            
+
             if (!isset($_FILES['archivo']) || $_FILES['archivo']['error'] !== UPLOAD_ERR_OK) {
                 $this->sendError('Error al subir el archivo');
                 return;
             }
-            
+
             $file = $_FILES['archivo'];
             $extension = Tools::getExtension($file['name']);
-            
+
             if ($extension !== 'csv') {
                 $this->sendError('Solo se permiten archivos CSV');
                 return;
             }
-            
+
             $content = file_get_contents($file['tmp_name']);
             $lines = explode("\n", $content);
             $headers = str_getcsv(array_shift($lines));
-            
+
             $data = [];
             foreach ($lines as $line) {
                 if (empty(trim($line))) continue;
-                
+
                 $row = str_getcsv($line);
                 $data[] = array_combine($headers, $row);
             }
-            
+
             $imported = 0;
             $errors = [];
-            
+
             switch ($tipo) {
                 case 'mascotas':
                     foreach ($data as $index => $row) {
@@ -1691,12 +1966,12 @@ class AdminajaxController extends Controllers
                         }
                     }
                     break;
-                    
+
                 default:
                     $this->sendError('Tipo de importación no válido');
                     return;
             }
-            
+
             $this->log("Importación completada: {$imported} registros importados, " . count($errors) . " errores", 'info');
             $this->sendSuccess([
                 'message' => 'Importación completada',
@@ -1707,6 +1982,162 @@ class AdminajaxController extends Controllers
         } catch (Exception $e) {
             $this->log("Error en importData: " . $e->getMessage(), 'error');
             $this->sendError('Error al importar datos');
+        }
+    }
+
+    /**
+     * Guarda datos
+     *
+     * @return void
+     */
+    public function saveData()
+    {
+        try {
+            $tipo   = Tools::getValue('tipo');
+            $action = Tools::getValue('action');
+            $id     = Tools::getValue('id');
+
+            $errors = [];
+            $url    = '';
+            $reload = false;
+
+            switch ($tipo) {
+                case 'mascota':
+                    $mascota = Mascotas::getMascotaById($id);
+                    switch ($action) {
+                        case 'mascota_editar_nombre':
+                            $nombre = Tools::getValue('nombre');
+                            $alias  = Tools::getValue('alias');
+                            if(!$nombre) {
+                                $this->sendError('El nombre es obligatorio');
+                                return;
+                            }
+                            $datos = [
+                                'tipo'      => 1,
+                                'nombre'    => $nombre,
+                                'alias'     => $alias
+                            ];
+                            $result = Mascotas::actualizarMascota($id, $datos);
+                            if (!$result) {
+                                $this->sendError('Error al actualizar dato de la mascota');
+                            }
+                            else{
+                                $mascota = Mascotas::getMascotaById($id);
+                                $url = _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'mascota/' . $mascota->slug . '-' . $mascota->id.'/';
+                            }
+                            break;
+                        case 'mascota_editar_peso':
+                            $peso = (int)Tools::getValue('peso');
+                            if(!$peso || $peso <= 0) {
+                                $this->sendError('El peso es obligatorio y debe ser positivo');
+                                return;
+                            }
+                            $datos = [
+                                'tipo'    => 1,
+                                'peso'    => $peso
+                            ];
+                            $result = Mascotas::actualizarMascota($id, $datos);
+                            if (!$result) {
+                                $this->sendError('Error al actualizar dato de la mascota');
+                            } else{
+                                $reload = true;
+                            }
+                            break;
+                        case 'mascota_editar_esterilizado':
+                            $esterilizado = Tools::getValue('esterilizado');
+                            if($esterilizado != 0 && $esterilizado != 1) {
+                                $this->sendError('El estado de esterilización es obligatorio');
+                                return;
+                            }
+                            $datos = [
+                                'tipo'    => 1,
+                                'esterilizado'    => $esterilizado
+                            ];
+                            $result = Mascotas::actualizarMascota($id, $datos);
+                            if (!$result) {
+                                $this->sendError('Error al actualizar dato de la mascota');
+                            } else{
+                                $reload = true;
+                            }
+                            break;
+                        case 'mascota_editar_generoraza':
+                            $raza = Tools::getValue('raza', 'Mestizo');
+                            !empty($raza) ?: $raza = 'Mestizo';
+                            $genero = Tools::getValue('genero', 3);
+                            if(!Generos::getGeneroById($genero)){
+                                $genero = 3;
+                            }
+                            $datos = [
+                                'tipo'    => 1,
+                                'genero'  => $genero,
+                                'raza'    => $raza
+                            ];
+                            $result = Mascotas::actualizarMascota($id, $datos);
+                            if (!$result) {
+                                $this->sendError('Error al actualizar dato de la mascota');
+                            } else{
+                                $reload = true;
+                            }
+                            break;
+                        case 'mascota_editar_edad':
+                            $nacimiento_fecha = Tools::getValue('nacimiento_fecha');
+                            $edad             = Tools::getValue('edad');
+                            $edad_fecha       = Tools::getValue('edad_fecha');
+                            if(!Tools::validarFecha($nacimiento_fecha)){
+                                if($edad <= 0){
+                                    $this->sendError('Debes indicar la fecha de nacimiento o la edad que tiene ahora mismo');
+                                    return;
+                                }
+                                Tools::validarFecha($edad_fecha) ?: $edad_fecha = date('Y-m-d');
+                                $datos = [
+                                    'tipo'              => 1,
+                                    'edad'              => $edad,
+                                    'edad_fecha'        => $edad_fecha,
+                                    'nacimiento_fecha'  => null
+                                ];
+                            }
+                            else{
+                                $datos = [
+                                    'tipo'              => 1,
+                                    'nacimiento_fecha'  => $nacimiento_fecha,
+                                    'edad'              => 0,
+                                    'edad_fecha'        => ''
+                                ];
+                            }
+                            $result = Mascotas::actualizarMascota($id, $datos);
+                            if (!$result) {
+                                $this->sendError('Error al actualizar dato de la mascota');
+                            } else{
+                                $reload = true;
+                            }
+                            break;
+
+                        default:
+                            $this->sendError('Acción de guardado no definida');
+                            return;
+                    }
+                    break;
+
+                default:
+                    $this->sendError('Tipo de guardado de datos no válido');
+                    return;
+            }
+
+            $this->log("Guardado de datos completado." . count($errors) . " errores", 'info');
+            $response = [
+                'message' => 'Guardado completado',
+                'errors' => $errors
+            ];
+            if(!empty($url)) {
+                $response['url'] = $url;
+            }
+            if($reload){
+                $response['reload'] = true;
+            }
+            $this->sendSuccess($response);
+        } catch (Exception $e) {
+            $this->log("Error en saveData: " . $e->getMessage(), 'error');
+            $this->sendError('Error al guardar datos');
         }
     }
 

@@ -1,5 +1,40 @@
 # ApPet 1.0.0
 
+## Implementación de Cropper.js
+
+### Ventajas de esta implementación:
+
+1. **Reutilizable**: Puedes usar `initImageCropper()` en cualquier página
+2. **Configurable**: Permite personalizar IDs, validaciones, callbacks, etc.
+3. **Detección automática**: Verifica que Cropper.js esté cargado
+4. **Validación de DOM**: Comprueba que todos los elementos existan
+5. **Callbacks**: `onSuccess` y `onError` para manejar eventos
+6. **Métodos públicos**: `reset()`, `destroy()`, etc.
+7. **Función de conveniencia**: `initStandardImageCropper()` para uso básico
+
+
+### Uso en otras páginas:
+
+```javascript
+// Uso básico
+const cropper = initStandardImageCropper();
+
+// Uso avanzado con configuración personalizada
+const cropper = initImageCropper({
+    imageInputId: 'miInput',
+    modalId: 'miModal',
+    validation: {
+        maxFileSize: 2 * 1024 * 1024, // 2MB
+        messages: {
+            fileTooBig: 'Archivo muy grande (máx 2MB)'
+        }
+    },
+    onSuccess: function(dataURL, file) {
+        // Tu lógica personalizada
+    }
+});
+```
+
 ## Mejoras en la clase Bd
 
 ### 🔒 **Seguridad**

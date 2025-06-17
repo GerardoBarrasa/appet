@@ -923,10 +923,10 @@ class Render
      */
     public static function getAlert()
     {
-        if (isset($_SESSION['alert'])) {
-            $alert = $_SESSION['alert'];
-            unset($_SESSION['alert']);
-            return $alert;
+        if (isset($_SESSION['alerts'])) {
+            $alerts = $_SESSION['alerts'];
+            unset($_SESSION['alerts']);
+            return $alerts;
         }
         return null;
     }
