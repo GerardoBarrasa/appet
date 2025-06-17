@@ -1092,6 +1092,10 @@ class AdminController
             exit;
         }
 
+        // Registrar CSS y JS para Cropper.js
+        Tools::registerStylesheet('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css');
+        Tools::registerJavascript('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js');
+
         // Procesar formulario de creación
         if (class_exists('Tools') && Tools::getIsset('submitCrearMascota')) {
             $this->handleCreateMascota();
@@ -1221,12 +1225,34 @@ class AdminController
             $mascotaId = Mascotas::crearMascota($datosCreacion);
 
             if ($mascotaId && is_numeric($mascotaId) && $mascotaId > 0) {
+                // Crear directorio de la mascota
+                $this->crearDirectorioMascota($mascotaId);
+
+                // Procesar imagen de perfil si se envió
+                if (!empty(Tools::getValue('cropped_image_data'))) {
+                    $resultadoImagen = $this->procesarImagenPerfil(Tools::getValue('cropped_image_data'), $mascotaId);
+                    if ($resultadoImagen === false) {
+                        Tools::registerAlert("Mascota creada correctamente, pero hubo un error al procesar la imagen de perfil.", "warning");
+                    }
+                }
                 // Limpiar cualquier alerta previa para evitar conflictos
                 if (isset($_SESSION['alerts'])) {
-                    unset($_SESSION['alerts']);
+                    // Solo limpiar si no hay alertas de warning sobre la imagen
+                    $hasWarning = false;
+                    foreach ($_SESSION['alerts'] as $alert) {
+                        if ($alert['type'] === 'warning') {
+                            $hasWarning = true;
+                            break;
+                        }
+                    }
+                    if (!$hasWarning) {
+                        unset($_SESSION['alerts']);
+                    }
                 }
 
-                Tools::registerAlert("Mascota creada correctamente.", "success");
+                if (empty($_SESSION['alerts'])) {
+                    Tools::registerAlert("Mascota creada correctamente.", "success");
+                }
 
                 // Redirigir a la página de edición de la mascota recién creada
                 $adminPath = $_SESSION['admin_vars']['entorno'] ?? 'admin/';
@@ -1247,6 +1273,122 @@ class AdminController
             ], 'CREATE_MASCOTA_EXCEPTION', 'admin');
 
             Tools::registerAlert("Error al crear la mascota: " . $e->getMessage(), "error");
+        }
+    }
+
+    /**
+     * Crea el directorio para una mascota específica
+     *
+     * @param int $mascotaId ID de la mascota
+     * @return bool True si se creó correctamente o ya existía
+     */
+    protected function crearDirectorioMascota($mascotaId)
+    {
+        try {
+            $mascotaDir = _PATH_ . "resources/private/mascotas/{$mascotaId}/";
+
+            if (!file_exists($mascotaDir)) {
+                if (!mkdir($mascotaDir, 0777, true)) {
+                    debug_log([
+                        'error' => 'Failed to create mascota directory',
+                        'directory' => $mascotaDir,
+                        'mascota_id' => $mascotaId
+                    ], 'DIRECTORY_CREATION_ERROR', 'admin');
+                    return false;
+                }
+            }
+
+            return true;
+
+        } catch (Exception $e) {
+            debug_log([
+                'error' => 'Exception creating mascota directory',
+                'message' => $e->getMessage(),
+                'mascota_id' => $mascotaId
+            ], 'DIRECTORY_CREATION_EXCEPTION', 'admin');
+            return false;
+        }
+    }
+    /**
+     * Procesa la imagen de perfil recortada y la guarda como profile.jpg
+     *
+     * @param string $imageData Datos de la imagen en base64
+     * @param int $mascotaId ID de la mascota
+     * @return bool True si se procesó correctamente, false en caso de error
+     */
+    protected function procesarImagenPerfil($imageData, $mascotaId)
+    {
+        try {
+            // Decodificar imagen base64
+            $imageData = str_replace('data:image/jpeg;base64,', '', $imageData);
+            $imageData = str_replace(' ', '+', $imageData);
+            $decodedImage = base64_decode($imageData);
+
+            if ($decodedImage === false) {
+                debug_log([
+                    'error' => 'Failed to decode base64 image',
+                    'mascota_id' => $mascotaId
+                ], 'IMAGE_DECODE_ERROR', 'admin');
+                return false;
+            }
+
+            // Crear imagen desde string
+            $sourceImage = imagecreatefromstring($decodedImage);
+            if ($sourceImage === false) {
+                debug_log([
+                    'error' => 'Failed to create image from string',
+                    'mascota_id' => $mascotaId
+                ], 'IMAGE_CREATE_ERROR', 'admin');
+                return false;
+            }
+
+            // Ruta del archivo final
+            $mascotaDir = _PATH_ . "resources/private/mascotas/{$mascotaId}/";
+            $filePath = $mascotaDir . "profile.jpg";
+
+            // Guardar como JPG con calidad 90
+            $result = imagejpeg($sourceImage, $filePath, 90);
+
+            // Liberar memoria
+            imagedestroy($sourceImage);
+
+            if ($result === false) {
+                debug_log([
+                    'error' => 'Failed to save JPG image',
+                    'file_path' => $filePath,
+                    'mascota_id' => $mascotaId
+                ], 'IMAGE_SAVE_ERROR', 'admin');
+                return false;
+            }
+
+            // Verificar que el archivo se creó correctamente
+            if (!file_exists($filePath)) {
+                debug_log([
+                    'error' => 'Image file was not created',
+                    'file_path' => $filePath,
+                    'mascota_id' => $mascotaId
+                ], 'IMAGE_FILE_NOT_FOUND', 'admin');
+                return false;
+            }
+
+            debug_log([
+                'success' => 'Profile image processed successfully',
+                'file_path' => $filePath,
+                'mascota_id' => $mascotaId,
+                'file_size' => filesize($filePath)
+            ], 'IMAGE_PROCESSING_SUCCESS', 'admin');
+
+            return true;
+
+        } catch (Exception $e) {
+            debug_log([
+                'error' => 'Exception processing profile image',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'mascota_id' => $mascotaId
+            ], 'IMAGE_PROCESSING_EXCEPTION', 'admin');
+            return false;
         }
     }
 

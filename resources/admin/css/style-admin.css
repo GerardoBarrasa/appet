@@ -293,3 +293,64 @@ a.bg-secondary:focus, a.bg-secondary:hover, button.bg-secondary:focus, button.bg
     color: #FFFFFF;
     background-color: var(--colorPrimaryHover);
 }
+
+
+/**
+Estilos para Cropper.js
+ */
+.image-upload-container {
+    text-align: center;
+}
+
+.image-preview-wrapper {
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
+}
+
+.image-preview-wrapper:hover {
+    border-color: #007bff;
+    background-color: #f0f8ff;
+}
+
+.image-preview {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
+    border: 1px solid #eee;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.crop-container {
+    max-height: 400px;
+    overflow: hidden;
+}
+
+.preview-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.crop-preview {
+    width: 150px;
+    height: 150px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f9f9f9;
+}

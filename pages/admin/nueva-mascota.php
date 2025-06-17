@@ -29,7 +29,48 @@ if (class_exists('Metas')) {
 
                     <!-- Información básica -->
                     <div class="row">
-                        <div class="col-md-6">
+                        <!-- Imagen de Perfil -->
+                        <div class="col-md-4">
+                            <h5 class="mb-3"><i class="fas fa-camera mr-2"></i>Imagen de Perfil</h5>
+
+                            <div class="form-group">
+                                <div class="image-upload-container">
+                                    <!-- Preview de la imagen -->
+                                    <div class="image-preview-wrapper">
+                                        <div class="image-preview" id="imagePreview">
+                                            <i class="fas fa-camera fa-3x text-muted"></i>
+                                            <p class="text-muted mt-2">Selecciona una imagen</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Input file oculto -->
+                                    <input type="file" id="imageInput" name="imagen_perfil" accept="image/jpeg,image/jpg,image/png" style="display: none;">
+
+                                    <!-- Botones de control -->
+                                    <div class="image-controls mt-3">
+                                        <button type="button" class="btn btn-primary btn-sm" id="selectImageBtn">
+                                            <i class="fas fa-upload mr-1"></i>Seleccionar Imagen
+                                        </button>
+                                        <button type="button" class="btn btn-success btn-sm" id="cropImageBtn" style="display: none;">
+                                            <i class="fas fa-crop mr-1"></i>Recortar
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm" id="removeImageBtn" style="display: none;">
+                                            <i class="fas fa-trash mr-1"></i>Eliminar
+                                        </button>
+                                    </div>
+
+                                    <!-- Campo oculto para la imagen procesada -->
+                                    <input type="hidden" id="croppedImageData" name="cropped_image_data">
+
+                                    <small class="form-text text-muted mt-2">
+                                        Formatos permitidos: JPG, PNG<br>
+                                        Tamaño máximo: 5MB<br>
+                                        La imagen se recortará en formato cuadrado
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="nombre">
                                     Nombre <span class="text-danger">*</span>
@@ -47,7 +88,7 @@ if (class_exists('Metas')) {
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="alias">
                                     Alias
@@ -311,3 +352,49 @@ if (class_exists('Metas')) {
 
     </div>
 </section>
+
+
+
+<!-- Modal para recortar imagen -->
+<div class="modal fade" id="cropModal" tabindex="-1" role="dialog" aria-labelledby="cropModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cropModalLabel">
+                    <i class="fas fa-crop mr-2"></i>Recortar Imagen de Perfil
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="crop-container">
+                            <img id="cropImage" style="max-width: 100%;">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="preview-container">
+                            <h6>Vista Previa:</h6>
+                            <div class="preview-wrapper">
+                                <div id="cropPreview" class="crop-preview"></div>
+                            </div>
+                            <small class="text-muted mt-2 d-block">
+                                La imagen se recortará en formato cuadrado (1:1)
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmCrop">
+                    <i class="fas fa-check mr-1"></i>Aplicar Recorte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

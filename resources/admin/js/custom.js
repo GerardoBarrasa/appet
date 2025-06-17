@@ -492,6 +492,155 @@ $(document).ready(() => {
     // Solo inicializar si estamos en la página de nueva mascota
     if (document.getElementById("formNuevaMascota")) {
         initNuevaMascotaEvents()
+
+        let cropper = null;
+        let currentFile = null;
+
+        const imageInput = document.getElementById('imageInput');
+        const selectImageBtn = document.getElementById('selectImageBtn');
+        const cropImageBtn = document.getElementById('cropImageBtn');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+        const imagePreview = document.getElementById('imagePreview');
+        const cropModal = $('#cropModal');
+        const cropImage = document.getElementById('cropImage');
+        const cropPreview = document.getElementById('cropPreview');
+        const confirmCrop = document.getElementById('confirmCrop');
+        const croppedImageData = document.getElementById('croppedImageData');
+
+        // Configuración de validación de archivos
+        const maxFileSize = 5 * 1024 * 1024; // 5MB
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+
+        // Abrir selector de archivos
+        selectImageBtn.addEventListener('click', function() {
+            imageInput.click();
+        });
+
+        // Manejar selección de archivo
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validar tipo de archivo
+            if (!allowedTypes.includes(file.type)) {
+                alert('Por favor selecciona una imagen en formato JPG o PNG.');
+                return;
+            }
+
+            // Validar tamaño de archivo
+            if (file.size > maxFileSize) {
+                alert('El archivo es demasiado grande. El tamaño máximo permitido es 5MB.');
+                return;
+            }
+
+            currentFile = file;
+            loadImageForCrop(file);
+        });
+
+        // Cargar imagen para recortar
+        function loadImageForCrop(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                cropImage.src = e.target.result;
+                cropModal.modal('show');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Inicializar cropper cuando se abre el modal
+        cropModal.on('shown.bs.modal', function() {
+            if (cropper) {
+                cropper.destroy();
+            }
+
+            cropper = new Cropper(cropImage, {
+                aspectRatio: 1, // Relación de aspecto cuadrada
+                viewMode: 2,
+                dragMode: 'move',
+                autoCropArea: 0.8,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+                minContainerWidth: 300,
+                minContainerHeight: 300,
+                preview: cropPreview
+            });
+        });
+
+        // Limpiar cropper cuando se cierra el modal
+        cropModal.on('hidden.bs.modal', function() {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        });
+
+        // Confirmar recorte
+        confirmCrop.addEventListener('click', function() {
+            if (!cropper) return;
+
+            // Obtener datos del recorte
+            const canvas = cropper.getCroppedCanvas({
+                width: 400,
+                height: 400,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
+
+            // Convertir a base64
+            const croppedDataURL = canvas.toDataURL('image/jpeg', 0.9);
+
+            // Guardar datos de la imagen recortada
+            croppedImageData.value = croppedDataURL;
+
+            // Mostrar preview
+            showImagePreview(croppedDataURL);
+
+            // Cerrar modal
+            cropModal.modal('hide');
+
+            // Mostrar controles
+            cropImageBtn.style.display = 'inline-block';
+            removeImageBtn.style.display = 'inline-block';
+        });
+
+        // Mostrar preview de la imagen
+        function showImagePreview(dataURL) {
+            imagePreview.innerHTML = `<img src="${dataURL}" alt="Preview">`;
+        }
+
+        // Botón para recortar de nuevo
+        cropImageBtn.addEventListener('click', function() {
+            if (currentFile) {
+                loadImageForCrop(currentFile);
+            }
+        });
+
+        // Botón para eliminar imagen
+        removeImageBtn.addEventListener('click', function() {
+            if (confirm('¿Estás seguro de que quieres eliminar la imagen?')) {
+                resetImageUpload();
+            }
+        });
+
+        // Resetear upload de imagen
+        function resetImageUpload() {
+            imageInput.value = '';
+            croppedImageData.value = '';
+            currentFile = null;
+
+            imagePreview.innerHTML = `
+            <i class="fas fa-camera fa-3x text-muted"></i>
+            <p class="text-muted mt-2">Selecciona una imagen</p>
+        `;
+
+            cropImageBtn.style.display = 'none';
+            removeImageBtn.style.display = 'none';
+        }
     }
     $("input[data-bootstrap-switch]").each(function(){
         $(this).bootstrapSwitch('state', $(this).prop('checked'));
