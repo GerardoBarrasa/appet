@@ -1055,6 +1055,9 @@ class AdminController
             header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'mascotas/');
             exit;
         }
+        // Registrar CSS y JS para Cropper.js
+        Tools::registerStylesheet('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css');
+        Tools::registerJavascript('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js');
 
         $data = explode('-', $requestData);
         $idMascota = $data[1] ?? 0;

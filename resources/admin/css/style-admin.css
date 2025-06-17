@@ -354,3 +354,15 @@ Estilos para Cropper.js
     overflow: hidden;
     background-color: #f9f9f9;
 }
+
+.profile-image-container:hover .profile-image-overlay {
+    opacity: 1 !important;
+}
+
+.profile-image-container {
+    transition: transform 0.2s;
+}
+
+.profile-image-container:hover {
+    transform: scale(1.05);
+}

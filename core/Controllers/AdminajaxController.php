@@ -69,6 +69,7 @@ class AdminajaxController extends Controllers
             'ajax-delete-mascota',
             'ajax-save-mascota-evaluation',
             'ajax-get-mascota-details',
+            'ajax-update-profile-image',
 
             // Cuidadores
             'ajax-get-cuidadores-admin',
@@ -255,6 +256,7 @@ class AdminajaxController extends Controllers
         $this->add('ajax-delete-mascota', [$this, 'deleteMascota']);
         $this->add('ajax-save-mascota-evaluation', [$this, 'saveMascotaEvaluation']);
         $this->add('ajax-get-mascota-details', [$this, 'getMascotaDetails']);
+        $this->add('ajax-update-profile-image', [$this, 'updateProfileImage']);
 
         // ==========================================
         // CUIDADORES
@@ -1178,6 +1180,169 @@ class AdminajaxController extends Controllers
         } catch (Exception $e) {
             $this->log("Error en getMascotaDetails: " . $e->getMessage(), 'error');
             $this->sendError('Error al obtener los detalles');
+        }
+    }
+
+    /**
+     * Actualiza la imagen de perfil de una mascota
+     *
+     * @return void
+     */
+    public function updateProfileImage()
+    {
+        try {
+            // Validar campos requeridos
+            $this->validateRequiredFields(['mascota_id', 'image_data']);
+
+            $mascotaId = (int)Tools::getValue('mascota_id');
+            $imageData = Tools::getValue('image_data');
+
+            // Validar ID de mascota
+            if (!$mascotaId) {
+                $this->sendError('ID de mascota no válido');
+                return;
+            }
+
+            // Obtener la mascota para verificar permisos
+            $mascota = Mascotas::getMascotaById($mascotaId);
+            if (!$mascota) {
+                $this->log("Intento de actualizar imagen de mascota inexistente: ID {$mascotaId}", 'warning');
+                $this->sendError('Mascota no encontrada');
+                return;
+            }
+
+            // Verificar que el usuario tiene permisos para esta mascota
+            // Esto dependerá de tu lógica de permisos
+            if (!$this->userCanEditMascota($mascotaId)) {
+                $this->log("Intento de actualizar imagen sin permisos: Mascota ID {$mascotaId}", 'warning');
+                $this->sendError('No tienes permisos para modificar esta mascota');
+                return;
+            }
+
+            // Validar datos de imagen
+            if (strpos($imageData, 'data:image/') !== 0) {
+                $this->sendError('Formato de imagen no válido');
+                return;
+            }
+
+            // Directorio de la mascota
+            $mascotaDir = _RESOURCES_PATH_ . 'private/mascotas/' . $mascotaId . '/';
+
+            // Crear directorio si no existe
+            if (!is_dir($mascotaDir)) {
+                if (!mkdir($mascotaDir, 0755, true)) {
+                    $this->log("Error creando directorio para mascota ID {$mascotaId}: {$mascotaDir}", 'error');
+                    $this->sendError('Error creando directorio de la mascota');
+                    return;
+                }
+                $this->log("Directorio creado para mascota ID {$mascotaId}: {$mascotaDir}", 'info');
+            }
+
+            // Procesar imagen
+            $result = $this->processProfileImage($imageData, $mascotaDir, $mascotaId);
+
+            if ($result['success']) {
+                $imageUrl = _RESOURCES_ . 'private/mascotas/' . $mascotaId . '/profile.jpg';
+
+                $this->log("Imagen de perfil actualizada para mascota ID {$mascotaId}", 'info');
+                $this->sendSuccess([
+                    'message' => 'Imagen de perfil actualizada correctamente',
+                    'image_url' => $imageUrl
+                ]);
+            } else {
+                $this->sendError($result['message']);
+            }
+
+        } catch (Exception $e) {
+            $this->log("Error en updateProfileImage: " . $e->getMessage(), 'error');
+            $this->sendError('Error interno del servidor');
+        }
+    }
+
+    /**
+     * Verifica si el usuario puede editar una mascota
+     *
+     * @param int $mascotaId ID de la mascota
+     * @return bool True si puede editar, false si no
+     */
+    private function userCanEditMascota($mascotaId)
+    {
+        // Implementar lógica de permisos según tu sistema
+        // Por ejemplo, verificar si el usuario es el cuidador de la mascota
+        // o si es un administrador
+
+        // Por ahora, permitir a todos los usuarios autenticados
+        // Puedes modificar esto según tus necesidades
+        return isset($_SESSION['admin_panel']);
+    }
+
+    /**
+     * Procesa la imagen de perfil
+     *
+     * @param string $imageData Datos de la imagen en base64
+     * @param string $mascotaDir Directorio de la mascota
+     * @param int $mascotaId ID de la mascota
+     * @return array Resultado del procesamiento
+     */
+    private function processProfileImage($imageData, $mascotaDir, $mascotaId)
+    {
+        try {
+            // Extraer datos de la imagen
+            $imageInfo = explode(',', $imageData);
+            if (count($imageInfo) !== 2) {
+                return ['success' => false, 'message' => 'Formato de imagen no válido'];
+            }
+
+            $imageBase64 = $imageInfo[1];
+            $imageDecoded = base64_decode($imageBase64);
+
+            if (!$imageDecoded) {
+                return ['success' => false, 'message' => 'Error decodificando la imagen'];
+            }
+
+            // Validar tamaño de imagen
+            $maxSize = 5 * 1024 * 1024; // 5MB
+            if (strlen($imageDecoded) > $maxSize) {
+                return ['success' => false, 'message' => 'La imagen es demasiado grande'];
+            }
+
+            // Crear imagen desde string
+            $image = imagecreatefromstring($imageDecoded);
+            if (!$image) {
+                return ['success' => false, 'message' => 'Error procesando la imagen'];
+            }
+
+            // Hacer backup de la imagen anterior si existe
+            $profilePath = $mascotaDir . 'profile.jpg';
+            if (file_exists($profilePath)) {
+                $backupPath = $mascotaDir . 'profile_backup_' . date('Y-m-d_H-i-s') . '.jpg';
+                if (!copy($profilePath, $backupPath)) {
+                    $this->log("No se pudo crear backup de imagen para mascota ID {$mascotaId}", 'warning');
+                }
+            }
+
+            // Guardar como JPG con calidad 90
+            $success = imagejpeg($image, $profilePath, 90);
+
+            // Liberar memoria
+            imagedestroy($image);
+
+            if (!$success) {
+                return ['success' => false, 'message' => 'Error guardando la imagen'];
+            }
+
+            // Verificar que el archivo se guardó correctamente
+            if (!file_exists($profilePath) || filesize($profilePath) === 0) {
+                return ['success' => false, 'message' => 'Error verificando la imagen guardada'];
+            }
+
+            $this->log("Imagen de perfil procesada correctamente para mascota ID {$mascotaId}. Tamaño: " . filesize($profilePath) . " bytes", 'info');
+
+            return ['success' => true, 'message' => 'Imagen procesada correctamente'];
+
+        } catch (Exception $e) {
+            $this->log("Error procesando imagen para mascota ID {$mascotaId}: " . $e->getMessage(), 'error');
+            return ['success' => false, 'message' => 'Error procesando la imagen: ' . $e->getMessage()];
         }
     }
 

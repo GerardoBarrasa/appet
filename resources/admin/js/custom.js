@@ -600,7 +600,7 @@ function initImageCropper(config = {}) {
     // Verificar que todos los elementos existan
     const missingElements = []
     Object.keys(elements).forEach((key) => {
-        if (!elements[key] || (key === "modal" && elements[key].length === 0)) {
+        if (!elements[key] && key !== "cropBtn" && key !== "removeBtn") {
             missingElements.push(settings[key + "Id"] || key)
         }
     })
@@ -625,9 +625,11 @@ function initImageCropper(config = {}) {
     // Event Listeners
 
     // Abrir selector de archivos
-    elements.selectBtn.addEventListener("click", () => {
-        elements.imageInput.click()
-    })
+    if (elements.selectBtn) {
+        elements.selectBtn.addEventListener("click", () => {
+            elements.imageInput.click()
+        })
+    }
 
     // Manejar selección de archivo
     elements.imageInput.addEventListener("change", (e) => {
@@ -695,10 +697,15 @@ function initImageCropper(config = {}) {
             const croppedDataURL = canvas.toDataURL(settings.outputOptions.format, settings.outputOptions.quality)
 
             // Guardar datos de la imagen recortada
-            elements.hiddenInput.value = croppedDataURL
+            // Guardar datos de la imagen recortada
+            if (elements.hiddenInput) {
+                elements.hiddenInput.value = croppedDataURL
+            }
 
             // Mostrar preview
-            showImagePreview(croppedDataURL)
+            if (elements.preview) {
+                showImagePreview(croppedDataURL)
+            }
 
             // Cerrar modal
             elements.modal.modal("hide")
@@ -721,7 +728,9 @@ function initImageCropper(config = {}) {
 
     // Mostrar preview de la imagen
     function showImagePreview(dataURL) {
-        elements.preview.innerHTML = `<img src="${dataURL}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">`
+        if (elements.preview) {
+            elements.preview.innerHTML = `<img src="${dataURL}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">`
+        }
     }
 
     // Botón para recortar de nuevo
@@ -745,13 +754,17 @@ function initImageCropper(config = {}) {
     // Resetear upload de imagen
     function resetImageUpload() {
         elements.imageInput.value = ""
-        elements.hiddenInput.value = ""
+        if (elements.hiddenInput) {
+            elements.hiddenInput.value = ""
+        }
         currentFile = null
 
-        elements.preview.innerHTML = `
+        if (elements.preview) {
+            elements.preview.innerHTML = `
             <i class="fas fa-camera fa-3x text-muted"></i>
             <p class="text-muted mt-2">Selecciona una imagen</p>
         `
+        }
 
         if (elements.cropBtn) elements.cropBtn.style.display = "none"
         if (elements.removeBtn) elements.removeBtn.style.display = "none"
@@ -766,7 +779,7 @@ function initImageCropper(config = {}) {
     return {
         reset: resetImageUpload,
         getCurrentFile: () => currentFile,
-        getCroppedData: () => elements.hiddenInput.value,
+        getCroppedData: () => (elements.hiddenInput ? elements.hiddenInput.value : null),
         showPreview: showImagePreview,
         destroy: () => {
             if (cropper) {
@@ -793,6 +806,207 @@ function initStandardImageCropper(callbacks = {}) {
     })
 }
 
+
+
+// ========================================
+// FUNCIONALIDAD DE IMAGEN DE PERFIL DE MASCOTA
+// ========================================
+
+/**
+ * Inicializa el sistema de cambio de imagen de perfil para mascotas
+ * @param {Object} config - Configuración personalizada
+ */
+function initProfileImageCropper(config = {}) {
+    // Verificar que estamos en la página correcta
+    if (!document.getElementById("profileImage")) {
+        return false
+    }
+
+    // Configuración por defecto
+    const defaultConfig = {
+        mascotaId: null,
+        imageInputId: "profileImageInput",
+        profileImageId: "profileImage",
+        cropModalId: "profileCropModal",
+        cropImageId: "profileCropImage",
+        cropPreviewId: "profileCropPreview",
+        confirmBtnId: "profileConfirmCrop",
+        loadingId: "profileImageLoading",
+        ajaxUrl: null,
+        validation: {
+            maxFileSize: 5 * 1024 * 1024, // 5MB
+            allowedTypes: ["image/jpeg", "image/jpg", "image/png"],
+        },
+    }
+
+    // Combinar configuración
+    const settings = Object.assign({}, defaultConfig, config)
+    settings.validation = Object.assign({}, defaultConfig.validation, config.validation || {})
+
+    // Verificar configuración requerida
+    if (!settings.mascotaId) {
+        console.error("Se requiere el ID de la mascota")
+        return false
+    }
+
+    if (!settings.ajaxUrl) {
+        console.error("Se requiere la URL del endpoint AJAX")
+        return false
+    }
+
+    // Variables globales para el cropper de perfil
+    let profileCropper = null
+    let currentProfileFile = null
+
+    // Inicializar tooltips
+    $('[data-toggle="tooltip"]').tooltip()
+
+    // Función para cambiar imagen de perfil
+    window.changeProfileImage = () => {
+        $("#" + settings.imageInputId).click()
+    }
+
+    // Manejar selección de archivo
+    $("#" + settings.imageInputId).on("change", (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+
+        // Validar tipo de archivo
+        if (!settings.validation.allowedTypes.includes(file.type)) {
+            toastr.error("Por favor selecciona una imagen en formato JPG o PNG.")
+            return
+        }
+
+        // Validar tamaño de archivo
+        if (file.size > settings.validation.maxFileSize) {
+            toastr.error("El archivo es demasiado grande. El tamaño máximo permitido es 5MB.")
+            return
+        }
+
+        currentProfileFile = file
+        loadProfileImageForCrop(file)
+    })
+
+    // Cargar imagen para recortar
+    function loadProfileImageForCrop(file) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            $("#" + settings.cropImageId).attr("src", e.target.result)
+            $("#" + settings.cropModalId).modal("show")
+        }
+        reader.readAsDataURL(file)
+    }
+
+    // Inicializar cropper cuando se abre el modal
+    $("#" + settings.cropModalId).on("shown.bs.modal", () => {
+        if (profileCropper) {
+            profileCropper.destroy()
+        }
+
+        profileCropper = new Cropper(document.getElementById(settings.cropImageId), {
+            aspectRatio: 1, // Relación de aspecto cuadrada
+            viewMode: 2,
+            dragMode: "move",
+            autoCropArea: 0.8,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            minContainerWidth: 300,
+            minContainerHeight: 300,
+            preview: "#" + settings.cropPreviewId,
+        })
+    })
+
+    // Limpiar cropper cuando se cierra el modal
+    $("#" + settings.cropModalId).on("hidden.bs.modal", () => {
+        if (profileCropper) {
+            profileCropper.destroy()
+            profileCropper = null
+        }
+    })
+
+    // Confirmar recorte y enviar por AJAX
+    $("#" + settings.confirmBtnId).on("click", () => {
+        if (!profileCropper) return
+
+        try {
+            // Mostrar loading
+            $("#" + settings.loadingId).show()
+            $("#" + settings.cropModalId).modal("hide")
+
+            // Obtener datos del recorte
+            const canvas = profileCropper.getCroppedCanvas({
+                width: 400,
+                height: 400,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: "high",
+            })
+
+            // Convertir a base64
+            const croppedDataURL = canvas.toDataURL("image/jpeg", 0.9)
+
+            // Enviar por AJAX
+            $.ajax({
+                url: settings.ajaxUrl,
+                type: "POST",
+                data: {
+                    mascota_id: settings.mascotaId,
+                    image_data: croppedDataURL,
+                },
+                success: (response) => {
+                    $("#" + settings.loadingId).hide()
+
+                    if (response && response.type === "success") {
+                        toastr.success("Imagen de perfil actualizada correctamente")
+                        setTimeout(() => {
+                            location.reload()
+                        }, 500)
+                    } else {
+                        toastr.error(response.message || "Error al actualizar la imagen")
+                    }
+                },
+                error: (xhr, status, error) => {
+                    $("#" + settings.loadingId).hide()
+                    console.error("Error AJAX:", error)
+                    toastr.error("Error al comunicarse con el servidor")
+                },
+            })
+        } catch (error) {
+            $("#" + settings.loadingId).hide()
+            console.error("Error al procesar la imagen:", error)
+            toastr.error("Error al procesar la imagen")
+        }
+    })
+
+    return {
+        destroy: () => {
+            if (profileCropper) {
+                profileCropper.destroy()
+                profileCropper = null
+            }
+        },
+    }
+}
+
+// Inicializar el cropper de perfil si estamos en la página de mascota
+$(document).ready(() => {
+    // Verificar si estamos en la página de mascota
+    if (document.getElementById("profileImage")) {
+        // Obtener el ID de la mascota del elemento
+        const mascotaId = document.getElementById("profileImage").getAttribute("data-mascota-id")
+
+        if (mascotaId) {
+            initProfileImageCropper({
+                mascotaId: mascotaId,
+                ajaxUrl: dominio + "adminajax/ajax-update-profile-image/",
+            })
+        }
+    }
+})
 
 /**
  * Funciones para la página de nueva mascota

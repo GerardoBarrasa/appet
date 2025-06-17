@@ -14,8 +14,38 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                 <!-- Profile Image -->
                 <div class="card card-primary card-outline">
                     <div class="card-body box-profile">
-                        <div class="text-center">
-                            <img class="profile-user-img img-fluid img-circle w-100" src="<?=$image?>" alt="<?=$mascota->nombre?>">
+                        <div class="text-center position-relative">
+                            <img id="profileImage"
+                                 class="profile-user-img img-fluid img-circle w-100 clickable"
+                                 src="<?=$image?>"
+                                 alt="<?=$mascota->nombre?>"
+                                 data-mascota-id="<?=$mascota->id?>"
+                                 onclick="changeProfileImage()"
+                                 style="cursor: pointer; transition: opacity 0.3s ease;"
+                                 onmouseover="this.style.opacity='0.8'"
+                                 onmouseout="this.style.opacity='1'"
+                                 data-toggle="tooltip"
+                                 title="Click para cambiar la imagen de perfil">
+
+                            <!-- Overlay de cámara -->
+                            <div class="position-absolute"
+                                 style="top: 50%; left: 50%; transform: translate(-50%, -50%);
+                                        background: rgba(0,0,0,0.7); border-radius: 50%;
+                                        width: 40px; height: 40px; display: flex;
+                                        align-items: center; justify-content: center;
+                                        opacity: 0; transition: opacity 0.3s ease; pointer-events: none;"
+                                 id="cameraOverlay">
+                                <i class="fas fa-camera text-white"></i>
+                            </div>
+
+                            <!-- Loading spinner -->
+                            <div id="profileImageLoading"
+                                 class="position-absolute"
+                                 style="top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Cargando...</span>
+                                </div>
+                            </div>
                         </div>
 
                         <h3 class="profile-username clickable text-center editable" data-type="mascota" data-content="nombre" data-id="<?=$mascota->id?>" onclick="modalGeneral(this)">
@@ -83,17 +113,17 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                                             </span>
                                             <i class="fa fa-save fs-4 text-secondary clickable d-none save_<?=Tools::urlAmigable($cr->nombre)?>" onclick="saveEvaluation('<?=$mascota->id?>','evaluate_<?=Tools::urlAmigable($cr->nombre)?>')"></i>
                                         </div>
-                                    <?php $cnom = $cr->nombre;}
+                                        <?php $cnom = $cr->nombre;}
                                     if($cr->tipo == 'escala'){
                                         $values = explode(',', $cr->valores);?>
-                                            <div class="d-flex align-items-center justify-content-between">
-                                                <div class="col-11">
-                                                    <div class="slider-yellow">
-                                                        <input type="text" value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> slider form-control" data-slider-min="<?=min($values)?>" data-slider-max="<?=max($values)?>" data-slider-step="1" data-slider-value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-slider-orientation="horizontal" data-slider-selection="before" data-slider-tooltip="show" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onchange="compruebaCambios(this)">
-                                                    </div>
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div class="col-11">
+                                                <div class="slider-yellow">
+                                                    <input type="text" value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" class="detchng evaluate_<?=Tools::urlAmigable($cr->nombre)?> slider form-control" data-slider-min="<?=min($values)?>" data-slider-max="<?=max($values)?>" data-slider-step="1" data-slider-value="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-slider-orientation="horizontal" data-slider-selection="before" data-slider-tooltip="show" data-crslug="<?=$cr->slug?>" data-crtype="<?=$cr->tipo?>" data-crid="<?=$cr->id?>" data-orig="<?=isset($mascotaCaracteristicas[$cr->id]) ? $mascotaCaracteristicas[$cr->id]->valor : 0 ?>" data-savebtn="save_<?=Tools::urlAmigable($cr->nombre)?>" onchange="compruebaCambios(this)">
                                                 </div>
-                                                <i class="fa fa-question-circle text-info fs-4 pl-2" data-toggle="tooltip" title="<?=$cr->texto_ayuda?>"></i>
                                             </div>
+                                            <i class="fa fa-question-circle text-info fs-4 pl-2" data-toggle="tooltip" title="<?=$cr->texto_ayuda?>"></i>
+                                        </div>
 
                                     <?php }
                                     if($cr->tipo == 'texto'){
@@ -397,3 +427,67 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
     </div><!-- /.container-fluid -->
 </section>
 <!-- /.content -->
+
+<!-- Input file oculto para seleccionar imagen -->
+<input type="file" id="profileImageInput" accept="image/jpeg,image/jpg,image/png" style="display: none;">
+
+<!-- Modal para recortar imagen de perfil -->
+<div class="modal fade" id="profileCropModal" tabindex="-1" role="dialog" aria-labelledby="profileCropModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileCropModalLabel">
+                    <i class="fas fa-crop-alt mr-2"></i>Recortar imagen de perfil
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="img-container">
+                            <img id="profileCropImage" src="/placeholder.svg" alt="Imagen a recortar" style="max-width: 100%;">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="preview-container">
+                            <h6 class="text-center mb-3">Vista previa</h6>
+                            <div id="profileCropPreview"
+                                 style="width: 150px; height: 150px; border-radius: 50%;
+                                        overflow: hidden; margin: 0 auto; border: 2px solid #ddd;"></div>
+                            <div class="mt-3 text-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    La imagen se guardará como 400x400px en formato JPG
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="profileConfirmCrop">
+                    <i class="fas fa-check mr-1"></i>Aplicar recorte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Efecto hover para mostrar overlay de cámara
+    $(document).ready(function() {
+        $('#profileImage').hover(
+            function() {
+                $('#cameraOverlay').css('opacity', '1');
+            },
+            function() {
+                $('#cameraOverlay').css('opacity', '0');
+            }
+        );
+    });
+</script>
