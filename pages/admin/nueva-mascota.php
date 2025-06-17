@@ -398,3 +398,22 @@ if (class_exists('Metas')) {
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(() => {
+        // Inicializar el sistema de recorte de imágenes
+        const imageCropper = initStandardImageCropper({
+            onSuccess: function (dataURL, file) {
+                if (dataURL) {
+                    console.log('Imagen de perfil procesada correctamente');
+                } else {
+                    console.log('Imagen de perfil eliminada');
+                }
+            },
+            onError: function (error) {
+                console.error('Error procesando imagen de perfil:', error);
+                alert('Error al procesar la imagen. Por favor, inténtalo de nuevo.');
+            }
+        });
+    })
+</script>

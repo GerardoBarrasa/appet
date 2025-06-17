@@ -492,155 +492,6 @@ $(document).ready(() => {
     // Solo inicializar si estamos en la página de nueva mascota
     if (document.getElementById("formNuevaMascota")) {
         initNuevaMascotaEvents()
-
-        let cropper = null;
-        let currentFile = null;
-
-        const imageInput = document.getElementById('imageInput');
-        const selectImageBtn = document.getElementById('selectImageBtn');
-        const cropImageBtn = document.getElementById('cropImageBtn');
-        const removeImageBtn = document.getElementById('removeImageBtn');
-        const imagePreview = document.getElementById('imagePreview');
-        const cropModal = $('#cropModal');
-        const cropImage = document.getElementById('cropImage');
-        const cropPreview = document.getElementById('cropPreview');
-        const confirmCrop = document.getElementById('confirmCrop');
-        const croppedImageData = document.getElementById('croppedImageData');
-
-        // Configuración de validación de archivos
-        const maxFileSize = 5 * 1024 * 1024; // 5MB
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-
-        // Abrir selector de archivos
-        selectImageBtn.addEventListener('click', function() {
-            imageInput.click();
-        });
-
-        // Manejar selección de archivo
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // Validar tipo de archivo
-            if (!allowedTypes.includes(file.type)) {
-                alert('Por favor selecciona una imagen en formato JPG o PNG.');
-                return;
-            }
-
-            // Validar tamaño de archivo
-            if (file.size > maxFileSize) {
-                alert('El archivo es demasiado grande. El tamaño máximo permitido es 5MB.');
-                return;
-            }
-
-            currentFile = file;
-            loadImageForCrop(file);
-        });
-
-        // Cargar imagen para recortar
-        function loadImageForCrop(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                cropImage.src = e.target.result;
-                cropModal.modal('show');
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Inicializar cropper cuando se abre el modal
-        cropModal.on('shown.bs.modal', function() {
-            if (cropper) {
-                cropper.destroy();
-            }
-
-            cropper = new Cropper(cropImage, {
-                aspectRatio: 1, // Relación de aspecto cuadrada
-                viewMode: 2,
-                dragMode: 'move',
-                autoCropArea: 0.8,
-                restore: false,
-                guides: true,
-                center: true,
-                highlight: false,
-                cropBoxMovable: true,
-                cropBoxResizable: true,
-                toggleDragModeOnDblclick: false,
-                minContainerWidth: 300,
-                minContainerHeight: 300,
-                preview: cropPreview
-            });
-        });
-
-        // Limpiar cropper cuando se cierra el modal
-        cropModal.on('hidden.bs.modal', function() {
-            if (cropper) {
-                cropper.destroy();
-                cropper = null;
-            }
-        });
-
-        // Confirmar recorte
-        confirmCrop.addEventListener('click', function() {
-            if (!cropper) return;
-
-            // Obtener datos del recorte
-            const canvas = cropper.getCroppedCanvas({
-                width: 400,
-                height: 400,
-                imageSmoothingEnabled: true,
-                imageSmoothingQuality: 'high'
-            });
-
-            // Convertir a base64
-            const croppedDataURL = canvas.toDataURL('image/jpeg', 0.9);
-
-            // Guardar datos de la imagen recortada
-            croppedImageData.value = croppedDataURL;
-
-            // Mostrar preview
-            showImagePreview(croppedDataURL);
-
-            // Cerrar modal
-            cropModal.modal('hide');
-
-            // Mostrar controles
-            cropImageBtn.style.display = 'inline-block';
-            removeImageBtn.style.display = 'inline-block';
-        });
-
-        // Mostrar preview de la imagen
-        function showImagePreview(dataURL) {
-            imagePreview.innerHTML = `<img src="${dataURL}" alt="Preview">`;
-        }
-
-        // Botón para recortar de nuevo
-        cropImageBtn.addEventListener('click', function() {
-            if (currentFile) {
-                loadImageForCrop(currentFile);
-            }
-        });
-
-        // Botón para eliminar imagen
-        removeImageBtn.addEventListener('click', function() {
-            if (confirm('¿Estás seguro de que quieres eliminar la imagen?')) {
-                resetImageUpload();
-            }
-        });
-
-        // Resetear upload de imagen
-        function resetImageUpload() {
-            imageInput.value = '';
-            croppedImageData.value = '';
-            currentFile = null;
-
-            imagePreview.innerHTML = `
-            <i class="fas fa-camera fa-3x text-muted"></i>
-            <p class="text-muted mt-2">Selecciona una imagen</p>
-        `;
-
-            cropImageBtn.style.display = 'none';
-            removeImageBtn.style.display = 'none';
-        }
     }
     $("input[data-bootstrap-switch]").each(function(){
         $(this).bootstrapSwitch('state', $(this).prop('checked'));
@@ -648,6 +499,299 @@ $(document).ready(() => {
 
     mostrarAlertasPHP()
 })
+
+
+// ========================================
+// FUNCIONALIDAD DE RECORTE DE IMÁGENES
+// ========================================
+
+/**
+ * Inicializa el sistema de recorte de imágenes
+ * @param {Object} config - Configuración personalizada
+ * @param {string} config.imageInputId - ID del input file
+ * @param {string} config.selectBtnId - ID del botón seleccionar
+ * @param {string} config.cropBtnId - ID del botón recortar
+ * @param {string} config.removeBtnId - ID del botón eliminar
+ * @param {string} config.previewId - ID del contenedor preview
+ * @param {string} config.modalId - ID del modal de recorte
+ * @param {string} config.cropImageId - ID de la imagen a recortar
+ * @param {string} config.cropPreviewId - ID del preview del recorte
+ * @param {string} config.confirmBtnId - ID del botón confirmar
+ * @param {string} config.hiddenInputId - ID del input hidden para datos
+ * @param {Object} config.validation - Configuración de validación
+ * @param {Function} config.onSuccess - Callback cuando se recorta exitosamente
+ * @param {Function} config.onError - Callback cuando hay error
+ */
+function initImageCropper(config = {}) {
+    // Verificar que Cropper.js esté disponible
+    if (typeof Cropper === "undefined") {
+        console.error("Cropper.js no está cargado. Asegúrate de incluir la librería.")
+        return false
+    }
+
+    // Configuración por defecto
+    const defaultConfig = {
+        imageInputId: "imageInput",
+        selectBtnId: "selectImageBtn",
+        cropBtnId: "cropImageBtn",
+        removeBtnId: "removeImageBtn",
+        previewId: "imagePreview",
+        modalId: "cropModal",
+        cropImageId: "cropImage",
+        cropPreviewId: "cropPreview",
+        confirmBtnId: "confirmCrop",
+        hiddenInputId: "croppedImageData",
+        validation: {
+            maxFileSize: 5 * 1024 * 1024, // 5MB
+            allowedTypes: ["image/jpeg", "image/jpg", "image/png"],
+            messages: {
+                invalidType: "Por favor selecciona una imagen en formato JPG o PNG.",
+                fileTooBig: "El archivo es demasiado grande. El tamaño máximo permitido es 5MB.",
+                confirmDelete: "¿Estás seguro de que quieres eliminar la imagen?",
+            },
+        },
+        cropOptions: {
+            aspectRatio: 1,
+            viewMode: 2,
+            dragMode: "move",
+            autoCropArea: 0.8,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            minContainerWidth: 300,
+            minContainerHeight: 300,
+        },
+        outputOptions: {
+            width: 400,
+            height: 400,
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: "high",
+            format: "image/jpeg",
+            quality: 0.9,
+        },
+        onSuccess: null,
+        onError: null,
+    }
+
+    // Combinar configuración
+    const settings = Object.assign({}, defaultConfig, config)
+    settings.validation = Object.assign({}, defaultConfig.validation, config.validation || {})
+    settings.cropOptions = Object.assign({}, defaultConfig.cropOptions, config.cropOptions || {})
+    settings.outputOptions = Object.assign({}, defaultConfig.outputOptions, config.outputOptions || {})
+
+    // Obtener elementos del DOM
+    const elements = {
+        imageInput: document.getElementById(settings.imageInputId),
+        selectBtn: document.getElementById(settings.selectBtnId),
+        cropBtn: document.getElementById(settings.cropBtnId),
+        removeBtn: document.getElementById(settings.removeBtnId),
+        preview: document.getElementById(settings.previewId),
+        modal: $("#" + settings.modalId),
+        cropImage: document.getElementById(settings.cropImageId),
+        cropPreview: document.getElementById(settings.cropPreviewId),
+        confirmBtn: document.getElementById(settings.confirmBtnId),
+        hiddenInput: document.getElementById(settings.hiddenInputId),
+    }
+
+    // Verificar que todos los elementos existan
+    const missingElements = []
+    Object.keys(elements).forEach((key) => {
+        if (!elements[key] || (key === "modal" && elements[key].length === 0)) {
+            missingElements.push(settings[key + "Id"] || key)
+        }
+    })
+
+    if (missingElements.length > 0) {
+        console.error("Elementos no encontrados:", missingElements)
+        if (settings.onError) {
+            settings.onError("Elementos del DOM no encontrados: " + missingElements.join(", "))
+        }
+        return false
+    }
+
+    // Variables del cropper
+    let cropper = null
+    let currentFile = null
+
+    // Configurar preview del cropper
+    if (elements.cropPreview) {
+        settings.cropOptions.preview = elements.cropPreview
+    }
+
+    // Event Listeners
+
+    // Abrir selector de archivos
+    elements.selectBtn.addEventListener("click", () => {
+        elements.imageInput.click()
+    })
+
+    // Manejar selección de archivo
+    elements.imageInput.addEventListener("change", (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+
+        // Validar tipo de archivo
+        if (!settings.validation.allowedTypes.includes(file.type)) {
+            alert(settings.validation.messages.invalidType)
+            if (settings.onError) {
+                settings.onError("Tipo de archivo no válido: " + file.type)
+            }
+            return
+        }
+
+        // Validar tamaño de archivo
+        if (file.size > settings.validation.maxFileSize) {
+            alert(settings.validation.messages.fileTooBig)
+            if (settings.onError) {
+                settings.onError("Archivo demasiado grande: " + file.size + " bytes")
+            }
+            return
+        }
+
+        currentFile = file
+        loadImageForCrop(file)
+    })
+
+    // Cargar imagen para recortar
+    function loadImageForCrop(file) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            elements.cropImage.src = e.target.result
+            elements.modal.modal("show")
+        }
+        reader.readAsDataURL(file)
+    }
+
+    // Inicializar cropper cuando se abre el modal
+    elements.modal.on("shown.bs.modal", () => {
+        if (cropper) {
+            cropper.destroy()
+        }
+
+        cropper = new Cropper(elements.cropImage, settings.cropOptions)
+    })
+
+    // Limpiar cropper cuando se cierra el modal
+    elements.modal.on("hidden.bs.modal", () => {
+        if (cropper) {
+            cropper.destroy()
+            cropper = null
+        }
+    })
+
+    // Confirmar recorte
+    elements.confirmBtn.addEventListener("click", () => {
+        if (!cropper) return
+
+        try {
+            // Obtener datos del recorte
+            const canvas = cropper.getCroppedCanvas(settings.outputOptions)
+
+            // Convertir a base64
+            const croppedDataURL = canvas.toDataURL(settings.outputOptions.format, settings.outputOptions.quality)
+
+            // Guardar datos de la imagen recortada
+            elements.hiddenInput.value = croppedDataURL
+
+            // Mostrar preview
+            showImagePreview(croppedDataURL)
+
+            // Cerrar modal
+            elements.modal.modal("hide")
+
+            // Mostrar controles
+            if (elements.cropBtn) elements.cropBtn.style.display = "inline-block"
+            if (elements.removeBtn) elements.removeBtn.style.display = "inline-block"
+
+            // Callback de éxito
+            if (settings.onSuccess) {
+                settings.onSuccess(croppedDataURL, currentFile)
+            }
+        } catch (error) {
+            console.error("Error al procesar la imagen:", error)
+            if (settings.onError) {
+                settings.onError("Error al procesar la imagen: " + error.message)
+            }
+        }
+    })
+
+    // Mostrar preview de la imagen
+    function showImagePreview(dataURL) {
+        elements.preview.innerHTML = `<img src="${dataURL}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">`
+    }
+
+    // Botón para recortar de nuevo
+    if (elements.cropBtn) {
+        elements.cropBtn.addEventListener("click", () => {
+            if (currentFile) {
+                loadImageForCrop(currentFile)
+            }
+        })
+    }
+
+    // Botón para eliminar imagen
+    if (elements.removeBtn) {
+        elements.removeBtn.addEventListener("click", () => {
+            if (confirm(settings.validation.messages.confirmDelete)) {
+                resetImageUpload()
+            }
+        })
+    }
+
+    // Resetear upload de imagen
+    function resetImageUpload() {
+        elements.imageInput.value = ""
+        elements.hiddenInput.value = ""
+        currentFile = null
+
+        elements.preview.innerHTML = `
+            <i class="fas fa-camera fa-3x text-muted"></i>
+            <p class="text-muted mt-2">Selecciona una imagen</p>
+        `
+
+        if (elements.cropBtn) elements.cropBtn.style.display = "none"
+        if (elements.removeBtn) elements.removeBtn.style.display = "none"
+
+        // Callback de eliminación
+        if (settings.onSuccess) {
+            settings.onSuccess(null, null)
+        }
+    }
+
+    // Métodos públicos
+    return {
+        reset: resetImageUpload,
+        getCurrentFile: () => currentFile,
+        getCroppedData: () => elements.hiddenInput.value,
+        showPreview: showImagePreview,
+        destroy: () => {
+            if (cropper) {
+                cropper.destroy()
+                cropper = null
+            }
+        },
+    }
+}
+
+// Función de conveniencia para inicializar con configuración estándar
+function initStandardImageCropper(callbacks = {}) {
+    return initImageCropper({
+        onSuccess:
+            callbacks.onSuccess ||
+            ((dataURL, file) => {
+                console.log("Imagen procesada correctamente")
+            }),
+        onError:
+            callbacks.onError ||
+            ((error) => {
+                console.error("Error en el procesamiento de imagen:", error)
+            }),
+    })
+}
 
 
 /**
