@@ -1,114 +1,118 @@
 <?php
 /**
- * Script de Despliegue Automático para IONOS
- *
- * Este script se ejecuta cuando GitHub envía un webhook
- * y actualiza automáticamente los archivos del servidor
+ * Script de Despliegue Automático - Versión Mejorada
+ * Maneja mejor los errores y proporciona más información
  */
 
-// Configuración de seguridad
-define('DEPLOY_SECRET', 'Qhz8xR84CgISZhDxnohzCair546MvuqWPKHqGr3oEKU5DWVhxnw02kZhDxnorv7a');
-define('GITHUB_REPO', 'https://github.com/GerardoBarrasa/appet');
-define('DEPLOY_PATH', '/'); // Ruta donde está tu proyecto
-define('LOG_FILE', 'log/deploy_'.date('Ymd').'.log');
+// Configuración
+define('DEPLOY_SECRET', 'tu_clave_secreta_muy_segura_2024');
+define('LOG_FILE', 'deploy.log');
 
-// Función para escribir logs
-function writeLog($message) {
+// Función para escribir logs con más detalle
+function writeLog($message, $level = 'INFO') {
     $timestamp = date('Y-m-d H:i:s');
-    file_put_contents(LOG_FILE, "[$timestamp] $message\n", FILE_APPEND | LOCK_EX);
+    $logEntry = "[$timestamp] [$level] $message\n";
+    file_put_contents(LOG_FILE, $logEntry, FILE_APPEND | LOCK_EX);
+
+    // También mostrar en pantalla para debugging
+    if ($level === 'ERROR') {
+        echo "ERROR: $message\n";
+    }
 }
 
-// Función para ejecutar comandos
-function executeCommand($command) {
-    writeLog("Ejecutando: $command");
+// Función para ejecutar comandos con mejor manejo de errores
+function executeCommand($command, $description = '') {
+    writeLog("Ejecutando: $command" . ($description ? " ($description)" : ''));
+
     $output = shell_exec($command . ' 2>&1');
-    writeLog("Resultado: " . $output);
+    $exitCode = shell_exec('echo $?');
+
+    writeLog("Salida: " . trim($output));
+    writeLog("Código de salida: " . trim($exitCode));
+
+    if (trim($exitCode) !== '0') {
+        writeLog("ADVERTENCIA: Comando falló con código " . trim($exitCode), 'WARNING');
+    }
+
     return $output;
 }
 
-// Verificar que es una petición POST
+// Verificar método de petición
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    writeLog('Petición rechazada: método no es POST', 'ERROR');
     http_response_code(405);
     die('Método no permitido');
 }
 
-// Verificar el secret token (seguridad)
+// Verificar signature
 $headers = getallheaders();
 $signature = isset($headers['X-Hub-Signature-256']) ? $headers['X-Hub-Signature-256'] : '';
 
 if (empty($signature)) {
-    writeLog('ERROR: No se recibió signature de GitHub');
+    writeLog('Petición rechazada: sin signature', 'ERROR');
     http_response_code(401);
     die('No autorizado');
 }
 
-// Verificar la firma
 $payload = file_get_contents('php://input');
 $expectedSignature = 'sha256=' . hash_hmac('sha256', $payload, DEPLOY_SECRET);
 
 if (!hash_equals($expectedSignature, $signature)) {
-    writeLog('ERROR: Signature inválida');
+    writeLog('Petición rechazada: signature inválida', 'ERROR');
     http_response_code(401);
     die('Signature inválida');
 }
 
-// Decodificar el payload de GitHub
+// Decodificar payload
 $data = json_decode($payload, true);
-
 if (!$data) {
-    writeLog('ERROR: Payload JSON inválido');
+    writeLog('Payload JSON inválido', 'ERROR');
     http_response_code(400);
     die('Payload inválido');
 }
 
-// Verificar que es un push a la rama main/master
+// Verificar rama
 if ($data['ref'] !== 'refs/heads/main' && $data['ref'] !== 'refs/heads/master') {
-    writeLog('INFO: Push ignorado - no es rama principal');
+    writeLog('Push ignorado - rama: ' . $data['ref']);
     die('Push ignorado - no es rama principal');
 }
 
+// Iniciar despliegue
 writeLog('=== INICIANDO DESPLIEGUE ===');
 writeLog('Repositorio: ' . $data['repository']['full_name']);
 writeLog('Commit: ' . $data['head_commit']['id']);
 writeLog('Mensaje: ' . $data['head_commit']['message']);
+writeLog('Autor: ' . $data['head_commit']['author']['name']);
 
 try {
-    // Cambiar al directorio del proyecto
-    chdir(DEPLOY_PATH);
+    // Verificar que estamos en un repositorio Git
+    if (!is_dir('.git')) {
+        throw new Exception('El directorio no es un repositorio Git. Ejecuta setup-repo.php primero.');
+    }
 
-    // 1. Hacer backup de archivos críticos
-    writeLog('1. Creando backup...');
-    executeCommand('cp core/settings.php core/settings.php.backup');
-    executeCommand('cp -r resources/private resources/private.backup');
+    writeLog('1. Verificando estado del repositorio...');
+    executeCommand('git status --porcelain', 'Estado del repositorio');
 
-    // 2. Hacer git pull
-    writeLog('2. Actualizando código...');
-    executeCommand('git fetch origin');
-    executeCommand('git reset --hard origin/main'); // o origin/master
+    writeLog('2. Descargando cambios...');
+    executeCommand('git fetch origin', 'Fetch de cambios');
 
-    // 3. Restaurar archivos críticos
-    writeLog('3. Restaurando configuración...');
-    executeCommand('cp core/settings.php.backup core/settings.php');
-    executeCommand('cp -r resources/private.backup/* resources/private/');
+    writeLog('3. Aplicando cambios...');
+    executeCommand('git reset --hard origin/main', 'Reset hard a origin/main');
 
-    // 4. Limpiar backups
-    executeCommand('rm core/settings.php.backup');
-    executeCommand('rm -rf resources/private.backup');
+    writeLog('4. Verificando archivos actualizados...');
+    executeCommand('git log --oneline -3', 'Últimos commits');
 
-    // 5. Establecer permisos correctos
-    writeLog('4. Configurando permisos...');
-    executeCommand('find . -type f -name "*.php" -exec chmod 644 {} \;');
-    executeCommand('find . -type d -exec chmod 755 {} \;');
-    executeCommand('chmod 777 resources/private/mascotas');
-    executeCommand('chmod 777 resources/private/cuidadores');
+    writeLog('5. Configurando permisos...');
+    executeCommand('find . -type f -name "*.php" -exec chmod 644 {} \;', 'Permisos archivos PHP');
+    executeCommand('find . -type d -exec chmod 755 {} \;', 'Permisos directorios');
 
-    // 6. Limpiar cache si existe
-    writeLog('5. Limpiando cache...');
-    executeCommand('rm -rf cache/*');
+    // Configurar permisos especiales si existen
+    if (is_dir('resources/private')) {
+        executeCommand('chmod -R 777 resources/private', 'Permisos recursos privados');
+    }
 
     writeLog('=== DESPLIEGUE COMPLETADO EXITOSAMENTE ===');
 
-    // Respuesta exitosa
     http_response_code(200);
     echo json_encode([
         'status' => 'success',
@@ -118,9 +122,8 @@ try {
     ]);
 
 } catch (Exception $e) {
-    writeLog('ERROR: ' . $e->getMessage());
+    writeLog('ERROR CRÍTICO: ' . $e->getMessage(), 'ERROR');
 
-    // Respuesta de error
     http_response_code(500);
     echo json_encode([
         'status' => 'error',
