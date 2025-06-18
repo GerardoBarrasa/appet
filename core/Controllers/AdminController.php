@@ -332,24 +332,40 @@ class AdminController
 
         // Solo definir rutas protegidas si está autenticado
         if ($this->isAuthenticated()) {
-            // Gestión de idiomas
-            $this->add('idiomas', [$this, 'idiomasAction']);
-            $this->add('administrar-idioma', [$this, 'administrarIdiomaAction']);
-
-            // Gestión de traducciones
-            $this->add('traducciones', [$this, 'traduccionesAction']);
-            $this->add('traduccion', [$this, 'traduccionAction']);
-            $this->add('regenerar-cache-traducciones', [$this, 'regenerarCacheTraduccionesAction']);
-
-            // Gestión de slugs/páginas
-            $this->add('slugs', [$this, 'slugsAction']);
-            $this->add('administrar-slug', [$this, 'administrarSlugAction']);
+            // Gestión de permisos (solo superadmin)
+            if (Permisos::tienePermiso('ACCESS_PERMISOS')) {
+                $this->add('permisos', [$this, 'permisosAction']);
+                $this->add('permiso', [$this, 'permisoAction']);
+                $this->add('perfiles', [$this, 'perfilesAction']);
+                $this->add('perfil', [$this, 'perfilAction']);
+            }
 
             // Gestión de usuarios admin
-            $this->add('usuarios-admin', [$this, 'usuariosAdminAction']);
-            $this->add('usuario-admin', [$this, 'usuarioAdminAction']);
+            if (Permisos::tienePermiso('ACCESS_USUARIOS_ADMIN')) {
+                $this->add('usuarios-admin', [$this, 'usuariosAdminAction']);
+                $this->add('usuario-admin', [$this, 'usuarioAdminAction']);
+            }
 
-            // Gestión de mascotas
+            // Gestión de idiomas
+            if (Permisos::tienePermiso('ACCESS_IDIOMAS')) {
+                $this->add('idiomas', [$this, 'idiomasAction']);
+                $this->add('administrar-idioma', [$this, 'administrarIdiomaAction']);
+            }
+
+            // Gestión de traducciones
+            if (Permisos::tienePermiso('ACCESS_TRADUCCIONES')) {
+                $this->add('traducciones', [$this, 'traduccionesAction']);
+                $this->add('traduccion', [$this, 'traduccionAction']);
+                $this->add('regenerar-cache-traducciones', [$this, 'regenerarCacheTraduccionesAction']);
+            }
+
+            // Gestión de slugs/páginas
+            if (Permisos::tienePermiso('ACCESS_SLUGS')) {
+                $this->add('slugs', [$this, 'slugsAction']);
+                $this->add('administrar-slug', [$this, 'administrarSlugAction']);
+            }
+
+            // Gestión de mascotas (disponible para cuidadores y tutores)
             $this->add('mascotas', [$this, 'mascotasAction']);
             $this->add('mascota', [$this, 'mascotaAction']);
             $this->add('nueva-mascota', [$this, 'nuevaMascotaAction']);
@@ -1469,5 +1485,55 @@ class AdminController
         } else {
             debug_log("Invalid language: {$iso_code}", 'ERROR', 'admin');
         }
+    }
+
+    /**
+     * Acción para gestión de permisos
+     *
+     * @return void
+     */
+    public function permisosAction()
+    {
+        Permisos::requierePermiso('ACCESS_PERMISOS');
+
+        if (class_exists('Metas')) {
+            Metas::$title = "Gestión de Permisos";
+        }
+
+        $data = [
+            'permisos' => Permisos::getTodosLosPermisos(),
+            'estadisticas' => Permisos::getEstadisticas()
+        ];
+
+        if (class_exists('Render')) {
+            Render::adminPage('permisos', $data);
+        }
+
+        $this->setRendered(true);
+    }
+
+    /**
+     * Acción para gestión de perfiles
+     *
+     * @return void
+     */
+    public function perfilesAction()
+    {
+        Permisos::requierePermiso('ACCESS_PERMISOS');
+
+        if (class_exists('Metas')) {
+            Metas::$title = "Gestión de Perfiles";
+        }
+
+        $data = [
+            'perfiles' => Permisos::getTodosLosPerfiles(),
+            'permisos' => Permisos::getTodosLosPermisos()
+        ];
+
+        if (class_exists('Render')) {
+            Render::adminPage('perfiles', $data);
+        }
+
+        $this->setRendered(true);
     }
 }

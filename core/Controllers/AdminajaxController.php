@@ -358,6 +358,9 @@ class AdminajaxController extends Controllers
     public function getUsuariosAdmin()
     {
         try {
+            // Verificar permisos
+            Permisos::requierePermiso('ACCESS_USUARIOS_ADMIN');
+
             $comienzo = (int)Tools::getValue('comienzo', 0);
             $limite = (int)Tools::getValue('limite', 20);
             $pagina = (int)Tools::getValue('pagina', 1);
@@ -561,6 +564,9 @@ class AdminajaxController extends Controllers
     public function getIdiomasAdmin()
     {
         try {
+            // Verificar permisos
+            Permisos::requierePermiso('ACCESS_IDIOMAS');
+
             $comienzo = (int)Tools::getValue('comienzo', 0);
             $limite = (int)Tools::getValue('limite', 10);
             $pagina = (int)Tools::getValue('pagina', 1);
@@ -678,6 +684,9 @@ class AdminajaxController extends Controllers
     public function getSlugsFiltered()
     {
         try {
+            // Verificar permisos
+            Permisos::requierePermiso('ACCESS_SLUGS');
+
             $comienzo = (int)Tools::getValue('comienzo', 0);
             $limite = (int)Tools::getValue('limite', 10);
             $pagina = (int)Tools::getValue('pagina', 1);
@@ -1186,6 +1195,12 @@ class AdminajaxController extends Controllers
             $mascota = Mascotas::getMascotaById($id);
             if (!$mascota) {
                 $this->sendError('Mascota no encontrada');
+                return;
+            }
+
+            // Verificar permisos para acceder a esta mascota
+            if (!Permisos::puedeAccederMascota($id)) {
+                $this->sendError('No tienes permisos para acceder a esta mascota');
                 return;
             }
 

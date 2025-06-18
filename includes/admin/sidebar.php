@@ -22,6 +22,46 @@
                         <p>Tutores</p>
                     </a>
                 </li>
+                <?php
+                // Ejemplo de uso de permisos en las vistas
+                // Solo mostrar enlaces si el usuario tiene los permisos correspondientes
+
+                if (Permisos::tienePermiso('ACCESS_USUARIOS_ADMIN')): ?>
+                    <li class="nav-item">
+                        <a href="<?= _DOMINIO_ . $_SESSION['admin_vars']['entorno'] ?>usuarios-admin/" class="nav-link">
+                            <i class="fas fa-users nav-icon"></i>
+                            <p>Usuarios Admin</p>
+                        </a>
+                    </li>
+                <?php endif;
+
+                if (Permisos::tienePermiso('ACCESS_PERMISOS')): ?>
+                    <li class="nav-item">
+                        <a href="<?= _DOMINIO_ . $_SESSION['admin_vars']['entorno'] ?>permisos/" class="nav-link">
+                            <i class="fas fa-shield-alt nav-icon"></i>
+                            <p>Permisos</p>
+                        </a>
+                    </li>
+                <?php endif;
+
+                if (Permisos::tienePermiso('ACCESS_IDIOMAS')): ?>
+                    <li class="nav-item">
+                        <a href="<?= _DOMINIO_ . $_SESSION['admin_vars']['entorno'] ?>idiomas/" class="nav-link">
+                            <i class="fas fa-language nav-icon"></i>
+                            <p>Idiomas</p>
+                        </a>
+                    </li>
+                <?php endif;
+
+                // Ejemplo de verificación de perfil
+                if (Permisos::esSuperAdmin()): ?>
+                    <li class="nav-item">
+                        <a href="<?= _DOMINIO_ . $_SESSION['admin_vars']['entorno'] ?>configuracion/" class="nav-link">
+                            <i class="fas fa-cog nav-icon"></i>
+                            <p>Configuración</p>
+                        </a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </nav>
         <!-- /.sidebar-menu -->
