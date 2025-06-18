@@ -1102,10 +1102,67 @@ function initNuevaMascotaEvents() {
     }
 }
 
-// Función simple para mostrar alertas desde PHP
+/**
+ * Función mejorada para mostrar múltiples alertas desde PHP
+ * Ahora maneja un array de alertas en lugar de una sola
+ */
 function mostrarAlertasPHP() {
-    // Si existe una alerta en la variable global
-    if (typeof window.alerta_php !== "undefined" && window.alerta_php) {
+    // Verificar si existen alertas en la variable global
+    if (typeof window.alertas_php !== "undefined" && window.alertas_php && Array.isArray(window.alertas_php)) {
+        // Configurar toastr si está disponible
+        if (typeof toastr !== "undefined") {
+            toastr.options = {
+                closeButton: true,
+                timeOut: 5000,
+                extendedTimeOut: 2000,
+                positionClass: "toast-top-right",
+                preventDuplicates: false,
+                newestOnTop: true,
+                progressBar: true,
+                showDuration: 300,
+                hideDuration: 1000,
+                showEasing: "swing",
+                hideEasing: "linear",
+                showMethod: "fadeIn",
+                hideMethod: "fadeOut",
+            }
+
+            // Mostrar cada alerta con un pequeño delay para que se vean todas
+            window.alertas_php.forEach((alerta, index) => {
+                setTimeout(() => {
+                    // Mostrar según el tipo
+                    switch (alerta.type) {
+                        case "success":
+                            toastr.success(alerta.message)
+                            break
+                        case "warning":
+                            toastr.warning(alerta.message)
+                            break
+                        case "info":
+                            toastr.info(alerta.message)
+                            break
+                        case "error":
+                        default:
+                            toastr.error(alerta.message)
+                            break
+                    }
+                }, index * 200) // Delay de 200ms entre cada alerta
+            })
+        } else {
+            // Fallback si no hay toastr - mostrar todas las alertas concatenadas
+            const mensajes = window.alertas_php
+                .map((alerta) => `${alerta.type.toUpperCase()}: ${alerta.message}`)
+                .join("\n\n")
+            alert(mensajes)
+        }
+
+        // Limpiar las alertas después de mostrarlas para evitar que se muestren de nuevo
+        window.alertas_php = null
+        delete window.alertas_php
+    }
+
+    // Mantener compatibilidad con el sistema anterior (una sola alerta)
+    else if (typeof window.alerta_php !== "undefined" && window.alerta_php) {
         const alerta = window.alerta_php
 
         if (typeof toastr !== "undefined") {
@@ -1130,5 +1187,9 @@ function mostrarAlertasPHP() {
             // Fallback si no hay toastr
             alert(alerta.message)
         }
+
+        // Limpiar la alerta
+        window.alerta_php = null
+        delete window.alerta_php
     }
 }

@@ -17,7 +17,7 @@ class Tools
         'upload_max_size' => 10485760, // 10MB
         'allowed_extensions' => ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'txt'],
         'password_min_length' => 8,
-        'pagination_default_limit' => 10
+        'pagination_default_limit' => 12
     ];
 
     // ==========================================
@@ -457,63 +457,6 @@ class Tools
         }
 
         return $password;
-    }
-
-    /**
-     * Valida fortaleza de contraseña
-     *
-     * @param string $password Contraseña a validar
-     * @param int $minLength Longitud mínima
-     * @return array Resultado de validación
-     */
-    public static function validatePassword($password, $minLength = null)
-    {
-        $minLength = $minLength ?: self::$config['password_min_length'];
-
-        $result = [
-            'valid' => true,
-            'score' => 0,
-            'errors' => [],
-            'suggestions' => []
-        ];
-
-        // Verificar longitud
-        if (strlen($password) < $minLength) {
-            $result['valid'] = false;
-            $result['errors'][] = "La contraseña debe tener al menos {$minLength} caracteres";
-        } else {
-            $result['score'] += 1;
-        }
-
-        // Verificar mayúsculas
-        if (!preg_match('/[A-Z]/', $password)) {
-            $result['suggestions'][] = 'Incluir al menos una letra mayúscula';
-        } else {
-            $result['score'] += 1;
-        }
-
-        // Verificar minúsculas
-        if (!preg_match('/[a-z]/', $password)) {
-            $result['suggestions'][] = 'Incluir al menos una letra minúscula';
-        } else {
-            $result['score'] += 1;
-        }
-
-        // Verificar números
-        if (!preg_match('/[0-9]/', $password)) {
-            $result['suggestions'][] = 'Incluir al menos un número';
-        } else {
-            $result['score'] += 1;
-        }
-
-        // Verificar símbolos
-        if (!preg_match('/[^A-Za-z0-9]/', $password)) {
-            $result['suggestions'][] = 'Incluir al menos un símbolo especial';
-        } else {
-            $result['score'] += 1;
-        }
-
-        return $result;
     }
 
     // ==========================================
@@ -1184,18 +1127,13 @@ class Tools
      */
     public static function registerAlert($msg, $type = "error", $timer = 3000, $bgColor = false){
         $types = ["success", "error", "warning", "info"];
-        if(in_array($type, $types)){
+        if(in_array($type, $types) && !empty($msg)) {
             $alert = [
                 'message' => $msg,
                 'type' => $type,
                 'timer' => $timer,
                 'background' => $bgColor
             ];
-
-            // Si no existe el array de alertas, crearlo
-            if (!isset($_SESSION['alerts'])) {
-                $_SESSION['alerts'] = [];
-            }
 
             // Agregar la nueva alerta al array
             $_SESSION['alerts'][] = $alert;
@@ -1280,7 +1218,7 @@ class Tools
                 return $headers['X-Forwarded-For'];
             }
         }
-        
+
         // Verificar variables de servidor comunes para proxies
         $ipKeys = [
             'HTTP_CLIENT_IP',
@@ -1291,7 +1229,7 @@ class Tools
             'HTTP_FORWARDED',
             'REMOTE_ADDR'
         ];
-        
+
         foreach ($ipKeys as $key) {
             if (isset($_SERVER[$key])) {
                 // Si contiene múltiples IPs, tomar la primera
@@ -1302,7 +1240,7 @@ class Tools
                 return $_SERVER[$key];
             }
         }
-        
+
         // Si no se encuentra ninguna IP, devolver una predeterminada
         return '0.0.0.0';
     }
@@ -1317,11 +1255,11 @@ class Tools
     public static function isValidIP($ip, $allowPrivate = true)
     {
         $flags = FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6;
-        
+
         if (!$allowPrivate) {
             $flags |= FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
         }
-        
+
         return filter_var($ip, FILTER_VALIDATE_IP, $flags) !== false;
     }
 
@@ -1339,14 +1277,14 @@ class Tools
             '127.0.0.1',
             '::1'
         ];
-        
+
         $whitelist = array_merge($defaultWhitelist, $whitelist);
-        
+
         // Verificar coincidencia exacta
         if (in_array($ip, $whitelist)) {
             return true;
         }
-        
+
         // Verificar rangos CIDR
         foreach ($whitelist as $range) {
             if (strpos($range, '/') !== false) {
@@ -1355,10 +1293,10 @@ class Tools
                 }
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Verifica si una IP está en un rango CIDR
      *
@@ -1369,14 +1307,382 @@ class Tools
     public static function isIPInCIDR($ip, $cidr)
     {
         list($subnet, $bits) = explode('/', $cidr);
-        
+
         // Convertir IP y subred a binario
         $ipBinary = ip2long($ip);
         $subnetBinary = ip2long($subnet);
         $mask = -1 << (32 - $bits);
-        
+
         // Comparar usando la máscara
         return ($ipBinary & $mask) === ($subnetBinary & $mask);
     }
 
+    // ==========================================
+    // FUNCIONES DE VALIDACIÓN
+    // ==========================================
+
+    /**
+     * Valida un nombre completo
+     *
+     * @param string $nombre Nombre a validar
+     * @param int $minLength Longitud mínima
+     * @param int $maxLength Longitud máxima
+     * @return array Resultado de validación
+     */
+    public static function validateNombre($nombre, $minLength = 3, $maxLength = 100)
+    {
+        $result = [
+            'valid' => true,
+            'errors' => []
+        ];
+
+        $nombre = trim($nombre);
+
+        // Verificar que no esté vacío
+        if (empty($nombre)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El nombre es obligatorio';
+            return $result;
+        }
+
+        // Verificar longitud mínima
+        if (strlen($nombre) < $minLength) {
+            $result['valid'] = false;
+            $result['errors'][] = "El nombre debe tener al menos {$minLength} caracteres";
+        }
+
+        // Verificar longitud máxima
+        if (strlen($nombre) > $maxLength) {
+            $result['valid'] = false;
+            $result['errors'][] = "El nombre no puede tener más de {$maxLength} caracteres";
+        }
+
+        // Verificar que solo contenga letras, espacios, acentos y algunos caracteres especiales
+        if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-\'\.]+$/', $nombre)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El nombre solo puede contener letras, espacios, guiones y apostrofes';
+        }
+
+        // Verificar que no tenga espacios múltiples
+        if (preg_match('/\s{2,}/', $nombre)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El nombre no puede tener espacios múltiples';
+        }
+
+        return $result;
+    }
+
+    /**
+     * Valida formato y disponibilidad de email
+     *
+     * @param string $email Email a validar
+     * @param int $excludeUserId ID de usuario a excluir (para actualizaciones)
+     * @param string $table Tabla donde verificar duplicados
+     * @param string $emailField Campo de email en la tabla
+     * @param string $idField Campo ID en la tabla
+     * @return array Resultado de validación
+     */
+    public static function validateEmail($email, $excludeUserId = 0, $table = 'usuarios_admin', $emailField = 'email', $idField = 'id_usuario_admin')
+    {
+        $result = [
+            'valid' => true,
+            'errors' => []
+        ];
+
+        $email = trim(strtolower($email));
+
+        // Verificar que no esté vacío
+        if (empty($email)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El email es obligatorio';
+            return $result;
+        }
+
+        // Verificar formato
+        if (!self::isEmail($email)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El formato del email no es válido';
+            return $result;
+        }
+
+        // Verificar longitud máxima
+        if (strlen($email) > 100) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El email no puede tener más de 100 caracteres';
+        }
+
+        // Verificar disponibilidad en base de datos
+        if ($result['valid']) {
+            $db = Bd::getInstance();
+            $params = [$email];
+            $sql = "SELECT COUNT(*) FROM {$table} WHERE {$emailField} = ?";
+
+            if ($excludeUserId > 0) {
+                $sql .= " AND {$idField} != ?";
+                $params[] = (int)$excludeUserId;
+            }
+
+            $count = (int)$db->fetchValueSafe($sql, $params);
+            if ($count > 0) {
+                $result['valid'] = false;
+                $result['errors'][] = 'Este email ya está registrado en el sistema';
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Valida fortaleza de contraseña (versión mejorada)
+     *
+     * @param string $password Contraseña a validar
+     * @param int $minLength Longitud mínima
+     * @param bool $requireUppercase Requerir mayúsculas
+     * @param bool $requireLowercase Requerir minúsculas
+     * @param bool $requireNumbers Requerir números
+     * @param bool $requireSymbols Requerir símbolos
+     * @return array Resultado de validación
+     */
+    public static function validatePasswordStrength($password, $minLength = null, $requireUppercase = true, $requireLowercase = true, $requireNumbers = true, $requireSymbols = true)
+    {
+        $minLength = $minLength ?: self::$config['password_min_length'];
+
+        $result = [
+            'valid' => true,
+            'score' => 0,
+            'strength' => 'weak',
+            'errors' => [],
+            'suggestions' => []
+        ];
+
+        // Verificar que no esté vacía
+        if (empty($password)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña es obligatoria';
+            return $result;
+        }
+
+        // Verificar longitud mínima
+        if (strlen($password) < $minLength) {
+            $result['valid'] = false;
+            $result['errors'][] = "La contraseña debe tener al menos {$minLength} caracteres";
+        } else {
+            $result['score'] += 1;
+        }
+
+        // Verificar mayúsculas
+        if ($requireUppercase && !preg_match('/[A-Z]/', $password)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña debe incluir al menos una letra mayúscula';
+        } elseif (preg_match('/[A-Z]/', $password)) {
+            $result['score'] += 1;
+        }
+
+        // Verificar minúsculas
+        if ($requireLowercase && !preg_match('/[a-z]/', $password)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña debe incluir al menos una letra minúscula';
+        } elseif (preg_match('/[a-z]/', $password)) {
+            $result['score'] += 1;
+        }
+
+        // Verificar números
+        if ($requireNumbers && !preg_match('/[0-9]/', $password)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña debe incluir al menos un número';
+        } elseif (preg_match('/[0-9]/', $password)) {
+            $result['score'] += 1;
+        }
+
+        // Verificar símbolos
+        if ($requireSymbols && !preg_match('/[^A-Za-z0-9]/', $password)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña debe incluir al menos un símbolo especial';
+        } elseif (preg_match('/[^A-Za-z0-9]/', $password)) {
+            $result['score'] += 1;
+        }
+
+        // Verificar patrones comunes débiles
+        $weakPatterns = [
+            '/^123+/',
+            '/^abc+/i',
+            '/^qwe+/i',
+            '/password/i',
+            '/admin/i',
+            '/^(.)\1{2,}/', // Caracteres repetidos
+        ];
+
+        foreach ($weakPatterns as $pattern) {
+            if (preg_match($pattern, $password)) {
+                $result['suggestions'][] = 'Evita usar patrones comunes o secuencias obvias';
+                break;
+            }
+        }
+
+        // Calcular fortaleza
+        if ($result['score'] >= 4) {
+            $result['strength'] = 'strong';
+        } elseif ($result['score'] >= 3) {
+            $result['strength'] = 'medium';
+        }
+
+        // Verificar longitud máxima
+        if (strlen($password) > 255) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña no puede tener más de 255 caracteres';
+        }
+
+        return $result;
+    }
+
+    /**
+     * Valida múltiples campos de un formulario
+     *
+     * @param array $fields Array de campos a validar
+     * @param array $rules Reglas de validación
+     * @return array Resultado de validación
+     */
+    public static function validateFields($fields, $rules)
+    {
+        $result = [
+            'valid' => true,
+            'errors' => [],
+            'field_errors' => []
+        ];
+
+        foreach ($rules as $fieldName => $fieldRules) {
+            $value = $fields[$fieldName] ?? '';
+            $fieldErrors = [];
+
+            foreach ($fieldRules as $rule => $params) {
+                switch ($rule) {
+                    case 'required':
+                        if (empty(trim($value))) {
+                            $fieldErrors[] = $params['message'] ?? "El campo {$fieldName} es obligatorio";
+                        }
+                        break;
+
+                    case 'min_length':
+                        if (strlen(trim($value)) < $params['value']) {
+                            $fieldErrors[] = $params['message'] ?? "El campo {$fieldName} debe tener al menos {$params['value']} caracteres";
+                        }
+                        break;
+
+                    case 'max_length':
+                        if (strlen(trim($value)) > $params['value']) {
+                            $fieldErrors[] = $params['message'] ?? "El campo {$fieldName} no puede tener más de {$params['value']} caracteres";
+                        }
+                        break;
+
+                    case 'email':
+                        if (!empty($value) && !self::isEmail($value)) {
+                            $fieldErrors[] = $params['message'] ?? "El formato del email no es válido";
+                        }
+                        break;
+
+                    case 'numeric':
+                        if (!empty($value) && !is_numeric($value)) {
+                            $fieldErrors[] = $params['message'] ?? "El campo {$fieldName} debe ser numérico";
+                        }
+                        break;
+
+                    case 'regex':
+                        if (!empty($value) && !preg_match($params['pattern'], $value)) {
+                            $fieldErrors[] = $params['message'] ?? "El formato del campo {$fieldName} no es válido";
+                        }
+                        break;
+                }
+            }
+        }
+
+        if (!empty($fieldErrors)) {
+            $result['valid'] = false;
+            $result['field_errors'][$fieldName] = $fieldErrors;
+            $result['errors'] = array_merge($result['errors'], $fieldErrors);
+        }
+    }
+
+    /**
+     * Sanitiza una cadena para prevenir XSS
+     *
+     * @param string $input Cadena a sanitizar
+     * @param bool $allowHtml Permitir HTML básico
+     * @return string Cadena sanitizada
+     */
+    public static function sanitizeInput($input, $allowHtml = false)
+    {
+        if (empty($input)) {
+            return '';
+        }
+
+        // Eliminar espacios en blanco al inicio y final
+        $input = trim($input);
+
+        if ($allowHtml) {
+            // Permitir solo HTML básico y seguro
+            $allowedTags = '<p><br><strong><b><em><i><u><ul><ol><li><a>';
+            $input = strip_tags($input, $allowedTags);
+
+            // Sanitizar atributos peligrosos
+            $input = preg_replace('/(<[^>]+)(on\w+\s*=\s*["\'][^"\']*["\'])/i', '$1', $input);
+            $input = preg_replace('/(<[^>]+)(javascript\s*:)/i', '$1', $input);
+        } else {
+            // Eliminar todas las etiquetas HTML
+            $input = strip_tags($input);
+        }
+
+        // Convertir caracteres especiales
+        $input = htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+
+        return $input;
+    }
+
+    /**
+     * Valida un número de teléfono español
+     *
+     * @param string $phone Teléfono a validar
+     * @return array Resultado de validación
+     */
+    public static function validateSpanishPhone($phone)
+    {
+        $result = [
+            'valid' => true,
+            'errors' => [],
+            'formatted' => ''
+        ];
+
+        $phone = trim($phone);
+
+        if (empty($phone)) {
+            return $result; // Teléfono opcional
+        }
+
+        // Eliminar espacios, guiones y paréntesis
+        $cleanPhone = preg_replace('/[\s\-$$$$]/', '', $phone);
+
+        // Patrones para teléfonos españoles
+        $patterns = [
+            '/^(\+34|0034)?[6789]\d{8}$/', // Móviles y fijos españoles
+            '/^(\+34|0034)?\d{9}$/' // Formato general español
+        ];
+
+        $isValid = false;
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $cleanPhone)) {
+                $isValid = true;
+                break;
+            }
+        }
+
+        if (!$isValid) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El formato del teléfono no es válido (debe ser un teléfono español)';
+        } else {
+            // Formatear el teléfono
+            $cleanPhone = preg_replace('/^(\+34|0034)/', '', $cleanPhone);
+            $result['formatted'] = '+34 ' . substr($cleanPhone, 0, 3) . ' ' . substr($cleanPhone, 3, 3) . ' ' . substr($cleanPhone, 6, 3);
+        }
+
+        return $result;
+    }
 }

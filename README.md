@@ -1,5 +1,110 @@
 # ApPet 1.0.0
 
+### **Backend PHP:**
+
+- Cambié `window.alerta_php` por `window.alertas_php` (plural)
+- Uso `json_encode()` para pasar todo el array de alertas de una vez
+- Esto evita la sobrescritura en el bucle
+
+
+### **JavaScript:**
+
+- **Nueva función `mostrarAlertasPHP()`** que maneja múltiples alertas
+- **Soporte para arrays**: Detecta si hay múltiples alertas y las muestra todas
+- **Delay entre alertas**: 200ms entre cada notificación para que se vean todas
+- **Compatibilidad**: Mantiene soporte para el sistema anterior (una sola alerta)
+- **Configuración mejorada de toastr**: Mejor configuración para múltiples notificaciones
+- **Limpieza automática**: Elimina las alertas después de mostrarlas
+
+
+### **Características adicionales:**
+
+- ✅ **Múltiples alertas**: Muestra todas las alertas, no solo la última
+- ✅ **Diferentes tipos**: Soporte para success, warning, info, error
+- ✅ **Delay progresivo**: Las alertas aparecen con un pequeño retraso entre ellas
+- ✅ **Fallback**: Si no hay toastr, muestra todas en un alert() concatenado
+- ✅ **Limpieza**: Evita que las alertas se muestren múltiples veces
+
+
+### **Nuevas funciones en Tools.php:**
+
+1. **`validateNombre()`** - Valida nombres con longitud y caracteres permitidos
+2. **`validateEmail()`** - Valida formato y disponibilidad de email
+3. **`validatePasswordStrength()`** - Validación avanzada de contraseñas
+4. **`validateFields()`** - Validador genérico para múltiples campos
+5. **`sanitizeInput()`** - Sanitización contra XSS
+6. **`validateSpanishPhone()`** - Validación de teléfonos españoles
+
+
+### **Mejoras en Admin.php:**
+
+1. **Validación completa** antes de crear/actualizar usuarios
+2. **Manejo de errores** estructurado con arrays de respuesta
+3. **Sanitización** de datos de entrada
+4. **Verificación de permisos** según el perfil del usuario
+5. **Logging de errores** para debugging
+6. **Formateo de errores** para mostrar en frontend
+
+
+### **Características de seguridad:**
+
+- ✅ Prevención de SQL injection (consultas preparadas)
+- ✅ Sanitización contra XSS
+- ✅ Validación de fortaleza de contraseñas
+- ✅ Verificación de emails duplicados
+- ✅ Control de permisos por perfil
+- ✅ Logging de errores de seguridad
+
+
+### **Validaciones implementadas:**
+
+- **Nombre**: Mínimo 3 caracteres, solo letras y espacios
+- **Email**: Formato válido y único en la base de datos
+- **Contraseña**: Longitud mínima, mayúsculas, minúsculas, números
+- **Permisos**: Verificación según perfil del usuario logueado
+- 
+## He creado una clase `Permisos` completa que:
+
+### **Funcionalidades principales:**
+
+1. **Verificación de permisos**: `tienePermiso()`, `tieneAlgunPermiso()`, `tieneTodosLosPermisos()`
+2. **Control de acceso**: `requierePermiso()`, `requiereAlgunPermiso()`
+3. **Gestión de permisos**: Crear, actualizar, eliminar permisos y asignarlos a perfiles
+4. **Control específico**: Verificar acceso a mascotas y cuidadores según el perfil del usuario
+5. **Cache**: Sistema de cache para optimizar consultas repetitivas
+
+
+### **Integración con el sistema existente:**
+
+- Se integra con la estructura de base de datos existente
+- Utiliza las mismas clases (`Bd`, `Tools`) que el resto del sistema
+- Mantiene la compatibilidad con el sistema de sesiones actual
+
+
+### **Niveles de acceso:**
+
+- **Superadmin (perfil 1)**: Acceso completo a todo
+- **Cuidador (perfil 2)**: Acceso limitado a sus propias mascotas y datos
+- **Tutor (perfil 3)**: Acceso solo a las mascotas que tiene asignadas
+
+
+### **Uso en controladores y vistas:**
+
+```php
+// En controladores
+Permisos::requierePermiso('ACCESS_USUARIOS_ADMIN');
+
+// En vistas
+if (Permisos::tienePermiso('ACCESS_IDIOMAS')): 
+    // Mostrar contenido
+endif;
+
+// Verificaciones específicas
+if (Permisos::puedeAccederMascota($idMascota)):
+    // Permitir acceso
+endif;
+```
+
 ## Implementación de Cropper.js
 
 ### Ventajas de esta implementación:

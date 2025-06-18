@@ -993,13 +993,52 @@ class AdminController
         // Procesar formularios
         if (class_exists('Tools') && class_exists('Admin')) {
             if (Tools::getIsset('submitUpdateUsuarioAdmin')) {
-                Admin::actualizarUsuario();
-                Tools::registerAlert("El usuario ha sido modificado satisfactoriamente", "success");
+                $resultado = Admin::actualizarUsuario();
+
+                if ($resultado['success']) {
+                    Tools::registerAlert("El usuario ha sido modificado satisfactoriamente", "success");
+
+                    // Si se está editando el propio perfil, actualizar la sesión
+                    if (isset($_SESSION['admin_panel']) &&
+                        $_SESSION['admin_panel']->id_usuario_admin == $resultado['data']['id_usuario_admin']) {
+                        // Recargar datos del usuario en sesión
+                        $_SESSION['admin_panel'] = Admin::getUsuarioById($resultado['data']['id_usuario_admin']);
+                    }
+                } else {
+                    // Mostrar errores específicos
+                    if (!empty($resultado['errors'])) {
+                        foreach ($resultado['errors'] as $error) {
+                            Tools::registerAlert($error, "error");
+                        }
+                    } else {
+                        Tools::registerAlert($resultado['message'] ?? "Error al actualizar el usuario", "error");
+                    }
+                }
             }
 
             if (Tools::getIsset('submitCrearUsuarioAdmin')) {
-                Admin::crearUsuario();
-                Tools::registerAlert("El usuario ha sido creado", "success");
+                $resultado = Admin::crearUsuario();
+
+                if ($resultado['success']) {
+                    Tools::registerAlert("El usuario ha sido creado satisfactoriamente", "success");
+
+                    // Redirigir a la edición del usuario recién creado
+                    if (!empty($resultado['data']['id_usuario_admin'])) {
+                        $adminPath = $_SESSION['admin_vars']['entorno'] ?? 'admin/';
+                        $redirectUrl = _DOMINIO_ . $adminPath . "usuario-admin/" . $resultado['data']['id_usuario_admin'] . "/";
+                        header("Location: {$redirectUrl}");
+                        exit;
+                    }
+                } else {
+                    // Mostrar errores específicos
+                    if (!empty($resultado['errors'])) {
+                        foreach ($resultado['errors'] as $error) {
+                            Tools::registerAlert($error, "error");
+                        }
+                    } else {
+                        Tools::registerAlert($resultado['message'] ?? "Error al crear el usuario", "error");
+                    }
+                }
             }
         }
 
