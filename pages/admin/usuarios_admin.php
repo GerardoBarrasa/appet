@@ -1,42 +1,37 @@
-<div class="row">
-	<div class="col-sm-12">
-		<div class="page-title-box">
-			<div class="row">
-				<div class="col-md-6">
-					<h4 class="page-title">Usuarios admin</h4>
-				</div>
-				<div class="col-md-6 text-right">
-					<a href="<?= _DOMINIO_ . _ADMIN_ . 'usuario-admin/new/' ?>" type="button" class="btn btn-primary waves-effect waves-light"  data-toggle="tooltip" title="Crear usuario">
-						<i class="fas fa-plus text-light"></i> Nuevo
-					</a>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-<!-- end row -->
 
-<div class="page-content-wrapper">
-	<div class="row">
-		<div class="col-12">
-			<div class="card m-b-20">
-			<div class="card-body">
+<!-- Main content -->
+<section class="content">
 
-				<form id="formFiltrosAdmin">
-					<div class="row">
-						<div class="col-12 col-sm-6 col-md-3 offset-sm-6 offset-md-9">
-							<div class="form-group">
-								<label for="busqueda">Búsqueda</label>
-								<input type="text" class="form-control" name="busqueda" aria-describedby="buscarHelpId" placeholder="Buscar" onKeyUp="ajax_get_usuarios_admin(0, 10, 1);">
-							</div>
-						</div>
-					</div>
-				</form>
-				
-				<div id="page-content"></div>
-				<script> ajax_get_usuarios_admin(<?=$comienzo;?>,<?=$limite;?>,<?= $pagina;?>); </script>
-				
-			</div>
-		</div>
-	</div> <!-- end col -->
-</div> <!-- end row -->
+    <!-- Default box -->
+    <div class="card card-solid">
+        <div class="card-header">
+            <div class="row d-flex align-items-center justify-content-between">
+                <div class="col-12 col-md-8 mb-2 mb-md-0">
+                    <form id="formFiltrosAdmin">
+                        <input class="form-control w-100 debouncefunc" name="busqueda" id="busqueda" type="text" placeholder="Busca por nombre, e-mail o mascota" data-function="ajax_get_usuarios_admin">
+                    </form>
+                </div>
+                <div class="col-12 col-md-4 d-flex align-items-center justify-content-around justify-content-md-end mb-2 mb-md-0">
+                    <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>nuevo-usuario/" class="btn btn-primary">Nuevo usuario</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body pb-0">
+            <div class="totalfound fs-5 text-right text-secondary w-100" ></div>
+            <div class="row pt-2" id="page-content">
+
+            </div>
+            <script> ajax_get_usuarios_admin(); </script>
+        </div>
+        <!-- /.card-body -->
+        <div class="card-footer">
+            <nav class="paginador">
+
+            </nav>
+        </div>
+        <!-- /.card-footer -->
+    </div>
+    <!-- /.card -->
+
+</section>
+<!-- /.content -->

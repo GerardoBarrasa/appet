@@ -107,29 +107,46 @@ class Admin
      * @param bool $applyLimit Aplicar límite o no
      * @return array
      */
-    public static function getUsuariosWithFiltros($comienzo, $limite, $applyLimit = true)
+    public static function getUsuariosWithFiltros($comienzo, $limite, $filtros, $applyLimit = true)
     {
         $db = Bd::getInstance();
         $busqueda = Tools::getValue('busqueda', '');
         $params = [];
         $whereConditions = ["1"];
+        $joins = '';
 
-        if ($busqueda != '') {
-            $whereConditions[] = "(nombre LIKE ? OR email LIKE ? OR date_created LIKE ?)";
-            $params[] = "%{$busqueda}%";
-            $params[] = "%{$busqueda}%";
-            $params[] = "%{$busqueda}%";
+        if (!empty($filtros['busqueda'])) {
+            $whereConditions[] = "(u.nombre LIKE ? OR u.email LIKE ?)";
+            $params[] = "%{$filtros['busqueda']}%";
+            $params[] = "%{$filtros['busqueda']}%";
+        }
+        if (!empty($filtros['tipo'])) {
+            $whereConditions[] = "u.idperfil = ?";
+            $params[] = "{$filtros['tipo']}";
+        }
+        // Nos aseguramos de que un usuario que no sea admin no pueda ver usuarios con mayor rango que el suyo (un idperfil menor) ni otros usuarios con su mismo rango pero asignados a otro cuidador (en caso de perfil 2) ni otros tutores asociados a un cuidador que no sea el logueado
+        if($_SESSION['admin_panel']->idperfil == 2){// Es un cuidador
+            $joins = "LEFT JOIN usuarios_cuidadores uc ON u.id_usuario_admin = uc.id_usuario";
+            $whereConditions[] = "uc.id_cuidador = ?";
+            $params[] = $_SESSION['admin_panel']->cuidador_id;
+        }
+        else if($_SESSION['admin_panel']->idperfil == 3){// Es un tutor, solo puede ver su perfil
+            $whereConditions[] = "u.id_usuario_admin = ?";
+            $params[] = $_SESSION['admin_panel']->id_usuario_admin;
         }
 
         $whereClause = implode(' AND ', $whereConditions);
-        $sql = "SELECT * FROM usuarios_admin WHERE {$whereClause} ORDER BY nombre";
+        $selectForList = "SELECT * ";
+        $selectForCount = "SELECT COUNT(u.id_usuario_admin) ";
+        $sql = "FROM usuarios_admin u $joins WHERE {$whereClause}";
 
         // Contar total de registros
-        $total = $db->fetchValueSafe("SELECT COUNT(*) FROM usuarios_admin WHERE {$whereClause}", $params);
+        $total = $db->fetchValueSafe($selectForCount.$sql, $params);
 
         // Aplicar límite si es necesario
         if ($applyLimit) {
-            $sql .= " LIMIT ?, ?";
+            $sql .= " GROUP BY u.id_usuario_admin ORDER BY u.date_created DESC LIMIT ?, ?";
+            $sql = $selectForList.$sql;
             $params[] = (int)$comienzo;
             $params[] = (int)$limite;
         }

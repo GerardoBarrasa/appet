@@ -359,23 +359,41 @@ class AdminajaxController extends Controllers
     {
         try {
             $comienzo = (int)Tools::getValue('comienzo', 0);
-            $limite = (int)Tools::getValue('limite', 10);
+            $limite = (int)Tools::getValue('limite', 20);
             $pagina = (int)Tools::getValue('pagina', 1);
+            $filtros = array(
+                'busqueda'  => Tools::getValue('busqueda', ''),
+                'tipo'      => Tools::getValue('tipo', ''),
+            );
 
-            $usuarios = Admin::getUsuariosWithFiltros($comienzo, $limite, true);
+            $usuarios = Admin::getUsuariosWithFiltros($comienzo, $limite,  $filtros, true);
+            $totalRegistros = $usuarios['total'];
+            // Calcular información de paginación
+            $totalPaginas = ceil($totalRegistros / $limite);
+            $paginaActual = $pagina;
+            // Generar información del paginador
+            $paginacion = $this->generarPaginacion($paginaActual, $totalPaginas, $limite, $totalRegistros);
 
             $data = [
                 'comienzo' => $comienzo,
                 'limite' => $limite,
                 'pagina' => $pagina,
                 'usuarios' => $usuarios['listado'],
-                'total' => $usuarios['total']
+                'total' => $usuarios['total'],
+                'total_paginas' => $totalPaginas,
+                'paginacion' => $paginacion
             ];
 
             $html = Render::getAjaxPage('admin_usuarios_admin', $data);
 
             if (!empty($html)) {
-                $this->sendSuccess(['html' => $html]);
+                $this->sendSuccess([
+                    'html' => $html,
+                    'pagination' => $paginacion,
+                    'total' => $totalRegistros,
+                    'total_pages' => $totalPaginas,
+                    'current_page' => $paginaActual
+                ]);
             } else {
                 $this->sendError('Error cargando el contenido');
             }
