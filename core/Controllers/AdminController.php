@@ -344,6 +344,7 @@ class AdminController
             if (Permisos::tienePermiso('ACCESS_USUARIOS_ADMIN')) {
                 $this->add('usuarios-admin', [$this, 'usuariosAdminAction']);
                 $this->add('usuario-admin', [$this, 'usuarioAdminAction']);
+                $this->add('nuevo-usuario', [$this, 'usuarioAdminAction']);
             }
 
             // Gestión de idiomas
@@ -382,7 +383,7 @@ class AdminController
      */
     protected function isAuthenticated()
     {
-        return isset($_SESSION['admin_panel']) && !empty($_SESSION['admin_panel']);
+        return !empty($_SESSION['admin_panel']);
     }
 
     /**
@@ -393,8 +394,8 @@ class AdminController
     protected function isSuperAdmin()
     {
         return $this->isAuthenticated() &&
-            isset($_SESSION['admin_panel']->id_country) &&
-            empty($_SESSION['admin_panel']->id_country);
+            isset($_SESSION['admin_panel']->idperfil) &&
+            $_SESSION['admin_panel']->idperfil == 1;
     }
 
     /**
@@ -1060,6 +1061,12 @@ class AdminController
         if (class_exists('Tools') && defined('_ASSETS_') && defined('_ADMIN_')) {
             Tools::registerStylesheet(_ASSETS_ . _ADMIN_ . 'select2/css/select2.min.css');
             Tools::registerJavascript(_ASSETS_ . _ADMIN_ . 'select2/js/select2.min.js');
+        }
+        // Si es un súper admin obtenemos el listado de perfiles para mostrar el select en el front
+        if(!$usuario && self::isSuperAdmin()) {
+            $data['perfiles'] = class_exists('Permisos') ? Permisos::getTodosLosPerfiles() : [];
+        } else {
+            $data['perfiles'] = [];
         }
 
         if (class_exists('Render')) {

@@ -307,6 +307,7 @@ class Admin
 
         // Obtener y sanitizar datos
         $nombre = Tools::sanitizeInput(Tools::getValue('nombre'));
+        $apellidos = Tools::sanitizeInput(Tools::getValue('apellidos'));
         $email = Tools::sanitizeInput(Tools::getValue('email'));
         $password = Tools::getValue('password', '');
 
@@ -338,6 +339,7 @@ class Admin
         // Preparar datos para actualización
         $updUsuario = [
             'nombre' => $nombre,
+            'apellidos' => $apellidos,
             'email' => strtolower($email)
         ];
 
@@ -361,6 +363,7 @@ class Admin
                 $result['data'] = [
                     'id_usuario_admin' => $id_usuario_admin,
                     'nombre' => $nombre,
+                    'apellidos' => $apellidos,
                     'email' => strtolower($email),
                     'password_updated' => !empty($password)
                 ];
@@ -392,6 +395,7 @@ class Admin
 
         // Obtener y sanitizar datos
         $nombre = Tools::sanitizeInput(Tools::getValue('nombre'));
+        $apellidos = Tools::sanitizeInput(Tools::getValue('apellidos'));
         $email = Tools::sanitizeInput(Tools::getValue('email'));
         $password = Tools::getValue('password');
         $idperfil = (int)Tools::getValue('idperfil', 2); // Por defecto perfil de cuidador
@@ -444,6 +448,7 @@ class Admin
         // Preparar datos para inserción
         $addUsuario = [
             'nombre' => $nombre,
+            'apellidos' => $apellidos,
             'email' => strtolower($email),
             'password' => Tools::md5($password),
             'date_created' => Tools::datetime(),
