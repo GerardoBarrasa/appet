@@ -22,13 +22,22 @@ function executeCommand($command, $description = '') {
     $output = shell_exec($command . ' 2>&1');
     $exitCode = shell_exec('echo $?');
 
+    // Manejar valores null de shell_exec
+    $output = $output ?? '';
+    $exitCode = $exitCode ?? '1';
+
     $context = [
         'command' => $command,
         'exit_code' => trim($exitCode),
         'output_length' => strlen($output)
     ];
 
-    deploy_log("Resultado: " . trim($output), 'INFO', $context);
+    // Solo mostrar output si no está vacío
+    if (!empty(trim($output))) {
+        deploy_log("Resultado: " . trim($output), 'INFO', $context);
+    } else {
+        deploy_log("Comando ejecutado sin output", 'INFO', $context);
+    }
 
     if (trim($exitCode) !== '0') {
         deploy_log("Comando falló con código " . trim($exitCode), 'WARNING', $context);
@@ -44,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die('Método no permitido');
 }
 
-// Verificar signature
+// Verificar signature con manejo de null
 $headers = getallheaders();
 $signature = isset($headers['X-Hub-Signature-256']) ? $headers['X-Hub-Signature-256'] : '';
 
@@ -55,12 +64,18 @@ if (empty($signature)) {
 }
 
 $payload = file_get_contents('php://input');
+if ($payload === false) {
+    deploy_log('Error al leer payload', 'ERROR');
+    http_response_code(400);
+    die('Error al leer datos');
+}
+
 $expectedSignature = 'sha256=' . hash_hmac('sha256', $payload, DEPLOY_SECRET);
 
 if (!hash_equals($expectedSignature, $signature)) {
     deploy_log('Petición rechazada: signature inválida', 'ERROR', [
         'received_signature' => $signature,
-        'payload_length' => strlen($payload)
+        'payload_length' => strlen($payload ?? '')
     ]);
     http_response_code(401);
     die('Signature inválida');
