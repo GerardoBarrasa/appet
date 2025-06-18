@@ -22,6 +22,11 @@ if (!file_exists(log_folder)) {
     mkdir(log_folder, 0755, true);
 }
 
+// Configuración de despliegue automático (solo para deploy.php)
+if (!defined('DEPLOY_SECRET')) {
+    define('DEPLOY_SECRET', 'Qhz8xR84CgISZhDxnohzCair546MvuqWPKHqGr3oEKU5DWVhxnw02kZhDxnorv7a');
+}
+
 // Configurar logging de PHP
 ini_set("log_errors", 1);
 ini_set("error_log", log_folder . "phpErrors_" . date("Ymd") . ".log");
@@ -150,6 +155,24 @@ function performance_log(string $operation, float $startTime, array $additionalD
 }
 
 /**
+ * Log específico para despliegues
+ * @param string $message Mensaje del despliegue
+ * @param string $level Nivel del log (INFO, WARNING, ERROR)
+ * @param array $context Contexto adicional
+ * @return bool
+ */
+function deploy_log(string $message, string $level = 'INFO', array $context = []): bool
+{
+    $logMessage = "[$level] $message";
+
+    if (!empty($context)) {
+        $logMessage .= " | Context: " . json_encode($context, JSON_UNESCAPED_UNICODE);
+    }
+
+    return __log_error($logMessage, 3, 'deploy');
+}
+
+/**
  * Formatear bytes en formato legible
  */
 function formatBytes($bytes, $precision = 2): string
@@ -202,85 +225,88 @@ function customErrorHandler($severity, $message, $file, $line)
 // Registrar el manejador de errores personalizado
 set_error_handler('customErrorHandler');
 
-// Cargar clases principales manualmente si es necesario
-if (!class_exists('Controllers')) {
-    require_once _PATH_ . 'core/Controllers/Controllers.php';
-}
-
-// Verificar que las clases middleware existan antes de registrarlas
-$middlewareClasses = [
-    'SecurityMiddleware' => 'core/Middleware/SecurityMiddleware.php',
-    'LoggingMiddleware' => 'core/Middleware/LoggingMiddleware.php',
-    'AuthMiddleware' => 'core/Middleware/AuthMiddleware.php'
-];
-
-foreach ($middlewareClasses as $className => $filePath) {
-    if (!class_exists($className)) {
-        $fullPath = _PATH_ . $filePath;
-        if (file_exists($fullPath)) {
-            require_once $fullPath;
-        } else {
-            __log_error("Middleware no encontrado: $className en $fullPath", 3, 'core_errors');
-        }
-    }
-}
-
-// Registrar middleware global solo si las clases existen
-if (class_exists('Controllers')) {
-    if (class_exists('SecurityMiddleware')) {
-        Controllers::registerGlobalMiddleware('before', ['SecurityMiddleware', 'handle']);
+// Solo cargar el framework completo si no estamos en modo despliegue
+if (!defined('DEPLOY_MODE')) {
+    // Cargar clases principales manualmente si es necesario
+    if (!class_exists('Controllers')) {
+        require_once _PATH_ . 'core/Controllers/Controllers.php';
     }
 
-    if (class_exists('LoggingMiddleware')) {
-        Controllers::registerGlobalMiddleware('before', ['LoggingMiddleware', 'handleBefore']);
-        Controllers::registerGlobalMiddleware('after', ['LoggingMiddleware', 'handleAfter']);
-    }
+    // Verificar que las clases middleware existan antes de registrarlas
+    $middlewareClasses = [
+        'SecurityMiddleware' => 'core/Middleware/SecurityMiddleware.php',
+        'LoggingMiddleware' => 'core/Middleware/LoggingMiddleware.php',
+        'AuthMiddleware' => 'core/Middleware/AuthMiddleware.php'
+    ];
 
-    // Registrar middleware de autenticación solo para admin
-    if (class_exists('AuthMiddleware') && class_exists('AdminController')) {
-        Controllers::registerGlobalMiddleware('before', function($controller) {
-            if ($controller instanceof AdminController) {
-                AuthMiddleware::handle($controller);
+    foreach ($middlewareClasses as $className => $filePath) {
+        if (!class_exists($className)) {
+            $fullPath = _PATH_ . $filePath;
+            if (file_exists($fullPath)) {
+                require_once $fullPath;
+            } else {
+                __log_error("Middleware no encontrado: $className en $fullPath", 3, 'core_errors');
             }
-        });
-    }
-}
-
-// Configurar idiomas si está habilitado
-if (defined('_MULTI_LANGUAGE_') && _MULTI_LANGUAGE_) {
-    if (class_exists('Idiomas')) {
-        Idiomas::setLanguage();
-    } else {
-        __log_error("Clase Idiomas no encontrada pero _MULTI_LANGUAGE_ está habilitado", 3, 'core_errors');
-    }
-}
-
-// Inicializar el sistema de controladores
-try {
-    if (class_exists('Controllers')) {
-        $controllers = new Controllers;
-        $controllers->load();
-    } else {
-        throw new Exception("Clase Controllers no encontrada después de intentar cargarla");
-    }
-} catch (Exception $e) {
-    __log_error("Error fatal al inicializar Controllers: " . $e->getMessage(), 3, 'core_errors');
-
-    // Mostrar error amigable al usuario
-    if (defined('_DEBUG_') && _DEBUG_) {
-        echo "<h1>Error de Inicialización</h1>";
-        echo "<p>Error: " . htmlspecialchars($e->getMessage()) . "</p>";
-        echo "<p>Revisa los logs en: " . log_folder . "</p>";
-
-        // Mostrar información de debug del autoloader
-        if (class_exists('Autoload')) {
-            $autoload = Autoload::getInstance();
-            $autoload->debug();
         }
-    } else {
-        echo "<h1>Error del Sistema</h1>";
-        echo "<p>Ha ocurrido un error interno. Contacta con el administrador.</p>";
     }
 
-    exit(1);
+    // Registrar middleware global solo si las clases existen
+    if (class_exists('Controllers')) {
+        if (class_exists('SecurityMiddleware')) {
+            Controllers::registerGlobalMiddleware('before', ['SecurityMiddleware', 'handle']);
+        }
+
+        if (class_exists('LoggingMiddleware')) {
+            Controllers::registerGlobalMiddleware('before', ['LoggingMiddleware', 'handleBefore']);
+            Controllers::registerGlobalMiddleware('after', ['LoggingMiddleware', 'handleAfter']);
+        }
+
+        // Registrar middleware de autenticación solo para admin
+        if (class_exists('AuthMiddleware') && class_exists('AdminController')) {
+            Controllers::registerGlobalMiddleware('before', function($controller) {
+                if ($controller instanceof AdminController) {
+                    AuthMiddleware::handle($controller);
+                }
+            });
+        }
+    }
+
+    // Configurar idiomas si está habilitado
+    if (defined('_MULTI_LANGUAGE_') && _MULTI_LANGUAGE_) {
+        if (class_exists('Idiomas')) {
+            Idiomas::setLanguage();
+        } else {
+            __log_error("Clase Idiomas no encontrada pero _MULTI_LANGUAGE_ está habilitado", 3, 'core_errors');
+        }
+    }
+
+    // Inicializar el sistema de controladores
+    try {
+        if (class_exists('Controllers')) {
+            $controllers = new Controllers;
+            $controllers->load();
+        } else {
+            throw new Exception("Clase Controllers no encontrada después de intentar cargarla");
+        }
+    } catch (Exception $e) {
+        __log_error("Error fatal al inicializar Controllers: " . $e->getMessage(), 3, 'core_errors');
+
+        // Mostrar error amigable al usuario
+        if (defined('_DEBUG_') && _DEBUG_) {
+            echo "<h1>Error de Inicialización</h1>";
+            echo "<p>Error: " . htmlspecialchars($e->getMessage()) . "</p>";
+            echo "<p>Revisa los logs en: " . log_folder . "</p>";
+
+            // Mostrar información de debug del autoloader
+            if (class_exists('Autoload')) {
+                $autoload = Autoload::getInstance();
+                $autoload->debug();
+            }
+        } else {
+            echo "<h1>Error del Sistema</h1>";
+            echo "<p>Ha ocurrido un error interno. Contacta con el administrador.</p>";
+        }
+
+        exit(1);
+    }
 }
