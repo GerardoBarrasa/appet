@@ -5,7 +5,7 @@
  */
 
 // Configuración
-define('DEPLOY_SECRET', 'tu_clave_secreta_muy_segura_2024');
+define('DEPLOY_SECRET', 'Qhz8xR84CgISZhDxnohzCair546MvuqWPKHqGr3oEKU5DWVhxnw02kZhDxnorv7a');
 define('LOG_FILE', 'deploy.log');
 
 // Función para escribir logs con más detalle
