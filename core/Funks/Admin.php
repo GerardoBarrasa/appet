@@ -393,26 +393,84 @@ class Admin
             'data' => null
         ];
 
-        // Obtener y sanitizar datos
+        // Obtener y sanitizar datos básicos
         $nombre = Tools::sanitizeInput(Tools::getValue('nombre'));
         $apellidos = Tools::sanitizeInput(Tools::getValue('apellidos'));
         $email = Tools::sanitizeInput(Tools::getValue('email'));
         $password = Tools::getValue('password');
-        $idperfil = (int)Tools::getValue('idperfil', 2); // Por defecto perfil de cuidador
 
-        // Validar nombre
+        // Determinar el perfil según el usuario logueado
+        $idperfil = 2; // Por defecto perfil de cuidador
+        $id_cuidador = null;
+
+        if (!isset($_SESSION['admin_panel'])) {
+            $result['errors'][] = 'Sesión no válida';
+            return $result;
+        }
+
+        $usuarioLogueado = $_SESSION['admin_panel'];
+
+        // Lógica de perfiles según el usuario logueado
+        if ($usuarioLogueado->idperfil == 1) {
+            // Es superadmin: puede crear cualquier perfil y el idperfil viene por POST
+            $idperfil = (int)Tools::getValue('idperfil', 2);
+
+            // Para perfiles 2 y 3, el ID del cuidador debe venir por POST
+            if (in_array($idperfil, [2, 3])) {
+                $id_cuidador = (int)Tools::getValue('id_cuidador');
+                if ($id_cuidador <= 0) {
+                    $result['errors'][] = 'Debe seleccionar un cuidador para este perfil';
+                    return $result;
+                }
+
+                // Verificar que el cuidador existe y está activo
+                $cuidadorExiste = $db->fetchRowSafe(
+                    "SELECT id, estado FROM cuidadores WHERE id = ?",
+                    [$id_cuidador]
+                );
+
+                if (!$cuidadorExiste) {
+                    $result['errors'][] = 'El cuidador seleccionado no existe';
+                    return $result;
+                }
+
+                if ($cuidadorExiste->estado == 0) {
+                    $result['errors'][] = 'El cuidador seleccionado no está activo';
+                    return $result;
+                }
+            }
+
+        } elseif ($usuarioLogueado->idperfil == 2) {
+            // Es cuidador: solo puede crear tutores (perfil 3) de su propio cuidador
+            $idperfil = 3; // Forzar perfil de tutor
+            $id_cuidador = (int)$usuarioLogueado->cuidador_id;
+
+            if ($id_cuidador <= 0) {
+                $result['errors'][] = 'Error: No se puede determinar el cuidador asociado';
+                return $result;
+            }
+
+        } elseif ($usuarioLogueado->idperfil == 3) {
+            // Es tutor: no puede crear usuarios
+            $result['errors'][] = 'No tienes permisos para crear usuarios';
+            return $result;
+
+        } else {
+            $result['errors'][] = 'Perfil de usuario no válido';
+            return $result;
+        }
+
+        // Validaciones básicas
         $nombreValidation = Tools::validateNombre($nombre);
         if (!$nombreValidation['valid']) {
             $result['errors'] = array_merge($result['errors'], $nombreValidation['errors']);
         }
 
-        // Validar email
         $emailValidation = Tools::validateEmail($email);
         if (!$emailValidation['valid']) {
             $result['errors'] = array_merge($result['errors'], $emailValidation['errors']);
         }
 
-        // Validar contraseña
         if (empty($password)) {
             $result['errors'][] = 'La contraseña es obligatoria';
         } else {
@@ -427,17 +485,13 @@ class Admin
             $result['errors'][] = 'El perfil seleccionado no es válido';
         }
 
-        // Verificar permisos para crear usuarios
-        if (isset($_SESSION['admin_panel'])) {
-            // Solo superadmin puede crear otros superadmin
-            if ($idperfil == 1 && $_SESSION['admin_panel']->idperfil != 1) {
-                $result['errors'][] = 'No tienes permisos para crear usuarios administradores';
-            }
+        // Validaciones adicionales de permisos
+        if ($usuarioLogueado->idperfil != 1 && $idperfil == 1) {
+            $result['errors'][] = 'No tienes permisos para crear usuarios administradores';
+        }
 
-            // Los cuidadores solo pueden crear tutores de su mismo cuidador
-            if ($_SESSION['admin_panel']->idperfil == 2 && $idperfil != 3) {
-                $result['errors'][] = 'Solo puedes crear usuarios con perfil de tutor';
-            }
+        if ($usuarioLogueado->idperfil == 2 && $idperfil != 3) {
+            $result['errors'][] = 'Solo puedes crear usuarios con perfil de tutor';
         }
 
         // Si hay errores, retornar
@@ -457,32 +511,43 @@ class Admin
             'estado' => 1
         ];
 
-        // Realizar inserción
+        // Realizar inserción en transacción
         try {
+            $db->beginTransaction();
+
             $userId = $db->insertSafe('usuarios_admin', $addUsuario);
 
-            if ($userId) {
-                // Si es un cuidador o tutor, asociarlo al cuidador correspondiente
-                if ($idperfil > 1 && isset($_SESSION['admin_panel'])) {
-                    $cuidadorId = $_SESSION['admin_panel']->cuidador_id ?? 1;
-
-                    $db->insertSafe('usuarios_cuidadores', [
-                        'id_usuario' => $userId,
-                        'id_cuidador' => $cuidadorId
-                    ]);
-                }
-
-                $result['success'] = true;
-                $result['data'] = [
-                    'id_usuario_admin' => $userId,
-                    'nombre' => $nombre,
-                    'email' => strtolower($email),
-                    'idperfil' => $idperfil
-                ];
-            } else {
-                $result['errors'][] = 'Error al crear el usuario en la base de datos';
+            if (!$userId) {
+                throw new Exception('Error al crear el usuario en la base de datos');
             }
+
+            // Si es perfil 2 (cuidador) o 3 (tutor), crear entrada en usuarios_cuidadores
+            if (in_array($idperfil, [2, 3]) && $id_cuidador > 0) {
+                $insertCuidador = $db->insertSafe('usuarios_cuidadores', [
+                    'id_usuario' => $userId,
+                    'id_cuidador' => $id_cuidador
+                ]);
+
+                if (!$insertCuidador) {
+                    throw new Exception('Error al asignar el usuario al cuidador');
+                }
+            }
+
+            $db->commit();
+
+            $result['success'] = true;
+            $result['data'] = [
+                'id_usuario_admin' => $userId,
+                'nombre' => $nombre,
+                'apellidos' => $apellidos,
+                'email' => strtolower($email),
+                'idperfil' => $idperfil,
+                'id_cuidador' => $id_cuidador
+            ];
+
+
         } catch (Exception $e) {
+            $db->rollback();
             $result['errors'][] = 'Error interno: ' . $e->getMessage();
             Tools::logError('Error creando usuario: ' . $e->getMessage());
         }

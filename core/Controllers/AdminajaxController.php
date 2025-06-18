@@ -223,8 +223,6 @@ class AdminajaxController extends Controllers
         // ==========================================
 
         $this->add('ajax-get-usuarios-admin', [$this, 'getUsuariosAdmin']);
-        $this->add('ajax-create-usuario-admin', [$this, 'createUsuarioAdmin']);
-        $this->add('ajax-update-usuario-admin', [$this, 'updateUsuarioAdmin']);
         $this->add('ajax-delete-usuario-admin', [$this, 'deleteUsuarioAdmin']);
         $this->add('ajax-toggle-usuario-status', [$this, 'toggleUsuarioStatus']);
 
@@ -406,73 +404,6 @@ class AdminajaxController extends Controllers
         }
     }
 
-    /**
-     * Crea un nuevo usuario admin
-     *
-     * @return void
-     */
-    public function createUsuarioAdmin()
-    {
-        try {
-            $this->validateRequiredFields(['nombre', 'email', 'password']);
-
-            $email = Tools::getValue('email');
-
-            // Verificar que el email no exista
-            if (Admin::emailExiste($email)) {
-                $this->sendError('El email ya está en uso');
-                return;
-            }
-
-            $id = Admin::crearUsuario();
-
-            if ($id) {
-                $this->log("Usuario admin creado: {$email}", 'info');
-                $this->sendSuccess([
-                    'message' => 'Usuario creado correctamente',
-                    'id' => $id
-                ]);
-            } else {
-                $this->sendError('Error al crear el usuario');
-            }
-        } catch (Exception $e) {
-            $this->log("Error en createUsuarioAdmin: " . $e->getMessage(), 'error');
-            $this->sendError('Error interno del servidor');
-        }
-    }
-
-    /**
-     * Actualiza un usuario admin
-     *
-     * @return void
-     */
-    public function updateUsuarioAdmin()
-    {
-        try {
-            $this->validateRequiredFields(['id_usuario_admin', 'nombre', 'email']);
-
-            $id = (int)Tools::getValue('id_usuario_admin');
-            $email = Tools::getValue('email');
-
-            // Verificar que el email no exista para otro usuario
-            if (Admin::emailExiste($email, $id)) {
-                $this->sendError('El email ya está en uso por otro usuario');
-                return;
-            }
-
-            $result = Admin::actualizarUsuario();
-
-            if ($result) {
-                $this->log("Usuario admin actualizado: {$email}", 'info');
-                $this->sendSuccess(['message' => 'Usuario actualizado correctamente']);
-            } else {
-                $this->sendError('Error al actualizar el usuario');
-            }
-        } catch (Exception $e) {
-            $this->log("Error en updateUsuarioAdmin: " . $e->getMessage(), 'error');
-            $this->sendError('Error interno del servidor');
-        }
-    }
 
     /**
      * Elimina un usuario admin

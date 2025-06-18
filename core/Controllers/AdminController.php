@@ -1065,8 +1065,10 @@ class AdminController
         // Si es un súper admin obtenemos el listado de perfiles para mostrar el select en el front
         if(!$usuario && self::isSuperAdmin()) {
             $data['perfiles'] = class_exists('Permisos') ? Permisos::getTodosLosPerfiles() : [];
+            $data['cuidadores'] = class_exists('Cuidador') ? Cuidador::getCuidadorWithFiltros(0, 0, false)['listado'] : [];
         } else {
             $data['perfiles'] = [];
+            $data['cuidadores'] = [];
         }
 
         if (class_exists('Render')) {
