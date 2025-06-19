@@ -1127,7 +1127,7 @@ class AdminController
         $idMascota = $data[1] ?? 0;
 
         $mascota = class_exists('Mascotas') ? Mascotas::getMascotaById($idMascota) : null;
-        $mascotaCaracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicasByMascota($idMascota) : [];
+        $mascotaCaracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicasByMascotaGrouped($idMascota) : [];
         $caracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicas() : [];
 
         $data = [
