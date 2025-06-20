@@ -91,7 +91,7 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
     )
 }
 
-// Función para cargar mascotas con valores por defecto y paginación
+// Función para cargar usuarios con valores por defecto y paginación
 function ajax_get_usuarios_admin(comienzo = 0, limite = 20, pagina = 1) {
     // Validar y convertir a números si es necesario
     comienzo = parseInt(comienzo) || 0;
@@ -136,6 +136,58 @@ function ajax_get_usuarios_admin(comienzo = 0, limite = 20, pagina = 1) {
             } else {
                 if (typeof toastr !== "undefined") {
                     toastr.error(response.error || response.html || "Error al cargar los usuarios")
+                }
+            }
+            $(".loadingscr").addClass("d-none")
+        },
+    )
+}
+
+// Función para cargar tutores con valores por defecto y paginación
+function ajax_get_tutores(comienzo = 0, limite = 20, pagina = 1) {
+    // Validar y convertir a números si es necesario
+    comienzo = parseInt(comienzo) || 0;
+    limite = parseInt(limite) || 20;
+    pagina = parseInt(pagina) || 1;
+
+    $(".loadingscr").removeClass("d-none")
+
+    ajax_call(
+        dominio + "adminajax/ajax-get-tutores/",
+        {
+            comienzo: comienzo,
+            limite: limite,
+            pagina: pagina,
+            busqueda: $("#busqueda").val() || "",
+        },
+        (response) => {
+            // Si la respuesta es un string, intentar parsearlo
+            if (typeof response === "string") {
+                try {
+                    response = JSON.parse(response)
+                } catch (e) {
+                    if (typeof toastr !== "undefined") {
+                        toastr.error("Error en el formato de respuesta del servidor")
+                    }
+                    $(".loadingscr").addClass("d-none")
+                    return
+                }
+            }
+
+            if (response && response.type === "success") {
+                $("#page-content").html(response.html);
+                let total = response.total || 0;
+                $(".totalfound").empty().html(total+' resultado'+(total !== 1 ? 's' : ''))
+                // Generar paginador si hay información de paginación
+                if (response.pagination) {
+                    generarPaginador(response.pagination, limite, 'ajax_get_tutores')
+                }
+                else{
+                    $(".paginador").html("") // Limpiar paginador si no hay paginación
+                }
+            } else {
+                if (typeof toastr !== "undefined") {
+                    toastr.error(response.error || response.html || "Error al cargar los tutores")
                 }
             }
             $(".loadingscr").addClass("d-none")

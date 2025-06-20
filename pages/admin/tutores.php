@@ -8,11 +8,11 @@
             <div class="row d-flex align-items-center justify-content-between">
                 <div class="col-12 col-md-8 mb-2 mb-md-0">
                     <form id="formFiltrosAdmin">
-                        <input class="form-control w-100 debouncefunc" name="busqueda" id="busqueda" type="text" placeholder="Busca por nombre, e-mail o mascota" data-function="ajax_get_usuarios_admin">
+                        <input class="form-control w-100 debouncefunc" name="busqueda" id="busqueda" type="text" placeholder="Busca por nombre, e-mail o mascota" data-function="ajax_get_tutores">
                     </form>
                 </div>
                 <div class="col-12 col-md-4 d-flex align-items-center justify-content-around justify-content-md-end mb-2 mb-md-0">
-                    <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>nuevo-usuario/" class="btn btn-primary">Nuevo usuario</a>
+                    <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>nuevo-tutor/" class="btn btn-primary">Nuevo tutor</a>
                 </div>
             </div>
         </div>
@@ -21,7 +21,7 @@
             <div class="row pt-2" id="page-content">
 
             </div>
-            <script> ajax_get_usuarios_admin(); </script>
+            <script> ajax_get_tutores(); </script>
         </div>
         <!-- /.card-body -->
         <div class="card-footer">

@@ -17,7 +17,7 @@ class Tutores
      * @param string $busqueda Término de búsqueda
      * @return array
      */
-    public static function getTutoresFiltered($comienzo = 0, $limite = 20, $applyLimit = true, $busqueda = '')
+    public static function getTutoresFiltered($comienzo = 0, $limite = 20, $busqueda = '', $applyLimit = true)
     {
         $db = Bd::getInstance();
         $params = [];
@@ -417,19 +417,6 @@ class Tutores
             }
         }
 
-        // Validar cuidador
-        if (empty($datos['id_cuidador']) || $datos['id_cuidador'] <= 0) {
-            $result['errors'][] = 'Debe seleccionar un cuidador válido';
-        } else {
-            // Verificar que el cuidador existe
-            $cuidador = Cuidador::getCuidadorById($datos['id_cuidador']);
-            if (!$cuidador) {
-                $result['errors'][] = 'El cuidador seleccionado no existe';
-            } elseif ($cuidador->estado == 0) {
-                $result['errors'][] = 'El cuidador seleccionado no está activo';
-            }
-        }
-
         // Validar email si se proporciona
         if (!empty($datos['email'])) {
             $emailValidation = Tools::validateEmail($datos['email'], $id, 'tutores', 'email');
@@ -439,15 +426,17 @@ class Tutores
         }
 
         // Validar teléfonos si se proporcionan
-        if (!empty($datos['telefono_1'])) {
-            $phoneValidation = Tools::validateSpanishPhone($datos['telefono_1']);
+        if (empty($datos['telefono_1'])) {
+            $result['errors'][] = 'El teléfono 1 es obligatorio';
+        } else {
+            $phoneValidation = Tools::validatePhone($datos['telefono_1']);
             if (!$phoneValidation['valid']) {
                 $result['errors'][] = 'El teléfono principal no tiene un formato válido';
             }
         }
 
         if (!empty($datos['telefono_2'])) {
-            $phoneValidation = Tools::validateSpanishPhone($datos['telefono_2']);
+            $phoneValidation = Tools::validatePhone($datos['telefono_2']);
             if (!$phoneValidation['valid']) {
                 $result['errors'][] = 'El teléfono secundario no tiene un formato válido';
             }

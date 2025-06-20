@@ -62,6 +62,9 @@ class AdminajaxController extends Controllers
             'ajax-delete-traduccion',
             'ajax-regenerar-cache-traducciones',
 
+            // Tutores
+            'ajax-get-tutores',
+
             // Mascotas
             'ajax-get-mascotas-admin',
             'ajax-create-mascota',
@@ -243,6 +246,12 @@ class AdminajaxController extends Controllers
         $this->add('ajax-create-slug', [$this, 'createSlug']);
         $this->add('ajax-update-slug', [$this, 'updateSlug']);
         $this->add('ajax-delete-slug', [$this, 'deleteSlug']);
+
+        // ==========================================
+        // TUTORES
+        // ==========================================
+
+        $this->add('ajax-get-tutores', [$this, 'getTutores']);
 
         // ==========================================
         // MASCOTAS
@@ -479,6 +488,62 @@ class AdminajaxController extends Controllers
             }
         } catch (Exception $e) {
             $this->log("Error en toggleUsuarioStatus: " . $e->getMessage(), 'error');
+            $this->sendError('Error interno del servidor');
+        }
+    }
+
+
+
+    // ==========================================
+    // MÉTODOS PARA TUTORES
+    // ==========================================
+
+    /**
+     * Obtiene tutores con filtros
+     *
+     * @return void
+     */
+    public function getTutores()
+    {
+        try {
+            $comienzo = (int)Tools::getValue('comienzo', 0);
+            $limite = (int)Tools::getValue('limite', 20);
+            $pagina = (int)Tools::getValue('pagina', 1);
+            $busqueda = Tools::getValue('busqueda', '');
+
+            $tutores = Tutores::getTutoresFiltered($comienzo, $limite,  $busqueda, true);
+            $totalRegistros = $tutores['total'];
+            // Calcular información de paginación
+            $totalPaginas = ceil($totalRegistros / $limite);
+            $paginaActual = $pagina;
+            // Generar información del paginador
+            $paginacion = $this->generarPaginacion($paginaActual, $totalPaginas, $limite, $totalRegistros);
+
+            $data = [
+                'comienzo' => $comienzo,
+                'limite' => $limite,
+                'pagina' => $pagina,
+                'tutores' => $tutores['listado'],
+                'total' => $tutores['total'],
+                'total_paginas' => $totalPaginas,
+                'paginacion' => $paginacion
+            ];
+
+            $html = Render::getAjaxPage('admin_tutores_list', $data);
+
+            if (!empty($html)) {
+                $this->sendSuccess([
+                    'html' => $html,
+                    'pagination' => $paginacion,
+                    'total' => $totalRegistros,
+                    'total_pages' => $totalPaginas,
+                    'current_page' => $paginaActual
+                ]);
+            } else {
+                $this->sendError('Error cargando el contenido');
+            }
+        } catch (Exception $e) {
+            $this->log("Error en getTutores: " . $e->getMessage(), 'error');
             $this->sendError('Error interno del servidor');
         }
     }

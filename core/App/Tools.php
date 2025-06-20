@@ -1637,18 +1637,22 @@ class Tools
         return $input;
     }
 
+
     /**
-     * Valida un número de teléfono español
+     * Valida un número de teléfono internacional
      *
      * @param string $phone Teléfono a validar
+     * @param string $defaultCountry Código de país por defecto (ES, US, FR, etc.)
      * @return array Resultado de validación
      */
-    public static function validateSpanishPhone($phone)
+    public static function validatePhone($phone, $defaultCountry = 'ES')
     {
         $result = [
             'valid' => true,
             'errors' => [],
-            'formatted' => ''
+            'formatted' => '',
+            'country' => '',
+            'type' => ''
         ];
 
         $phone = trim($phone);
@@ -1657,30 +1661,163 @@ class Tools
             return $result; // Teléfono opcional
         }
 
-        // Eliminar espacios, guiones y paréntesis
-        $cleanPhone = preg_replace('/[\s\-$$$$]/', '', $phone);
+        // Eliminar espacios, guiones, paréntesis y puntos
+        $cleanPhone = preg_replace('/[\s\-().]/', '', $phone);
 
-        // Patrones para teléfonos españoles
-        $patterns = [
-            '/^(\+34|0034)?[6789]\d{8}$/', // Móviles y fijos españoles
-            '/^(\+34|0034)?\d{9}$/' // Formato general español
+        // Patrones de teléfonos por país
+        $phonePatterns = [
+            'ES' => [
+                'patterns' => [
+                    '/^(\+34|0034)?[6789]\d{8}$/', // Móviles y fijos españoles
+                    '/^(\+34|0034)?\d{9}$/' // Formato general español
+                ],
+                'prefix' => '+34',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+34|0034)/', '', $clean);
+                    if (strlen($clean) === 9) {
+                        return '+34 ' . substr($clean, 0, 3) . ' ' . substr($clean, 3, 3) . ' ' . substr($clean, 6, 3);
+                    }
+                    return '+34 ' . $clean;
+                }
+            ],
+            'US' => [
+                'patterns' => [
+                    '/^(\+1|001)?[2-9]\d{2}[2-9]\d{2}\d{4}$/', // Teléfonos estadounidenses
+                ],
+                'prefix' => '+1',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+1|001)/', '', $clean);
+                    if (strlen($clean) === 10) {
+                        return '+1 (' . substr($clean, 0, 3) . ') ' . substr($clean, 3, 3) . '-' . substr($clean, 6, 4);
+                    }
+                    return '+1 ' . $clean;
+                }
+            ],
+            'FR' => [
+                'patterns' => [
+                    '/^(\+33|0033)?[1-9]\d{8}$/', // Teléfonos franceses
+                ],
+                'prefix' => '+33',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+33|0033)/', '', $clean);
+                    if (strlen($clean) === 9) {
+                        return '+33 ' . substr($clean, 0, 1) . ' ' . substr($clean, 1, 2) . ' ' . substr($clean, 3, 2) . ' ' . substr($clean, 5, 2) . ' ' . substr($clean, 7, 2);
+                    }
+                    return '+33 ' . $clean;
+                }
+            ],
+            'DE' => [
+                'patterns' => [
+                    '/^(\+49|0049)?[1-9]\d{10,11}$/', // Teléfonos alemanes
+                ],
+                'prefix' => '+49',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+49|0049)/', '', $clean);
+                    return '+49 ' . $clean;
+                }
+            ],
+            'IT' => [
+                'patterns' => [
+                    '/^(\+39|0039)?[0-9]\d{8,10}$/', // Teléfonos italianos
+                ],
+                'prefix' => '+39',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+39|0039)/', '', $clean);
+                    return '+39 ' . $clean;
+                }
+            ],
+            'UK' => [
+                'patterns' => [
+                    '/^(\+44|0044)?[1-9]\d{9,10}$/', // Teléfonos británicos
+                ],
+                'prefix' => '+44',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+44|0044)/', '', $clean);
+                    return '+44 ' . $clean;
+                }
+            ],
+            'MX' => [
+                'patterns' => [
+                    '/^(\+52|0052)?[1-9]\d{9}$/', // Teléfonos mexicanos
+                ],
+                'prefix' => '+52',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+52|0052)/', '', $clean);
+                    if (strlen($clean) === 10) {
+                        return '+52 ' . substr($clean, 0, 3) . ' ' . substr($clean, 3, 3) . ' ' . substr($clean, 6, 4);
+                    }
+                    return '+52 ' . $clean;
+                }
+            ],
+            'AR' => [
+                'patterns' => [
+                    '/^(\+54|0054)?[1-9]\d{9,10}$/', // Teléfonos argentinos
+                ],
+                'prefix' => '+54',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+54|0054)/', '', $clean);
+                    return '+54 ' . $clean;
+                }
+            ]
         ];
 
-        $isValid = false;
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $cleanPhone)) {
-                $isValid = true;
-                break;
+        // Detectar país automáticamente si el teléfono tiene prefijo internacional
+        $detectedCountry = null;
+        if (preg_match('/^\+/', $cleanPhone)) {
+            foreach ($phonePatterns as $countryCode => $config) {
+                foreach ($config['patterns'] as $pattern) {
+                    if (preg_match($pattern, $cleanPhone)) {
+                        $detectedCountry = $countryCode;
+                        break 2;
+                    }
+                }
             }
         }
 
-        if (!$isValid) {
-            $result['valid'] = false;
-            $result['errors'][] = 'El formato del teléfono no es válido (debe ser un teléfono español)';
+        // Usar país detectado o país por defecto
+        $country = $detectedCountry ?: $defaultCountry;
+
+        // Validar según el país
+        if (isset($phonePatterns[$country])) {
+            $config = $phonePatterns[$country];
+            $isValid = false;
+
+            foreach ($config['patterns'] as $pattern) {
+                if (preg_match($pattern, $cleanPhone)) {
+                    $isValid = true;
+                    break;
+                }
+            }
+
+            if ($isValid) {
+                $result['country'] = $country;
+                $result['formatted'] = $config['format']($cleanPhone);
+
+                // Determinar tipo de teléfono (móvil/fijo) para España
+                if ($country === 'ES') {
+                    $cleanForType = preg_replace('/^(\+34|0034)/', '', $cleanPhone);
+                    if (preg_match('/^[67]/', $cleanForType)) {
+                        $result['type'] = 'mobile';
+                    } elseif (preg_match('/^[89]/', $cleanForType)) {
+                        $result['type'] = 'landline';
+                    } else {
+                        $result['type'] = 'unknown';
+                    }
+                }
+            } else {
+                $result['valid'] = false;
+                $result['errors'][] = "El formato del teléfono no es válido para {$country}";
+            }
         } else {
-            // Formatear el teléfono
-            $cleanPhone = preg_replace('/^(\+34|0034)/', '', $cleanPhone);
-            $result['formatted'] = '+34 ' . substr($cleanPhone, 0, 3) . ' ' . substr($cleanPhone, 3, 3) . ' ' . substr($cleanPhone, 6, 3);
+            // Validación genérica para países no específicos
+            if (preg_match('/^\+?[1-9]\d{7,14}$/', $cleanPhone)) {
+                $result['country'] = 'UNKNOWN';
+                $result['formatted'] = $cleanPhone;
+                $result['type'] = 'unknown';
+            } else {
+                $result['valid'] = false;
+                $result['errors'][] = 'El formato del teléfono no es válido';
+            }
         }
 
         return $result;

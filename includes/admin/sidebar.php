@@ -16,8 +16,8 @@
                         <p>Mascotas</p>
                     </a>
                 </li>
-                <li class="nav-item <?=Render::$page == 'propietarios'? ' active' : ''?>">
-                    <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>propietarios/" class="nav-link">
+                <li class="nav-item <?=Render::$page == 'tutores'? ' active' : ''?>">
+                    <a href="<?=_DOMINIO_.$_SESSION['admin_vars']['entorno']?>tutores/" class="nav-link">
                         <i class="fa fa-user-alt nav-icon"></i>
                         <p>Tutores</p>
                     </a>
