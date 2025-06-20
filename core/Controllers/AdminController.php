@@ -1087,13 +1087,33 @@ class AdminController
     {
         $this->requireAuth();
 
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Mascotas',
+                'url' => '',
+                'icon' => 'fas fa-paw',
+                'active' => true
+            ]
+        ];
+
         $data = [
             'comienzo' => $this->comienzo,
             'pagina' => $this->pagina,
-            'limite' => $this->limite
+            'limite' => $this->limite,
+            'breadcrumb' => $breadcrumb
         ];
 
         if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
             Render::adminPage('mascotas', $data);
         }
 
@@ -1130,13 +1150,42 @@ class AdminController
         $mascotaCaracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicasByMascotaGrouped($idMascota) : [];
         $caracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicas() : [];
 
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Mascotas',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'mascotas/',
+                'icon' => 'fas fa-paw'
+            ],
+            [
+                'title' => 'Ficha de '.$mascota->nombre,
+                'url' => '',
+                'icon' => 'fa fa-dog',
+                'active' => true
+            ]
+        ];
+
         $data = [
             'mascota' => $mascota,
             'caracteristicas' => $caracteristicas,
             'mascotaCaracteristicas' => $mascotaCaracteristicas,
+            'breadcrumb' => $breadcrumb
         ];
 
         if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['title' => 'Ficha de '.$mascota->nombre]
+            );
             Render::adminPage('mascota', $data);
         }
 
