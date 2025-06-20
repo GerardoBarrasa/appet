@@ -370,6 +370,11 @@ class AdminController
             $this->add('mascotas', [$this, 'mascotasAction']);
             $this->add('mascota', [$this, 'mascotaAction']);
             $this->add('nueva-mascota', [$this, 'nuevaMascotaAction']);
+
+            // Gestión de tutores (disponible para cuidadores)
+            $this->add('tutores', [$this, 'tutoresAction']);
+            $this->add('tutor', [$this, 'tutorAction']);
+            $this->add('nuevo-tutor', [$this, 'nuevoTutorAction']);
         }
 
         // Página 404
@@ -1536,6 +1541,263 @@ class AdminController
 
         $db = Bd::getInstance();
         return $db->fetchAllSafe("SELECT * FROM mascotas_genero ORDER BY nombre", [], PDO::FETCH_OBJ);
+    }
+
+
+
+    /**
+     * Acción para gestión de tutores
+     *
+     * @return void
+     */
+    public function tutoresAction()
+    {
+        $this->requireAuth();
+
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Tutores',
+                'url' => '',
+                'icon' => 'fas fa-users',
+                'active' => true
+            ]
+        ];
+
+        $data = [
+            'comienzo' => $this->comienzo,
+            'pagina' => $this->pagina,
+            'limite' => $this->limite,
+            'breadcrumb' => $breadcrumb
+        ];
+
+        if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
+            Render::adminPage('tutores', $data);
+        }
+
+        $this->setRendered(true);
+    }
+
+    /**
+     * Acción para administrar una mascota específica
+     *
+     * @return void
+     */
+    public function tutorAction()
+    {
+        $this->requireAuth();
+
+        if (!class_exists('Tools')) {
+            $this->show404();
+            return;
+        }
+
+        $requestData = Tools::getValue('data');
+        if (!$requestData) {
+            header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'tutores/');
+            exit;
+        }
+
+        $data = explode('-', $requestData);
+        $idTutor = $data[1] ?? 0;
+
+        $tutor = class_exists('Tutores') ? Mascotas::getTutorById($idTutor) : null;
+
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Tutores',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'tutores/',
+                'icon' => 'fas fa-users'
+            ],
+            [
+                'title' => 'Ficha de '.$tutor->nombre,
+                'url' => '',
+                'icon' => 'fa fa-user',
+                'active' => true
+            ]
+        ];
+
+        $data = [
+            'tutor' => $tutor,
+            'breadcrumb' => $breadcrumb
+        ];
+
+        if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['title' => 'Ficha de '.$tutor->nombre]
+            );
+            Render::adminPage('tutor', $data);
+        }
+
+        $this->setRendered(true);
+    }
+
+    /**
+     * Acción para crear un nuevo tutor
+     *
+     * @return void
+     */
+    public function nuevoTutorAction()
+    {
+        $this->requireAuth();
+
+        // Verificar que el usuario sea un cuidador válido
+        if (!isset($_SESSION['admin_panel']->cuidador_id) || $_SESSION['admin_panel']->cuidador_id == 0) {
+            Tools::registerAlert("Solo los cuidadores pueden crear tutores.", "error");
+            header("Location: " . _DOMINIO_ . $_SESSION['admin_vars']['entorno']);
+            exit;
+        }
+
+        // Procesar formulario de creación
+        if (class_exists('Tools') && Tools::getIsset('submitCrearTutor')) {
+            $this->handleCreateTutor();
+        }
+
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Tutores',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'tutores/',
+                'icon' => 'fas fa-users'
+            ],
+            [
+                'title' => 'Nuevo Tutor',
+                'url' => '',
+                'icon' => 'fas fa-plus',
+                'active' => true
+            ]
+        ];
+
+        $data = [
+            'breadcrumb' => $breadcrumb
+        ];
+
+        if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
+        }
+
+        if (class_exists('Metas')) {
+            Metas::$title = "Nuevo Tutor";
+        }
+
+        if (class_exists('Render')) {
+            Render::adminPage('nuevo-tutor', $data);
+        }
+
+        $this->setRendered(true);
+    }
+
+    /**
+     * Maneja la creación de un nuevo tutor
+     *
+     * @return void
+     */
+    protected function handleCreateTutor()
+    {
+        if (!class_exists('Tools') || !class_exists('Tutores')) {
+            Tools::registerAlert("Error interno: clases requeridas no encontradas.", "error");
+            return;
+        }
+
+        // Inicializar array de errores
+        $errors = [];
+
+        // Validar campos requeridos
+        $nombre         = Tools::getValue('nombre');
+        $id_cuidador    = $_SESSION['admin_panel']->cuidador_id ?? 0;
+
+        if (empty($nombre)) {
+            $errors[] = "El nombre es obligatorio";
+        }
+
+        if (!$id_cuidador || empty($id_cuidador) || $id_cuidador == 0) {
+            $errors[] = "Solo los cuidadores pueden crear tutores";
+        }
+
+        // Si hay errores, mostrarlos y salir
+        if (!empty($errors)) {
+            foreach ($errors as $error) {
+                Tools::registerAlert($error, "error");
+            }
+            return;
+        }
+
+        // Verificar si el método crearTutor existe
+        if (!method_exists('Tutores', 'crearTutor')) {
+            Tools::registerAlert("Error interno: método crearTutor no encontrado.", "error");
+            return;
+        }
+
+        try {
+            // Preparar los datos para crear la mascota
+            $datosCreacion = [
+                'id_cuidador' => $id_cuidador,
+                'nombre' => $nombre,
+                'notas_internas' => Tools::getValue('notas_internas'),
+                'observaciones' => Tools::getValue('observaciones')
+            ];
+
+            // Crear el tutor
+            $tutorId = Tutores::crearTutor($datosCreacion);
+
+            if ($tutorId && is_numeric($tutorId) && $tutorId > 0) {
+                // Limpiar cualquier alerta previa para evitar conflictos
+                if (isset($_SESSION['alerts'])) {
+                    unset($_SESSION['alerts']);
+                }
+
+                if (empty($_SESSION['alerts'])) {
+                    Tools::registerAlert("Tutor creado correctamente.", "success");
+                }
+
+                // Redirigir a la página de edición del tutor recién creado
+                $adminPath = $_SESSION['admin_vars']['entorno'] ?? 'admin/';
+                $redirectUrl = _DOMINIO_ . $adminPath . "tutor/tutor-$tutorId/";
+
+                header("Location: $redirectUrl");
+                exit;
+            } else {
+                Tools::registerAlert("Error al crear el tutor. Inténtalo de nuevo.", "error");
+            }
+
+        } catch (Exception $e) {
+            debug_log([
+                'error' => 'Exception in handleCreateMascota',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 'CREATE_TUTOR_EXCEPTION', 'admin');
+
+            Tools::registerAlert("Error al crear el tutor: " . $e->getMessage(), "error");
+        }
     }
 
     /**

@@ -1,5 +1,54 @@
 # ApPet 1.0.0
 
+## Resumen de la clase Tutores creada:
+
+### **Funcionalidades principales:**
+
+1. **CRUD completo**: Crear, leer, actualizar y eliminar tutores
+2. **Filtros y búsquedas**: Por nombre, teléfono, email
+3. **Gestión de permisos**: Según el perfil del usuario logueado
+4. **Relaciones con mascotas**: Asignar/desasignar mascotas a tutores
+5. **Validaciones**: Nombre, email, teléfonos españoles
+
+
+### **Características específicas:**
+
+- ✅ **Sin imágenes**: No maneja imágenes ni directorios como las mascotas
+- ✅ **Slugs únicos**: Generación automática de slugs URL-friendly
+- ✅ **Validación de teléfonos**: Formato español
+- ✅ **Control de acceso**: Según perfil (superadmin, cuidador, tutor)
+- ✅ **Auditoría**: Logs de todas las operaciones
+- ✅ **Relaciones**: Gestión de asignación de mascotas
+
+
+### **Métodos principales:**
+
+- `getTutoresFiltered()` - Lista con filtros y paginación
+- `getTutorById()` / `getTutorBySlug()` - Obtener tutor específico
+- `crearTutor()` / `actualizarTutor()` / `eliminarTutor()` - CRUD
+- `asignarMascota()` / `desasignarMascota()` - Gestión de mascotas
+- `searchByName()` - Búsqueda por nombre
+- `getEstadisticas()` - Estadísticas de tutores
+
+
+### **Validaciones implementadas:**
+
+- **Nombre**: Mínimo 3 caracteres, solo letras y espacios
+- **Email**: Formato válido y único (opcional)
+- **Teléfonos**: Formato español (opcional)
+- **Cuidador**: Debe existir y estar activo
+- **Permisos**: Según perfil del usuario
+
+
+### **Control de permisos:**
+
+- **Superadmin**: Puede gestionar todos los tutores
+- **Cuidador**: Solo tutores de su cuidador
+- **Tutor**: No puede gestionar otros tutores
+
+
+La clase sigue el mismo patrón que Mascotas pero adaptada a las necesidades específicas de los tutores y sin gestión de imágenes.
+
 ### **Backend PHP:**
 
 - Cambié `window.alerta_php` por `window.alertas_php` (plural)
