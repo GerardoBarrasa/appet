@@ -26,6 +26,12 @@ class AdminajaxController extends Controllers
     protected $currentPage = '';
 
     /**
+     * Datos globales cargados una sola vez
+     */
+    protected static $globalData = null;
+    protected $commonData = [];
+
+    /**
      * Configuración del controlador
      */
     protected $config = [
@@ -64,6 +70,8 @@ class AdminajaxController extends Controllers
 
             // Tutores
             'ajax-get-tutores',
+            'ajax-asignar-mascota',
+            'ajax-get-mascotas-asignadas',
 
             // Mascotas
             'ajax-get-mascotas-admin',
@@ -252,6 +260,8 @@ class AdminajaxController extends Controllers
         // ==========================================
 
         $this->add('ajax-get-tutores', [$this, 'getTutores']);
+        $this->add('ajax-asignar-mascota', [$this, 'linkTutorMascota']);
+        $this->add('ajax-get-mascotas-asignadas', [$this, 'getMascotasAsignadas']);
 
         // ==========================================
         // MASCOTAS
@@ -544,6 +554,88 @@ class AdminajaxController extends Controllers
             }
         } catch (Exception $e) {
             $this->log("Error en getTutores: " . $e->getMessage(), 'error');
+            $this->sendError('Error interno del servidor');
+        }
+    }
+
+    /**
+     * Asocia un tutor y una mascota
+     *
+     * @return void
+     */
+    public function linkTutorMascota()
+    {
+        try {
+            $idMascota = (int)Tools::getValue('idmascota', '');
+            $idTutor = (int)Tools::getValue('idtutor', '');
+            // Comprobamos datos de tutor
+            $tutor = Tutores::getTutorById($idTutor);
+            if (!$tutor) {
+                $this->sendError('El tutor no existe');
+            }
+            // Verificar permisos
+            if (!Tutores::canManageTutor($tutor->id_cuidador)) {
+                $this->sendError('No tienes permisos para gestionar este tutor');
+            }
+            // Comprobamos datos de la mascota
+            $mascota = Mascotas::getMascotaById($idMascota);
+            if(!$mascota){
+                $this->sendError('La mascota no existe');
+            }
+            // Verificamos permisos
+            if (!Mascotas::canManageMascota($tutor->id_cuidador)) {
+                $this->sendError('No tienes permisos para gestionar esta mascota');
+            }
+
+            $asignada = Tutores::asignarMascota($idMascota, $idTutor);
+            if(!$asignada){
+                $this->sendError('La mascota ya está asignada al tutor');
+            }
+
+            $this->sendSuccess(['message' => 'Mascota asignada correctamente']);
+
+        } catch (Exception $e) {
+            $this->log("Error en getTutores: " . $e->getMessage(), 'error');
+            $this->sendError('Error interno del servidor');
+        }
+    }
+
+    /**
+     * Obtiene las mascotas asignadas a un tutor
+     *
+     * @return void
+     */
+    public function getMascotasAsignadas()
+    {
+        try {
+            $idTutor = (int)Tools::getValue('idtutor', '');
+            // Comprobamos datos de tutor
+            $tutor = Tutores::getTutorById($idTutor);
+            if (!$tutor) {
+                $this->sendError('El tutor no existe');
+            }
+            // Verificar permisos
+            if (!Tutores::canManageTutor($tutor->id_cuidador)) {
+                $this->sendError('No tienes permisos para gestionar este tutor');
+            }
+
+            $mascotasAsignadas = empty($idTutor) ? [] : (class_exists('Tutores') ? Tutores::getMascotasByTutor($idTutor) : []);
+
+            $data = [
+                'mascotasAsignadas' => $mascotasAsignadas,
+                'idtutor' => $idTutor,
+            ];
+
+            $html = Render::getAjaxPage('admin_mascotas_asignadas_list', $data);
+
+            if (!empty($html)) {
+                $this->sendSuccess(['html' => $html]);
+            } else {
+                $this->sendError('Error cargando el contenido');
+            }
+
+        } catch (Exception $e) {
+            $this->log("Error en getMascotasAsignadas: " . $e->getMessage(), 'error');
             $this->sendError('Error interno del servidor');
         }
     }
@@ -950,17 +1042,24 @@ class AdminajaxController extends Controllers
             $busqueda = Tools::getValue('busqueda', '');
             $listado = Tools::getValue('listado', 'admin_mascotas_list');
             $idtutor = Tools::getValue('idtutor', '');
+            $ifempty = Tools::getValue('ifempty', '');
             $listado != '' ?: $listado = 'admin_mascotas_list';
 
             // Obtener mascotas filtradas
-            $mascotas = Mascotas::getMascotasFiltered($comienzo, $limite, true, $busqueda);
+            // Si no se está buscando nada y el parámetro ifempty indica empty, devolver un listado vacío en lugar de todas las existentes.
+            if($busqueda == '' && $ifempty == 'empty'){
+                $mascotas = [];
+                $totalRegistros = 0;
+            }
+            else{
+                $mascotas = Mascotas::getMascotasFiltered($comienzo, $limite, true, $busqueda);
+                $totalRegistros = Mascotas::getTotalMascotasFiltered($busqueda);
+            }
+
 
             // Si recibimos el ID del tutor, obtenemos las mascotas asignadas
             $mascotasAsignadas = empty($idtutor) ? [] : (class_exists('Tutores') ? Tutores::getMascotasByTutor($idtutor) : []);
             empty($mascotasAsignadas) ?: $mascotasAsignadas = Tools::arrayGroupBy($mascotasAsignadas, 'id');
-
-            // Obtener total de registros para la paginación
-            $totalRegistros = Mascotas::getTotalMascotasFiltered($busqueda);
 
             // Calcular información de paginación
             $totalPaginas = ceil($totalRegistros / $limite);
@@ -983,17 +1082,13 @@ class AdminajaxController extends Controllers
 
             $html = Render::getAjaxPage($listado, $data);
 
-            if (!empty($html)) {
-                $this->sendSuccess([
-                    'html' => $html,
-                    'pagination' => $paginacion,
-                    'total' => $totalRegistros,
-                    'total_pages' => $totalPaginas,
-                    'current_page' => $paginaActual
-                ]);
-            } else {
-                $this->sendError('Error cargando el contenido');
-            }
+            $this->sendSuccess([
+                'html' => $html,
+                'pagination' => $paginacion,
+                'total' => $totalRegistros,
+                'total_pages' => $totalPaginas,
+                'current_page' => $paginaActual
+            ]);
         } catch (Exception $e) {
             $this->log("Error en getMascotasAdmin: " . $e->getMessage(), 'error');
             $this->sendError('Error interno del servidor');

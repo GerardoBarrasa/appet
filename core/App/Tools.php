@@ -1822,4 +1822,279 @@ class Tools
 
         return $result;
     }
+
+
+
+    // ==========================================
+    // FUNCIONES PARA DATOS COMUNES DEL SISTEMA
+    // ==========================================
+
+    /**
+     * Caché estático para datos comunes
+     */
+    protected static $commonDataCache = [];
+
+    /**
+     * Obtiene los géneros de mascotas indexados por ID
+     *
+     * @param bool $forceReload Forzar recarga desde BD
+     * @return array Array indexado por ID
+     */
+    public static function getGeneros($forceReload = false)
+    {
+        if (!$forceReload && isset(self::$commonDataCache['generos'])) {
+            return self::$commonDataCache['generos'];
+        }
+
+        try {
+            if (!class_exists('Bd')) {
+                return [];
+            }
+
+            $db = Bd::getInstance();
+            $generos = $db->fetchAllSafe("SELECT * FROM mascotas_genero ORDER BY nombre", [], PDO::FETCH_OBJ);
+
+            // Indexar por ID para acceso rápido
+            $indexedGeneros = [];
+            foreach ($generos as $genero) {
+                $indexedGeneros[$genero->id] = $genero;
+            }
+
+            // Guardar en caché
+            self::$commonDataCache['generos'] = $indexedGeneros;
+
+            return $indexedGeneros;
+
+        } catch (Exception $e) {
+            self::logError([
+                'error' => 'Error loading generos',
+                'message' => $e->getMessage()
+            ], 0, 'common_data');
+
+            return [];
+        }
+    }
+
+    /**
+     * Obtiene los tipos de mascotas indexados por ID
+     *
+     * @param bool $forceReload Forzar recarga desde BD
+     * @return array Array indexado por ID
+     */
+    public static function getTipos($forceReload = false)
+    {
+        if (!$forceReload && isset(self::$commonDataCache['tipos'])) {
+            return self::$commonDataCache['tipos'];
+        }
+
+        try {
+            if (!class_exists('Bd')) {
+                return [];
+            }
+
+            $db = Bd::getInstance();
+            $tipos = $db->fetchAllSafe("SELECT * FROM mascotas_tipo ORDER BY nombre", [], PDO::FETCH_OBJ);
+
+            // Indexar por ID para acceso rápido
+            $indexedTipos = [];
+            foreach ($tipos as $tipo) {
+                $indexedTipos[$tipo->id] = $tipo;
+            }
+
+            // Guardar en caché
+            self::$commonDataCache['tipos'] = $indexedTipos;
+
+            return $indexedTipos;
+
+        } catch (Exception $e) {
+            self::logError([
+                'error' => 'Error loading tipos',
+                'message' => $e->getMessage()
+            ], 0, 'common_data');
+
+            return [];
+        }
+    }
+
+    /**
+     * Obtiene las razas indexadas por ID
+     *
+     * @param bool $forceReload Forzar recarga desde BD
+     * @return array Array indexado por ID
+     */
+    public static function getRazas($forceReload = false)
+    {
+        if (!$forceReload && isset(self::$commonDataCache['razas'])) {
+            return self::$commonDataCache['razas'];
+        }
+
+        try {
+            if (!class_exists('Bd')) {
+                return [];
+            }
+
+            $db = Bd::getInstance();
+            $razas = $db->fetchAllSafe("SELECT * FROM mascotas_raza ORDER BY nombre", [], PDO::FETCH_OBJ);
+
+            // Indexar por ID para acceso rápido
+            $indexedRazas = [];
+            foreach ($razas as $raza) {
+                $indexedRazas[$raza->id] = $raza;
+            }
+
+            // Guardar en caché
+            self::$commonDataCache['razas'] = $indexedRazas;
+
+            return $indexedRazas;
+
+        } catch (Exception $e) {
+            self::logError([
+                'error' => 'Error loading razas',
+                'message' => $e->getMessage()
+            ], 0, 'common_data');
+
+            return [];
+        }
+    }
+
+    /**
+     * Obtiene el nombre de un género por su ID
+     *
+     * @param int $id ID del género
+     * @return string Nombre del género o cadena vacía
+     */
+    public static function getGeneroNombre($id)
+    {
+        $generos = self::getGeneros();
+        return isset($generos[$id]) ? $generos[$id]->nombre : '';
+    }
+
+    /**
+     * Obtiene el nombre de un tipo por su ID
+     *
+     * @param int $id ID del tipo
+     * @return string Nombre del tipo o cadena vacía
+     */
+    public static function getTipoNombre($id)
+    {
+        $tipos = self::getTipos();
+        return isset($tipos[$id]) ? $tipos[$id]->nombre : '';
+    }
+
+    /**
+     * Obtiene el nombre de una raza por su ID
+     *
+     * @param int $id ID de la raza
+     * @return string Nombre de la raza o cadena vacía
+     */
+    public static function getRazaNombre($id)
+    {
+        $razas = self::getRazas();
+        return isset($razas[$id]) ? $razas[$id]->nombre : '';
+    }
+
+    /**
+     * Obtiene todos los datos comunes del sistema
+     *
+     * @param bool $forceReload Forzar recarga desde BD
+     * @return array Array con todos los datos comunes
+     */
+    public static function getAllCommonData($forceReload = false)
+    {
+        return [
+            'generos' => self::getGeneros($forceReload),
+            'tipos' => self::getTipos($forceReload),
+            'razas' => self::getRazas($forceReload)
+        ];
+    }
+
+    /**
+     * Limpia el caché de datos comunes
+     *
+     * @param string $type Tipo específico a limpiar (generos, tipos, razas) o null para todo
+     * @return void
+     */
+    public static function clearCommonDataCache($type = null)
+    {
+        if ($type === null) {
+            self::$commonDataCache = [];
+        } elseif (isset(self::$commonDataCache[$type])) {
+            unset(self::$commonDataCache[$type]);
+        }
+    }
+
+    /**
+     * Genera opciones HTML para un select de géneros
+     *
+     * @param int $selectedId ID seleccionado
+     * @param bool $includeEmpty Incluir opción vacía
+     * @param string $emptyText Texto para opción vacía
+     * @return string HTML de opciones
+     */
+    public static function getGenerosSelectOptions($selectedId = 0, $includeEmpty = true, $emptyText = 'Seleccionar género')
+    {
+        $html = '';
+
+        if ($includeEmpty) {
+            $html .= '<option value="">' . htmlspecialchars($emptyText) . '</option>';
+        }
+
+        $generos = self::getGeneros();
+        foreach ($generos as $id => $genero) {
+            $selected = ($selectedId == $id) ? 'selected' : '';
+            $html .= '<option value="' . $id . '" ' . $selected . '>' . htmlspecialchars($genero->nombre) . '</option>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * Genera opciones HTML para un select de tipos
+     *
+     * @param int $selectedId ID seleccionado
+     * @param bool $includeEmpty Incluir opción vacía
+     * @param string $emptyText Texto para opción vacía
+     * @return string HTML de opciones
+     */
+    public static function getTiposSelectOptions($selectedId = 0, $includeEmpty = true, $emptyText = 'Seleccionar tipo')
+    {
+        $html = '';
+
+        if ($includeEmpty) {
+            $html .= '<option value="">' . htmlspecialchars($emptyText) . '</option>';
+        }
+
+        $tipos = self::getTipos();
+        foreach ($tipos as $id => $tipo) {
+            $selected = ($selectedId == $id) ? 'selected' : '';
+            $html .= '<option value="' . $id . '" ' . $selected . '>' . htmlspecialchars($tipo->nombre) . '</option>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * Genera opciones HTML para un select de razas
+     *
+     * @param int $selectedId ID seleccionado
+     * @param bool $includeEmpty Incluir opción vacía
+     * @param string $emptyText Texto para opción vacía
+     * @return string HTML de opciones
+     */
+    public static function getRazasSelectOptions($selectedId = 0, $includeEmpty = true, $emptyText = 'Seleccionar raza')
+    {
+        $html = '';
+
+        if ($includeEmpty) {
+            $html .= '<option value="">' . htmlspecialchars($emptyText) . '</option>';
+        }
+
+        $razas = self::getRazas();
+        foreach ($razas as $id => $raza) {
+            $selected = ($selectedId == $id) ? 'selected' : '';
+            $html .= '<option value="' . $id . '" ' . $selected . '>' . htmlspecialchars($raza->nombre) . '</option>';
+        }
+
+        return $html;
+    }
 }

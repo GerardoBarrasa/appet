@@ -1,5 +1,60 @@
 # ApPet 1.0.0
 
+## **Cómo usar los datos comunes:**
+
+### **Uso en los controladores:**
+
+```php
+// En AdminController.php
+public function mascotaAction()
+{
+    $this->requireAuth();
+    
+    // Usar los datos desde Tools
+    $generos = Tools::getGeneros();
+    $tipos = Tools::getTipos();
+    
+    // O obtener nombre específico
+    $nombreGenero = Tools::getGeneroNombre($mascota->genero);
+    
+    $data = [
+        'mascota' => $mascota,
+        'generos' => $generos,
+        'tipos' => $tipos
+    ];
+    
+    Render::adminPage('mascota', $data);
+}
+
+// En AdminajaxController.php
+public function getMascotasAjax()
+{
+    // Mismos datos disponibles sin duplicar código
+    $generos = Tools::getGeneros();
+    $tipos = Tools::getTipos();
+    
+    // Procesar datos...
+}
+```
+
+### **Uso en las vistas:**
+
+```php
+<!-- Usando los helpers HTML -->
+<select name="genero" class="form-control">
+    <?= Tools::getGenerosSelectOptions($mascota->genero ?? 0) ?>
+</select>
+
+<select name="tipo" class="form-control">
+    <?= Tools::getTiposSelectOptions($mascota->tipo ?? 0) ?>
+</select>
+
+<!-- O usando los arrays directamente -->
+<?php foreach (Tools::getGeneros() as $id => $genero): ?>
+    <option value="<?= $id ?>"><?= htmlspecialchars($genero->nombre) ?></option>
+<?php endforeach; ?>
+```
+
 ## Resumen de la clase Tutores creada:
 
 ### **Funcionalidades principales:**

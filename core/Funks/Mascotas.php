@@ -782,4 +782,31 @@ class Mascotas
         $db = Bd::getInstance();
         return (int)$db->fetchValueSafe("SELECT COUNT(*) FROM mascotas");
     }
+
+    /**
+     * Verifica si el usuario actual puede gestionar una mascota del cuidador indicado
+     *
+     * @param int $cuidadorId ID del cuidador
+     * @return bool
+     */
+    public static function canManageMascota($cuidadorId)
+    {
+        if (!isset($_SESSION['admin_panel'])) {
+            return false;
+        }
+
+        // Superadmin puede gestionar cualquier tutor
+        if ($_SESSION['admin_panel']->idperfil == 1) {
+            return true;
+        }
+
+        // Cuidadores solo pueden gestionar mascotas de su cuidador
+        if ($_SESSION['admin_panel']->idperfil == 2) {
+            return $_SESSION['admin_panel']->cuidador_id == $cuidadorId;
+        }
+
+        // Tutores no pueden gestionar otros tutores
+        // TODO accesoTutores
+        return false;
+    }
 }

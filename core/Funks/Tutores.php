@@ -495,7 +495,7 @@ class Tutores
      * @param int $cuidadorId ID del cuidador
      * @return bool
      */
-    protected static function canManageTutor($cuidadorId)
+    public static function canManageTutor($cuidadorId)
     {
         if (!isset($_SESSION['admin_panel'])) {
             return false;

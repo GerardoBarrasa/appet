@@ -49,11 +49,15 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
     let campo = $("#busqueda");
     let listado = 'admin_mascotas_list';
     let idtutor = '';
+    let ifempty = '';
     if (campo.data('listado') !== undefined) {
         listado = campo.data('listado');
     }
     if (campo.data('idtutor') !== undefined) {
         idtutor = campo.data('idtutor');
+    }
+    if (campo.data('ifempty') !== undefined) {
+        ifempty = campo.data('ifempty');
     }
 
     $(".loadingscr").removeClass("d-none")
@@ -67,6 +71,7 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
             busqueda: campo.val() || "",
             listado: listado,
             idtutor: idtutor,
+            ifempty: ifempty,
         },
         (response) => {
             // Si la respuesta es un string, intentar parsearlo
@@ -1256,4 +1261,67 @@ function mostrarAlertasPHP() {
         window.alerta_php = null
         delete window.alerta_php
     }
+}
+
+function asignarMascota(este){
+    let idmascota = $(este).data("idmascota");
+    let idtutor = $(este).data("idtutor");
+    $(".loadingscr").removeClass("d-none");
+    ajax_call(dominio + "adminajax/ajax-asignar-mascota/", { idmascota: idmascota, idtutor: idtutor },
+        (response) => {
+            // Si la respuesta es un string, intentar parsearlo
+            if (typeof response === "string") {
+                try {
+                    response = JSON.parse(response)
+                } catch (e) {
+                    if (typeof toastr !== "undefined") {
+                        toastr.error("Error en el formato de respuesta del servidor")
+                    }
+                    $(".loadingscr").addClass("d-none")
+                    return
+                }
+            }
+
+            if (response && response.type === "success") {
+                if (typeof toastr !== "undefined") {
+                    toastr.success("Mascota asignada correctamente")
+                }
+                // Recargar la lista de mascotas asignadas
+                ajax_get_mascotas_asignadas(idtutor);
+            } else {
+                if (typeof toastr !== "undefined") {
+                    toastr.error(response.error || response.html || "Error al asignar la mascota")
+                }
+            }
+            $(".loadingscr").addClass("d-none")
+        },
+    )
+}
+
+function ajax_get_mascotas_asignadas(idtutor){
+    $(".loadingscr").removeClass("d-none");
+
+    ajax_call(dominio + "adminajax/ajax-get-mascotas-asignadas/", { idtutor: idtutor }, (response) => {
+        // Si la respuesta es un string, intentar parsearlo
+        if (typeof response === "string") {
+            try {
+                response = JSON.parse(response)
+            } catch (e) {
+                if (typeof toastr !== "undefined") {
+                    toastr.error("Error en el formato de respuesta del servidor")
+                }
+                $(".loadingscr").addClass("d-none")
+                return
+            }
+        }
+
+        if (response && response.type === "success") {
+            $("#mascotasAsignadas").html(response.html);
+        } else {
+            if (typeof toastr !== "undefined") {
+                toastr.error(response.error || response.html || "Error al cargar las mascotas asignadas")
+            }
+        }
+        $(".loadingscr").addClass("d-none");
+    });
 }
