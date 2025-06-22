@@ -46,6 +46,16 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
     limite = parseInt(limite) || 12;
     pagina = parseInt(pagina) || 1;
 
+    let campo = $("#busqueda");
+    let listado = 'admin_mascotas_list';
+    let idtutor = '';
+    if (campo.data('listado') !== undefined) {
+        listado = campo.data('listado');
+    }
+    if (campo.data('idtutor') !== undefined) {
+        idtutor = campo.data('idtutor');
+    }
+
     $(".loadingscr").removeClass("d-none")
 
     ajax_call(
@@ -54,7 +64,9 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
             comienzo: comienzo,
             limite: limite,
             pagina: pagina,
-            busqueda: $("#busqueda").val() || "",
+            busqueda: campo.val() || "",
+            listado: listado,
+            idtutor: idtutor,
         },
         (response) => {
             // Si la respuesta es un string, intentar parsearlo

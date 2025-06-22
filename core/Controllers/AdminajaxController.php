@@ -948,6 +948,9 @@ class AdminajaxController extends Controllers
             $limite = (int)Tools::getValue('limite', 12);
             $pagina = (int)Tools::getValue('pagina', 1);
             $busqueda = Tools::getValue('busqueda', '');
+            $listado = Tools::getValue('listado', 'admin_mascotas_list');
+            $idtutor = Tools::getValue('idtutor', '');
+            $listado != '' ?: $listado = 'admin_mascotas_list';
 
             // Obtener mascotas filtradas
             $mascotas = Mascotas::getMascotasFiltered($comienzo, $limite, true, $busqueda);
@@ -967,12 +970,13 @@ class AdminajaxController extends Controllers
                 'limite' => $limite,
                 'pagina' => $paginaActual,
                 'mascotas' => $mascotas,
+                'idtutor' => $idtutor,
                 'total' => $totalRegistros,
                 'total_paginas' => $totalPaginas,
                 'paginacion' => $paginacion
             ];
 
-            $html = Render::getAjaxPage('admin_mascotas_list', $data);
+            $html = Render::getAjaxPage($listado, $data);
 
             if (!empty($html)) {
                 $this->sendSuccess([
