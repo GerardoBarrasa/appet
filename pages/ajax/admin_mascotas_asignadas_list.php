@@ -1,6 +1,7 @@
 <?php
 /**
  * @var $mascotasAsignadas
+ * @var $idtutor
  */
 if(!empty($mascotasAsignadas)){
     foreach($mascotasAsignadas as $mascota){
@@ -23,7 +24,7 @@ if(!empty($mascotasAsignadas)){
                         <?=Tools::getGeneroNombre($mascota->genero)?> <?=$mascota->raza?>
                     </div>
                 </div>
-                <div class="btn btn-secondary col-2 col-xl-1 d-flex flex-row align-items-center justify-content-center" data-idmascota="<?= $mascota->id ?>" data-idtutor="<?= $idtutor ?>" onclick="asignarMascota(this)">
+                <div class="btn btn-secondary col-2 col-xl-1 d-flex flex-row align-items-center justify-content-center" data-idmascota="<?= $mascota->id ?>" data-idtutor="<?= $idtutor ?>" data-action="remove" onclick="asignarMascota(this)">
                     <i class="fa fa-minus text-white"></i>
                 </div>
             </div>

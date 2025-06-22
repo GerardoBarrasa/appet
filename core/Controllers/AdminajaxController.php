@@ -568,6 +568,7 @@ class AdminajaxController extends Controllers
         try {
             $idMascota = (int)Tools::getValue('idmascota', '');
             $idTutor = (int)Tools::getValue('idtutor', '');
+            $action = Tools::getValue('action', 'add');
             // Comprobamos datos de tutor
             $tutor = Tutores::getTutorById($idTutor);
             if (!$tutor) {
@@ -587,12 +588,20 @@ class AdminajaxController extends Controllers
                 $this->sendError('No tienes permisos para gestionar esta mascota');
             }
 
-            $asignada = Tutores::asignarMascota($idMascota, $idTutor);
-            if(!$asignada){
-                $this->sendError('La mascota ya está asignada al tutor');
+            if($action == 'add') {
+                $asignada = Tutores::asignarMascota($idMascota, $idTutor);
+                if (!$asignada) {
+                    $this->sendError('La mascota ya está asignada al tutor');
+                }
+            }
+            else{
+                $asignada = Tutores::desasignarMascota($idMascota, $idTutor);
+                if (!$asignada) {
+                    $this->sendError('No se ha podido eliminar la mascota');
+                }
             }
 
-            $this->sendSuccess(['message' => 'Mascota asignada correctamente']);
+            $this->sendSuccess(['message' => 'Mascota '.($action == 'add' ? 'asignada' : 'eliminada').' correctamente']);
 
         } catch (Exception $e) {
             $this->log("Error en getTutores: " . $e->getMessage(), 'error');

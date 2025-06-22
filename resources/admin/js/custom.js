@@ -1266,8 +1266,12 @@ function mostrarAlertasPHP() {
 function asignarMascota(este){
     let idmascota = $(este).data("idmascota");
     let idtutor = $(este).data("idtutor");
+    let action = $(este).data("add");
+    if ($(este).data('action') !== undefined) {
+        action = $(este).data('action');
+    }
     $(".loadingscr").removeClass("d-none");
-    ajax_call(dominio + "adminajax/ajax-asignar-mascota/", { idmascota: idmascota, idtutor: idtutor },
+    ajax_call(dominio + "adminajax/ajax-asignar-mascota/", { idmascota: idmascota, idtutor: idtutor, action: action },
         (response) => {
             // Si la respuesta es un string, intentar parsearlo
             if (typeof response === "string") {
@@ -1284,7 +1288,7 @@ function asignarMascota(este){
 
             if (response && response.type === "success") {
                 if (typeof toastr !== "undefined") {
-                    toastr.success("Mascota asignada correctamente")
+                    toastr.success(response.message || "Mascota asignada correctamente")
                 }
                 // Recargar la lista de mascotas asignadas
                 ajax_get_mascotas_asignadas(idtutor);
