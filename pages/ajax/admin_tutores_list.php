@@ -5,7 +5,8 @@
  */
 if($total > 0)
 {?>
-	<table id="tablaTutores" class="table table-striped bg-default table-bordered table-hover">
+
+	<table id="tablaTutores" class="table table-striped bg-default table-bordered table-hover d-none d-md-block">
 		<thead>
 			<tr>
 				<th>Nombre</th>

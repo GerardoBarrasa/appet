@@ -23,7 +23,7 @@ if ($total > 0) {
                 <div class="btn btn-success col-2 col-xl-1 d-flex flex-row align-items-center justify-content-center" data-idmascota="<?= $mascota->id ?>" data-idtutor="<?= $idtutor ?>" onclick="asignarMascota(this)">
                     <i class="fa fa-plus text-white"></i>
                 </div>
-                <div class="d-flex flex-wrap align-items-center justify-content-between p-2">
+                <div class="d-flex flex-wrap align-items-center justify-content-between p-2 col-10 col-xl-11">
                     <div class="col-12 col-sm-3 d-sm-none h4 mb-0 text-center text-sm-left">
                         <?=$mascota->nombre?>
                     </div>
