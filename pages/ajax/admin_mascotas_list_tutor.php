@@ -3,9 +3,13 @@
  * @var $total
  * @var $mascotas
  * @var $idtutor
+ * @var $mascotasAsignadas
  */
 if ($total > 0) {
     foreach ($mascotas as $key => $mascota) {
+        if (isset($mascotasAsignadas[$mascota->id])) {
+            continue;
+        }
         $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile.jpg') ? _RESOURCES_.'private/mascotas/'.$mascota->id.'/profile.jpg' : _RESOURCES_ . _COMMON_ .'img/petType_'.$mascota->tipo.'_default.png';
         ?>
 

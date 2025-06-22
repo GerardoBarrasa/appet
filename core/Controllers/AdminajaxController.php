@@ -955,6 +955,10 @@ class AdminajaxController extends Controllers
             // Obtener mascotas filtradas
             $mascotas = Mascotas::getMascotasFiltered($comienzo, $limite, true, $busqueda);
 
+            // Si recibimos el ID del tutor, obtenemos las mascotas asignadas
+            $mascotasAsignadas = empty($idtutor) ? [] : (class_exists('Tutores') ? Tutores::getMascotasByTutor($idtutor) : []);
+            empty($mascotasAsignadas) ?: $mascotasAsignadas = Tools::arrayGroupBy($mascotasAsignadas, 'id');
+
             // Obtener total de registros para la paginación
             $totalRegistros = Mascotas::getTotalMascotasFiltered($busqueda);
 
@@ -970,6 +974,7 @@ class AdminajaxController extends Controllers
                 'limite' => $limite,
                 'pagina' => $paginaActual,
                 'mascotas' => $mascotas,
+                'mascotasAsignadas' => $mascotasAsignadas,
                 'idtutor' => $idtutor,
                 'total' => $totalRegistros,
                 'total_paginas' => $totalPaginas,
