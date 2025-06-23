@@ -12,8 +12,8 @@ if(!empty($mascotasAsignadas)){
                     <div class="col-12 col-sm-3 d-sm-none h4 mb-0 text-center text-sm-left">
                         <?=$mascota->nombre?>
                     </div>
-                    <div class="col-12 col-sm-2 d-flex align-items-center justify-content-center">
-                        <div class="col-6 col-sm-12 text-center">
+                    <div class="col-12 col-sm-2 m-0 p-0 d-flex align-items-center justify-content-center">
+                        <div class="col-6 col-sm-12 m-0 p-0 text-center">
                             <img src="<?= $image?>" alt="dog-avatar" class="img-circle img-fluid">
                         </div>
                     </div>
