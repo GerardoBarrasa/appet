@@ -97,7 +97,13 @@
                     <div id="page-content">
 
                     </div>
+                    <div class="form-group row mt-3">
+                        <div class="col-12 text-center">
+                            <a href="<?=_DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'nueva-mascota/for-' . $tutor->id . '/'?>" class="btn btn-outline-secondary">O haz click aquí para crear una nueva</a>
+                        </div>
+                    </div>
                 </div>
+
             </div>
             <script> ajax_get_mascotas_asignadas('<?=$tutor ? $tutor->id : ''?>'); </script>
         <?php } ?>

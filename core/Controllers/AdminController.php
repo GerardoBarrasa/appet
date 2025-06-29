@@ -1221,6 +1221,15 @@ class AdminController
         Tools::registerStylesheet('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css');
         Tools::registerJavascript('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js');
 
+        $idTutor = 0;
+        $requestData = Tools::getValue('data');
+        if ($requestData) {
+            $data = explode('-', $requestData);
+            if($data[0] == 'for'){// vamos a crear una nueva mascota y asignarla al ID de tutor que está en data[1]
+                $idTutor = $data[1] ?? 0;
+            }
+        }
+
         // Procesar formulario de creación
         if (class_exists('Tools') && Tools::getIsset('submitCrearMascota')) {
             $this->handleCreateMascota();
@@ -1253,6 +1262,7 @@ class AdminController
         $data = [
             'tipos' => $tipos,
             'generos' => $generos,
+            'idtutor' => $idTutor,
             'breadcrumb' => $breadcrumb
         ];
 
@@ -1375,6 +1385,12 @@ class AdminController
 
                 if (empty($_SESSION['alerts'])) {
                     Tools::registerAlert("Mascota creada correctamente.", "success");
+                }
+
+                // Si hay un ID de tutor, asignamos la mascota creada recientemente
+                $idtutor = Tools::getValue('idtutor');
+                if($idtutor){
+                    Tutores::asignarMascota($mascotaId, $idtutor);
                 }
 
                 // Redirigir a la página de edición de la mascota recién creada
