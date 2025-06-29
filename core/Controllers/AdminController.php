@@ -1154,6 +1154,8 @@ class AdminController
         $mascota = class_exists('Mascotas') ? Mascotas::getMascotaById($idMascota) : null;
         $mascotaCaracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicasByMascotaGrouped($idMascota) : [];
         $caracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicas() : [];
+        $tutores = class_exists('Tutores') ? Tutores::getTutoresByMascota($idMascota) : [];
+        $reportes = class_exists('Mascotas') ? Mascotas::getReportesByMascota($idMascota) : [];
 
         // Crear breadcrumb dinámico
         $breadcrumb = [
@@ -1179,6 +1181,8 @@ class AdminController
             'mascota' => $mascota,
             'caracteristicas' => $caracteristicas,
             'mascotaCaracteristicas' => $mascotaCaracteristicas,
+            'tutores' => $tutores,
+            'reportes' => $reportes,
             'breadcrumb' => $breadcrumb
         ];
 
@@ -1703,7 +1707,7 @@ class AdminController
 
                 // Redirigir a la página de edición del tutor recién creado
                 $adminPath = $_SESSION['admin_vars']['entorno'] ?? 'admin/';
-                $redirectUrl = _DOMINIO_ . $adminPath . "/{$resultado['data']['slug']}-{$resultado['data']['id']}/";
+                $redirectUrl = _DOMINIO_ . $adminPath . "tutor/{$resultado['data']['slug']}-{$resultado['data']['id']}/";
 
                 header("Location: {$redirectUrl}");
                 exit;

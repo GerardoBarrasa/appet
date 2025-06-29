@@ -809,4 +809,51 @@ class Mascotas
         // TODO accesoTutores
         return false;
     }
+
+    /**
+     * Obtiene las anotaciones de la mascota ordenadas por más reciente, puede filtrar por usuario actual
+     *
+     * @param int $mascotaId ID de la mascota
+     * @param bool $showall si es false, se obtendrán solo las anotaciones realizadas por el usuario registrado
+     * @return bool
+     */
+    public static function getReportesByMascota($mascotaId, $showall = true)
+    {
+        $db = Bd::getInstance();
+        $params = [$mascotaId];
+        $filtro_usuario = '';
+
+        if (!$showall) {
+            // Solo mostrar anotaciones del usuario actual
+            $filtro_usuario = " AND r.id_usuario = ?";
+            $params[] = $_SESSION['admin_panel']->idusuario;
+        }
+
+        $sql = "SELECT r.*, u.nombre AS usuario_nombre 
+                FROM reportes r 
+                INNER JOIN usuarios u ON r.id_usuario = u.id 
+                WHERE r.id_mascota = ? {$filtro_usuario} 
+                ORDER BY r.fecha DESC";
+
+        return $db->fetchAllSafe($sql, $params, PDO::FETCH_OBJ);
+    }
+
+    /**
+     * Obtiene los tutores asignados a una mascota
+     *
+     * @param int $mascotaId ID de la mascota
+     * @return array
+     */
+    public static function getTutoresByMascota($mascotaId)
+    {
+        $db = Bd::getInstance();
+
+        $sql = "SELECT t.*, mt.id_mascota 
+                FROM tutores t 
+                INNER JOIN mascotas_tutores mt ON t.id = mt.id_tutor 
+                WHERE mt.id_mascota = ? 
+                ORDER BY t.nombre";
+
+        return $db->fetchAllSafe($sql, [(int)$mascotaId]);
+    }
 }

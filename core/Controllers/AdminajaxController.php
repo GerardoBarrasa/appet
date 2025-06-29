@@ -81,6 +81,7 @@ class AdminajaxController extends Controllers
             'ajax-save-mascota-evaluation',
             'ajax-get-mascota-details',
             'ajax-update-profile-image',
+            'ajax-get-tutores-asignados',
 
             // Cuidadores
             'ajax-get-cuidadores-admin',
@@ -274,6 +275,7 @@ class AdminajaxController extends Controllers
         $this->add('ajax-save-mascota-evaluation', [$this, 'saveMascotaEvaluation']);
         $this->add('ajax-get-mascota-details', [$this, 'getMascotaDetails']);
         $this->add('ajax-update-profile-image', [$this, 'updateProfileImage']);
+        $this->add('ajax-get-tutores-asignados', [$this, 'getTutoresAsignados']);
 
         // ==========================================
         // CUIDADORES
@@ -520,9 +522,25 @@ class AdminajaxController extends Controllers
             $limite = (int)Tools::getValue('limite', 20);
             $pagina = (int)Tools::getValue('pagina', 1);
             $busqueda = Tools::getValue('busqueda', '');
+            $listado = Tools::getValue('listado', 'admin_tutores_list');
+            $idmascota = Tools::getValue('idmascota', '');
+            $ifempty = Tools::getValue('ifempty', '');
+            $listado != '' ?: $listado = 'admin_mascotas_list';
 
-            $tutores = Tutores::getTutoresFiltered($comienzo, $limite,  $busqueda, true);
-            $totalRegistros = $tutores['total'];
+            // Si no se está buscando nada y el parámetro ifempty indica empty, devolver un listado vacío en lugar de todos los existentes.
+            if($busqueda == '' && $ifempty == 'empty'){
+                $tutores = [];
+                $totalRegistros = 0;
+            }
+            else{
+                $tutores = Tutores::getTutoresFiltered($comienzo, $limite,  $busqueda, true);
+                $totalRegistros = $tutores['total'];
+            }
+
+            // Si recibimos el ID de la mascota, obtenemos los tutores asignados
+            $tutoresAsignados = empty($idmascota) ? [] : (class_exists('Mascotas') ? Mascotas::getTutoresByMascota($idmascota) : []);
+            empty($tutoresAsignados) ?: $tutoresAsignados = Tools::arrayGroupBy($tutoresAsignados, 'id');
+
             // Calcular información de paginación
             $totalPaginas = ceil($totalRegistros / $limite);
             $paginaActual = $pagina;
@@ -534,12 +552,14 @@ class AdminajaxController extends Controllers
                 'limite' => $limite,
                 'pagina' => $pagina,
                 'tutores' => $tutores['listado'],
+                'tutoresAsignados' => $tutoresAsignados,
+                'idmascota' => $idmascota,
                 'total' => $tutores['total'],
                 'total_paginas' => $totalPaginas,
                 'paginacion' => $paginacion
             ];
 
-            $html = Render::getAjaxPage('admin_tutores_list', $data);
+            $html = Render::getAjaxPage($listado, $data);
 
             if (!empty($html)) {
                 $this->sendSuccess([
@@ -645,6 +665,46 @@ class AdminajaxController extends Controllers
 
         } catch (Exception $e) {
             $this->log("Error en getMascotasAsignadas: " . $e->getMessage(), 'error');
+            $this->sendError('Error interno del servidor');
+        }
+    }
+
+    /**
+     * Obtiene los tutores asignados a una mascota
+     *
+     * @return void
+     */
+    public function getTutoresAsignados()
+    {
+        try {
+            $idMascota = (int)Tools::getValue('idmascota', '');
+            // Comprobamos datos de la mascota
+            $mascota = Mascotas::getMascotaById($idMascota);
+            if (!$mascota) {
+                $this->sendError('La mascota no existe');
+            }
+            // Verificar permisos
+            if (!Mascotas::canManageMascota($mascota->id_cuidador)) {
+                $this->sendError('No tienes permisos para gestionar esta mascota');
+            }
+
+            $tutoresAsignados = empty($idMascota) ? [] : (class_exists('Tutores') ? Tutores::getTutoresByMascota($idMascota) : []);
+
+            $data = [
+                'tutoresAsignados' => $tutoresAsignados,
+                'idmascota' => $idMascota,
+            ];
+
+            $html = Render::getAjaxPage('admin_tutores_asignados_list', $data);
+
+            if (!empty($html)) {
+                $this->sendSuccess(['html' => $html]);
+            } else {
+                $this->sendError('Error cargando el contenido');
+            }
+
+        } catch (Exception $e) {
+            $this->log("Error en getTutoresAsignados: " . $e->getMessage(), 'error');
             $this->sendError('Error interno del servidor');
         }
     }
@@ -1804,6 +1864,9 @@ class AdminajaxController extends Controllers
                             break;
                         case 'edad':
                             $data['titulo'] = "Determinar la edad de ".$data['mascota']->nombre;
+                            break;
+                        case 'tutor':
+                            $data['titulo'] = "Asignar nuevo tutor a ".$data['mascota']->nombre;
                             break;
                         default:
                             $data['titulo'] = "Editar datos de ".$data['mascota']->nombre;

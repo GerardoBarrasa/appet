@@ -169,12 +169,30 @@ function ajax_get_tutores(comienzo = 0, limite = 20, pagina = 1) {
 
     $(".loadingscr").removeClass("d-none")
 
+    let campo = $("#busqueda");
+    let listado = 'admin_tutores_list';
+    let idmascota = '';
+    let ifempty = '';
+
+    if (campo.data('listado') !== undefined) {
+        listado = campo.data('listado');
+    }
+    if (campo.data('idmascota') !== undefined) {
+        idmascota = campo.data('idmascota');
+    }
+    if (campo.data('ifempty') !== undefined) {
+        ifempty = campo.data('ifempty');
+    }
+
     ajax_call(
         dominio + "adminajax/ajax-get-tutores/",
         {
             comienzo: comienzo,
             limite: limite,
             pagina: pagina,
+            listado: listado,
+            idmascota: idmascota,
+            ifempty: ifempty,
             busqueda: $("#busqueda").val() || "",
         },
         (response) => {
@@ -1292,6 +1310,8 @@ function asignarMascota(este){
                 }
                 // Recargar la lista de mascotas asignadas
                 ajax_get_mascotas_asignadas(idtutor);
+                // Recargar la lista de tutores asignados
+                ajax_get_tutores_asignados(idmascota);
             } else {
                 if (typeof toastr !== "undefined") {
                     toastr.error(response.error || response.html || "Error al asignar la mascota")
@@ -1324,6 +1344,34 @@ function ajax_get_mascotas_asignadas(idtutor){
         } else {
             if (typeof toastr !== "undefined") {
                 toastr.error(response.error || response.html || "Error al cargar las mascotas asignadas")
+            }
+        }
+        $(".loadingscr").addClass("d-none");
+    });
+}
+
+function ajax_get_tutores_asignados(idmascota){
+    $(".loadingscr").removeClass("d-none");
+
+    ajax_call(dominio + "adminajax/ajax-get-tutores-asignados/", { idmascota: idmascota }, (response) => {
+        // Si la respuesta es un string, intentar parsearlo
+        if (typeof response === "string") {
+            try {
+                response = JSON.parse(response)
+            } catch (e) {
+                if (typeof toastr !== "undefined") {
+                    toastr.error("Error en el formato de respuesta del servidor")
+                }
+                $(".loadingscr").addClass("d-none")
+                return
+            }
+        }
+
+        if (response && response.type === "success") {
+            $("#tutoresAsignados").html(response.html);
+        } else {
+            if (typeof toastr !== "undefined") {
+                toastr.error(response.error || response.html || "Error al cargar los tutores asignados")
             }
         }
         $(".loadingscr").addClass("d-none");

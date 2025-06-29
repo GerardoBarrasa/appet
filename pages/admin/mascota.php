@@ -147,19 +147,45 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
             <!-- /.col -->
             <div class="col-sm-7 col-xl-8">
                 <div class="card">
-                    <div class="card-header p-2">
-                        <ul class="nav nav-pills">
-                            <li class="nav-item"><a class="nav-link active" href="#ficha" data-toggle="tab">Ficha</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#historial" data-toggle="tab">Historial</a></li>
-                        </ul>
-                    </div><!-- /.card-header -->
                     <div class="card-body">
-                        <div class="tab-content">
-                            <div class="active tab-pane" id="ficha">
+                        <ul class="nav nav-pills"  role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="ficha-tab" data-bs-toggle="tab" data-bs-target="#ficha" type="button" role="tab" aria-controls="ficha" aria-selected="true">Ficha</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab" aria-controls="historial" aria-selected="false">Historial</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content pt-4" id="mascotaSettingsContent">
+                            <div class="tab-pane fade show active" id="ficha" role="tabpanel" aria-labelledby="ficha-tab">
+                                <div class="d-flex flex-row flex-wrap align-items-start justify-content-between">
+                                    <div class="col-12 col-xl-6">
+                                        <div class="card">
+                                            <div class="card-header card-title text-secondary">
+                                                Tutores
+                                                <i class="fa fa-add fs-3 float-right clickable" data-toggle="tooltip" title="Añadir un tutor" data-type="mascota" data-content="tutor" data-id="<?=$mascota->id?>" onclick="modalGeneral(this)"></i>
+                                            </div>
+                                            <div class="card-body" id="tutoresAsignados">
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-xl-6">
+                                        <div class="card">
+                                            <div class="card-header card-title text-secondary">
+                                                Anotaciones
+                                                <i class="fa fa-add fs-3 float-right clickable" data-toggle="tooltip" title="Añadir una anotación"></i>
+                                            </div>
+                                            <div class="card-body">
+                                                No existen anotaciones
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
                             </div>
                             <!-- /.tab-pane -->
-                            <div class="tab-pane" id="historial">
+                            <div class="tab-pane fade show" id="historial" role="tabpanel" aria-labelledby="historial-tab">
                                 <!-- The timeline -->
                                 <div class="timeline timeline-inverse">
                                     <!-- timeline time label -->
@@ -324,5 +350,6 @@ $image = file_exists(_RESOURCES_PATH_.'private/mascotas/'.$mascota->id.'/profile
                 $('#cameraOverlay').css('opacity', '0');
             }
         );
+        ajax_get_tutores_asignados('<?=$mascota ? $mascota->id : ''?>');
     });
 </script>

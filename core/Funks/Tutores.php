@@ -531,6 +531,25 @@ class Tutores
     }
 
     /**
+     * Obtiene los tutores de una mascota
+     *
+     * @param int $mascotaid ID de la mascota
+     * @return array
+     */
+    public static function getTutoresByMascota($mascotaid)
+    {
+        $db = Bd::getInstance();
+
+        $sql = "SELECT t.*, mt.id_mascota 
+                FROM tutores t 
+                INNER JOIN mascotas_tutores mt ON t.id = mt.id_tutor 
+                WHERE mt.id_mascota = ? 
+                ORDER BY t.nombre";
+
+        return $db->fetchAllSafe($sql, [(int)$mascotaid]);
+    }
+
+    /**
      * Obtiene las mascotas asignadas a un tutor
      *
      * @param int $tutorId ID del tutor
