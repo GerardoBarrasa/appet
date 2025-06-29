@@ -1,5 +1,56 @@
 # ApPet 1.0.0
 
+## **Funcionalidades implementadas:**
+
+### **1. Contact Picker API integrada:**
+
+- **Botón de agenda** junto al campo de nombre
+- **Detección automática** de compatibilidad del navegador
+- **Importación automática** de nombre, teléfono(s) y email
+
+
+### **2. Experiencia de usuario mejorada:**
+
+- **Alertas informativas** sobre disponibilidad de la función
+- **Loading spinner** durante la selección de contactos
+- **Notificaciones** de éxito/error con toastr
+- **Validación mejorada** del formulario
+
+
+### **3. Compatibilidad y fallbacks:**
+
+- **Detección de dispositivos móviles** para mensajes específicos
+- **Mensajes informativos** cuando la API no está disponible
+- **Funcionamiento normal** del formulario sin la API
+
+
+### **4. Características adicionales:**
+
+- **Formateo automático** de números de teléfono
+- **Importación de múltiples teléfonos** (si el contacto tiene más de uno)
+- **Manejo de errores** específicos (permisos, seguridad, etc.)
+- **Estilos responsive** y accesibles
+
+
+### **5. Manejo de errores específicos:**
+
+- **NotAllowedError**: Permiso denegado
+- **NotSupportedError**: Función no soportada
+- **SecurityError**: Problemas de HTTPS
+- **InvalidStateError**: Estado inválido
+
+
+## **Cómo funciona:**
+
+1. **Al cargar la página**: Se detecta si Contact Picker API está disponible
+2. **Si está disponible**: Se muestra el botón y la alerta informativa
+3. **Al hacer clic**: Se abre el selector nativo de contactos del dispositivo
+4. **Al seleccionar**: Los datos se importan automáticamente a los campos
+5. **Si no está disponible**: Se oculta el botón y se muestra mensaje informativo
+
+
+La implementación mantiene **toda la funcionalidad original** del formulario y añade la nueva característica de forma **progresiva** y **no intrusiva**.
+
 ## **Cómo usar los datos comunes:**
 
 ### **Uso en los controladores:**
