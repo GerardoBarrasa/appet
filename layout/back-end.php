@@ -48,15 +48,12 @@
 
 <?php include(_INCLUDES_._ADMIN_.'javascript_bottom.php'); ?>
 
-<?php if (isset($_SESSION['alerts']) && !empty($_SESSION['alerts'])): ?>
+<?php if (isset($_SESSION['alerts']) && !empty($_SESSION['alerts'])):?>
     <script>
-        window.alerta_php = {
-            message: <?php echo json_encode($_SESSION['alerts']['message']); ?>,
-            type: <?php echo json_encode($_SESSION['alerts']['type']); ?>
-        };
+        window.alertas_php = <?php echo json_encode($_SESSION['alerts']); ?>;
     </script>
     <?php
-    // Limpiar la alerta después de mostrarla
+    // Limpiar las alertas después de mostrarlas
     unset($_SESSION['alerts']);
 endif; ?>
 </body>

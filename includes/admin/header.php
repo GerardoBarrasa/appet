@@ -8,10 +8,10 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0"><?= isset($mod) ? $mod : 'Dashboard' ?></h1>
+                <h1 class="m-0"><?= $title ?? $mod ?? 'Dashboard' ?></h1>
             </div><!-- /.col -->
             <div class="col-sm-6">
-                <?php if($breadcrumb){?>
+                <?php if(!empty($breadcrumb)){?>
                     <ol class="breadcrumb float-sm-right">
                         <?php foreach ($breadcrumb as $bc){?>
                             <li class="breadcrumb-item <?=isset($bc['active']) &&  $bc['active'] ? 'active' : ''?>">

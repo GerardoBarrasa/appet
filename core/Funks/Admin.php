@@ -107,29 +107,46 @@ class Admin
      * @param bool $applyLimit Aplicar límite o no
      * @return array
      */
-    public static function getUsuariosWithFiltros($comienzo, $limite, $applyLimit = true)
+    public static function getUsuariosWithFiltros($comienzo, $limite, $filtros, $applyLimit = true)
     {
         $db = Bd::getInstance();
         $busqueda = Tools::getValue('busqueda', '');
         $params = [];
         $whereConditions = ["1"];
+        $joins = '';
 
-        if ($busqueda != '') {
-            $whereConditions[] = "(nombre LIKE ? OR email LIKE ? OR date_created LIKE ?)";
-            $params[] = "%{$busqueda}%";
-            $params[] = "%{$busqueda}%";
-            $params[] = "%{$busqueda}%";
+        if (!empty($filtros['busqueda'])) {
+            $whereConditions[] = "(u.nombre LIKE ? OR u.email LIKE ?)";
+            $params[] = "%{$filtros['busqueda']}%";
+            $params[] = "%{$filtros['busqueda']}%";
+        }
+        if (!empty($filtros['tipo'])) {
+            $whereConditions[] = "u.idperfil = ?";
+            $params[] = "{$filtros['tipo']}";
+        }
+        // Nos aseguramos de que un usuario que no sea admin no pueda ver usuarios con mayor rango que el suyo (un idperfil menor) ni otros usuarios con su mismo rango pero asignados a otro cuidador (en caso de perfil 2) ni otros tutores asociados a un cuidador que no sea el logueado
+        if($_SESSION['admin_panel']->idperfil == 2){// Es un cuidador
+            $joins = "LEFT JOIN usuarios_cuidadores uc ON u.id_usuario_admin = uc.id_usuario";
+            $whereConditions[] = "uc.id_cuidador = ?";
+            $params[] = $_SESSION['admin_panel']->cuidador_id;
+        }
+        else if($_SESSION['admin_panel']->idperfil == 3){// Es un tutor, solo puede ver su perfil
+            $whereConditions[] = "u.id_usuario_admin = ?";
+            $params[] = $_SESSION['admin_panel']->id_usuario_admin;
         }
 
         $whereClause = implode(' AND ', $whereConditions);
-        $sql = "SELECT * FROM usuarios_admin WHERE {$whereClause} ORDER BY nombre";
+        $selectForList = "SELECT * ";
+        $selectForCount = "SELECT COUNT(u.id_usuario_admin) ";
+        $sql = "FROM usuarios_admin u $joins WHERE {$whereClause}";
 
         // Contar total de registros
-        $total = $db->fetchValueSafe("SELECT COUNT(*) FROM usuarios_admin WHERE {$whereClause}", $params);
+        $total = $db->fetchValueSafe($selectForCount.$sql, $params);
 
         // Aplicar límite si es necesario
         if ($applyLimit) {
-            $sql .= " LIMIT ?, ?";
+            $sql .= " GROUP BY u.id_usuario_admin ORDER BY u.date_created DESC LIMIT ?, ?";
+            $sql = $selectForList.$sql;
             $params[] = (int)$comienzo;
             $params[] = (int)$limite;
         }
@@ -263,52 +280,279 @@ class Admin
     /**
      * Actualiza los datos de un usuario administrador
      *
-     * @return bool
+     * @return array Resultado de la operación
      */
     public static function actualizarUsuario()
     {
         $db = Bd::getInstance();
         $id_usuario_admin = (int)Tools::getValue('id_usuario_admin');
 
-        $updUsuario = [
-            'nombre' => Tools::getValue('nombre'),
-            'email' => Tools::getValue('email')
+        $result = [
+            'success' => false,
+            'errors' => [],
+            'data' => null
         ];
 
-        $password = Tools::getValue('password', '');
-
-        if (!empty($password) && strlen($password) > 0) {
-            $updUsuario['password'] = Tools::md5($password);
-            $updUsuario['pass_updated'] = date('Y-m-d H:i:s');
+        // Validar que el usuario existe
+        if ($id_usuario_admin <= 0) {
+            $result['errors'][] = 'ID de usuario no válido';
+            return $result;
         }
 
-        return $db->updateSafe(
-            'usuarios_admin',
-            $updUsuario,
-            'id_usuario_admin = ?',
-            [$id_usuario_admin]
-        );
+        $usuarioExistente = self::getUsuarioById($id_usuario_admin);
+        if (!$usuarioExistente) {
+            $result['errors'][] = 'El usuario no existe';
+            return $result;
+        }
+
+        // Obtener y sanitizar datos
+        $nombre = Tools::sanitizeInput(Tools::getValue('nombre'));
+        $apellidos = Tools::sanitizeInput(Tools::getValue('apellidos'));
+        $email = Tools::sanitizeInput(Tools::getValue('email'));
+        $password = Tools::getValue('password', '');
+
+        // Validar nombre
+        $nombreValidation = Tools::validateNombre($nombre);
+        if (!$nombreValidation['valid']) {
+            $result['errors'] = array_merge($result['errors'], $nombreValidation['errors']);
+        }
+
+        // Validar email
+        $emailValidation = Tools::validateEmail($email, $id_usuario_admin);
+        if (!$emailValidation['valid']) {
+            $result['errors'] = array_merge($result['errors'], $emailValidation['errors']);
+        }
+
+        // Validar contraseña si se proporciona
+        if (!empty($password)) {
+            $passwordValidation = Tools::validatePasswordStrength($password);
+            if (!$passwordValidation['valid']) {
+                $result['errors'] = array_merge($result['errors'], $passwordValidation['errors']);
+            }
+        }
+
+        // Si hay errores, retornar
+        if (!empty($result['errors'])) {
+            return $result;
+        }
+
+        // Preparar datos para actualización
+        $updUsuario = [
+            'nombre' => $nombre,
+            'apellidos' => $apellidos,
+            'email' => strtolower($email)
+        ];
+
+        // Añadir contraseña si se proporciona
+        if (!empty($password)) {
+            $updUsuario['password'] = Tools::md5($password);
+            $updUsuario['pass_updated'] = Tools::datetime();
+        }
+
+        // Realizar actualización
+        try {
+            $updateResult = $db->updateSafe(
+                'usuarios_admin',
+                $updUsuario,
+                'id_usuario_admin = ?',
+                [$id_usuario_admin]
+            );
+
+            if ($updateResult) {
+                $result['success'] = true;
+                $result['data'] = [
+                    'id_usuario_admin' => $id_usuario_admin,
+                    'nombre' => $nombre,
+                    'apellidos' => $apellidos,
+                    'email' => strtolower($email),
+                    'password_updated' => !empty($password)
+                ];
+            } else {
+                $result['errors'][] = 'Error al actualizar el usuario en la base de datos';
+            }
+        } catch (Exception $e) {
+            $result['errors'][] = 'Error interno: ' . $e->getMessage();
+            Tools::logError('Error actualizando usuario: ' . $e->getMessage());
+        }
+
+        return $result;
     }
 
     /**
      * Crea un nuevo usuario administrador
      *
-     * @return int|bool ID del usuario creado o false en caso de error
+     * @return array Resultado de la operación
      */
     public static function crearUsuario()
     {
         $db = Bd::getInstance();
 
+        $result = [
+            'success' => false,
+            'errors' => [],
+            'data' => null
+        ];
+
+        // Obtener y sanitizar datos básicos
+        $nombre = Tools::sanitizeInput(Tools::getValue('nombre'));
+        $apellidos = Tools::sanitizeInput(Tools::getValue('apellidos'));
+        $email = Tools::sanitizeInput(Tools::getValue('email'));
+        $password = Tools::getValue('password');
+
+        // Determinar el perfil según el usuario logueado
+        $idperfil = 2; // Por defecto perfil de cuidador
+        $id_cuidador = null;
+
+        if (!isset($_SESSION['admin_panel'])) {
+            $result['errors'][] = 'Sesión no válida';
+            return $result;
+        }
+
+        $usuarioLogueado = $_SESSION['admin_panel'];
+
+        // Lógica de perfiles según el usuario logueado
+        if ($usuarioLogueado->idperfil == 1) {
+            // Es superadmin: puede crear cualquier perfil y el idperfil viene por POST
+            $idperfil = (int)Tools::getValue('idperfil', 2);
+
+            // Para perfiles 2 y 3, el ID del cuidador debe venir por POST
+            if (in_array($idperfil, [2, 3])) {
+                $id_cuidador = (int)Tools::getValue('id_cuidador');
+                if ($id_cuidador <= 0) {
+                    $result['errors'][] = 'Debe seleccionar un cuidador para este perfil';
+                    return $result;
+                }
+
+                // Verificar que el cuidador existe y está activo
+                $cuidadorExiste = $db->fetchRowSafe(
+                    "SELECT id, estado FROM cuidadores WHERE id = ?",
+                    [$id_cuidador]
+                );
+
+                if (!$cuidadorExiste) {
+                    $result['errors'][] = 'El cuidador seleccionado no existe';
+                    return $result;
+                }
+
+                if ($cuidadorExiste->estado == 0) {
+                    $result['errors'][] = 'El cuidador seleccionado no está activo';
+                    return $result;
+                }
+            }
+
+        } elseif ($usuarioLogueado->idperfil == 2) {
+            // Es cuidador: solo puede crear tutores (perfil 3) de su propio cuidador
+            $idperfil = 3; // Forzar perfil de tutor
+            $id_cuidador = (int)$usuarioLogueado->cuidador_id;
+
+            if ($id_cuidador <= 0) {
+                $result['errors'][] = 'Error: No se puede determinar el cuidador asociado';
+                return $result;
+            }
+
+        } elseif ($usuarioLogueado->idperfil == 3) {
+            // Es tutor: no puede crear usuarios
+            $result['errors'][] = 'No tienes permisos para crear usuarios';
+            return $result;
+
+        } else {
+            $result['errors'][] = 'Perfil de usuario no válido';
+            return $result;
+        }
+
+        // Validaciones básicas
+        $nombreValidation = Tools::validateNombre($nombre);
+        if (!$nombreValidation['valid']) {
+            $result['errors'] = array_merge($result['errors'], $nombreValidation['errors']);
+        }
+
+        $emailValidation = Tools::validateEmail($email);
+        if (!$emailValidation['valid']) {
+            $result['errors'] = array_merge($result['errors'], $emailValidation['errors']);
+        }
+
+        if (empty($password)) {
+            $result['errors'][] = 'La contraseña es obligatoria';
+        } else {
+            $passwordValidation = Tools::validatePasswordStrength($password);
+            if (!$passwordValidation['valid']) {
+                $result['errors'] = array_merge($result['errors'], $passwordValidation['errors']);
+            }
+        }
+
+        // Validar perfil
+        if (!in_array($idperfil, [1, 2, 3])) {
+            $result['errors'][] = 'El perfil seleccionado no es válido';
+        }
+
+        // Validaciones adicionales de permisos
+        if ($usuarioLogueado->idperfil != 1 && $idperfil == 1) {
+            $result['errors'][] = 'No tienes permisos para crear usuarios administradores';
+        }
+
+        if ($usuarioLogueado->idperfil == 2 && $idperfil != 3) {
+            $result['errors'][] = 'Solo puedes crear usuarios con perfil de tutor';
+        }
+
+        // Si hay errores, retornar
+        if (!empty($result['errors'])) {
+            return $result;
+        }
+
+        // Preparar datos para inserción
         $addUsuario = [
-            'nombre' => Tools::getValue('nombre'),
-            'email' => Tools::getValue('email'),
-            'password' => Tools::md5(Tools::getValue('password')),
+            'nombre' => $nombre,
+            'apellidos' => $apellidos,
+            'email' => strtolower($email),
+            'password' => Tools::md5($password),
             'date_created' => Tools::datetime(),
             'pass_updated' => Tools::datetime(),
+            'idperfil' => $idperfil,
             'estado' => 1
         ];
 
-        return $db->insertSafe('usuarios_admin', $addUsuario);
+        // Realizar inserción en transacción
+        try {
+            $db->beginTransaction();
+
+            $userId = $db->insertSafe('usuarios_admin', $addUsuario);
+
+            if (!$userId) {
+                throw new Exception('Error al crear el usuario en la base de datos');
+            }
+
+            // Si es perfil 2 (cuidador) o 3 (tutor), crear entrada en usuarios_cuidadores
+            if (in_array($idperfil, [2, 3]) && $id_cuidador > 0) {
+                $insertCuidador = $db->insertSafe('usuarios_cuidadores', [
+                    'id_usuario' => $userId,
+                    'id_cuidador' => $id_cuidador
+                ]);
+
+                if (!$insertCuidador) {
+                    throw new Exception('Error al asignar el usuario al cuidador');
+                }
+            }
+
+            $db->commit();
+
+            $result['success'] = true;
+            $result['data'] = [
+                'id_usuario_admin' => $userId,
+                'nombre' => $nombre,
+                'apellidos' => $apellidos,
+                'email' => strtolower($email),
+                'idperfil' => $idperfil,
+                'id_cuidador' => $id_cuidador
+            ];
+
+
+        } catch (Exception $e) {
+            $db->rollback();
+            $result['errors'][] = 'Error interno: ' . $e->getMessage();
+            Tools::logError('Error creando usuario: ' . $e->getMessage());
+        }
+
+        return $result;
     }
 
     /**
@@ -366,7 +610,7 @@ class Admin
 
         return (int)$db->fetchValueSafe($sql, $params) > 0;
     }
-    
+
     /**
      * Obtiene el total de usuarios administradores
      *
@@ -376,5 +620,26 @@ class Admin
     {
         $db = Bd::getInstance();
         return (int)$db->fetchValueSafe("SELECT COUNT(*) FROM usuarios_admin");
+    }
+
+    /**
+     * Obtiene errores de validación formateados para mostrar en frontend
+     *
+     * @param array $errors Array de errores
+     * @return string HTML con errores formateados
+     */
+    public static function formatValidationErrors($errors)
+    {
+        if (empty($errors)) {
+            return '';
+        }
+
+        $html = '<div class="alert alert-danger"><ul class="mb-0">';
+        foreach ($errors as $error) {
+            $html .= '<li>' . htmlspecialchars($error) . '</li>';
+        }
+        $html .= '</ul></div>';
+
+        return $html;
     }
 }

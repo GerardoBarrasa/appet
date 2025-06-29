@@ -332,27 +332,49 @@ class AdminController
 
         // Solo definir rutas protegidas si está autenticado
         if ($this->isAuthenticated()) {
-            // Gestión de idiomas
-            $this->add('idiomas', [$this, 'idiomasAction']);
-            $this->add('administrar-idioma', [$this, 'administrarIdiomaAction']);
-
-            // Gestión de traducciones
-            $this->add('traducciones', [$this, 'traduccionesAction']);
-            $this->add('traduccion', [$this, 'traduccionAction']);
-            $this->add('regenerar-cache-traducciones', [$this, 'regenerarCacheTraduccionesAction']);
-
-            // Gestión de slugs/páginas
-            $this->add('slugs', [$this, 'slugsAction']);
-            $this->add('administrar-slug', [$this, 'administrarSlugAction']);
+            // Gestión de permisos (solo superadmin)
+            if (Permisos::tienePermiso('ACCESS_PERMISOS')) {
+                $this->add('permisos', [$this, 'permisosAction']);
+                $this->add('permiso', [$this, 'permisoAction']);
+                $this->add('perfiles', [$this, 'perfilesAction']);
+                $this->add('perfil', [$this, 'perfilAction']);
+            }
 
             // Gestión de usuarios admin
-            $this->add('usuarios-admin', [$this, 'usuariosAdminAction']);
-            $this->add('usuario-admin', [$this, 'usuarioAdminAction']);
+            if (Permisos::tienePermiso('ACCESS_USUARIOS_ADMIN')) {
+                $this->add('usuarios-admin', [$this, 'usuariosAdminAction']);
+                $this->add('usuario-admin', [$this, 'usuarioAdminAction']);
+                $this->add('nuevo-usuario', [$this, 'usuarioAdminAction']);
+            }
 
-            // Gestión de mascotas
+            // Gestión de idiomas
+            if (Permisos::tienePermiso('ACCESS_IDIOMAS')) {
+                $this->add('idiomas', [$this, 'idiomasAction']);
+                $this->add('administrar-idioma', [$this, 'administrarIdiomaAction']);
+            }
+
+            // Gestión de traducciones
+            if (Permisos::tienePermiso('ACCESS_TRADUCCIONES')) {
+                $this->add('traducciones', [$this, 'traduccionesAction']);
+                $this->add('traduccion', [$this, 'traduccionAction']);
+                $this->add('regenerar-cache-traducciones', [$this, 'regenerarCacheTraduccionesAction']);
+            }
+
+            // Gestión de slugs/páginas
+            if (Permisos::tienePermiso('ACCESS_SLUGS')) {
+                $this->add('slugs', [$this, 'slugsAction']);
+                $this->add('administrar-slug', [$this, 'administrarSlugAction']);
+            }
+
+            // Gestión de mascotas (disponible para cuidadores y tutores)
             $this->add('mascotas', [$this, 'mascotasAction']);
             $this->add('mascota', [$this, 'mascotaAction']);
             $this->add('nueva-mascota', [$this, 'nuevaMascotaAction']);
+
+            // Gestión de tutores (disponible para cuidadores)
+            $this->add('tutores', [$this, 'tutoresAction']);
+            $this->add('tutor', [$this, 'tutorAction']);
+            $this->add('nuevo-tutor', [$this, 'tutorAction']);
         }
 
         // Página 404
@@ -366,7 +388,7 @@ class AdminController
      */
     protected function isAuthenticated()
     {
-        return isset($_SESSION['admin_panel']) && !empty($_SESSION['admin_panel']);
+        return !empty($_SESSION['admin_panel']);
     }
 
     /**
@@ -377,8 +399,8 @@ class AdminController
     protected function isSuperAdmin()
     {
         return $this->isAuthenticated() &&
-            isset($_SESSION['admin_panel']->id_country) &&
-            empty($_SESSION['admin_panel']->id_country);
+            isset($_SESSION['admin_panel']->idperfil) &&
+            $_SESSION['admin_panel']->idperfil == 1;
     }
 
     /**
@@ -977,13 +999,52 @@ class AdminController
         // Procesar formularios
         if (class_exists('Tools') && class_exists('Admin')) {
             if (Tools::getIsset('submitUpdateUsuarioAdmin')) {
-                Admin::actualizarUsuario();
-                Tools::registerAlert("El usuario ha sido modificado satisfactoriamente", "success");
+                $resultado = Admin::actualizarUsuario();
+
+                if ($resultado['success']) {
+                    Tools::registerAlert("El usuario ha sido modificado satisfactoriamente", "success");
+
+                    // Si se está editando el propio perfil, actualizar la sesión
+                    if (isset($_SESSION['admin_panel']) &&
+                        $_SESSION['admin_panel']->id_usuario_admin == $resultado['data']['id_usuario_admin']) {
+                        // Recargar datos del usuario en sesión
+                        $_SESSION['admin_panel'] = Admin::getUsuarioById($resultado['data']['id_usuario_admin']);
+                    }
+                } else {
+                    // Mostrar errores específicos
+                    if (!empty($resultado['errors'])) {
+                        foreach ($resultado['errors'] as $error) {
+                            Tools::registerAlert($error, "error");
+                        }
+                    } else {
+                        Tools::registerAlert($resultado['message'] ?? "Error al actualizar el usuario", "error");
+                    }
+                }
             }
 
             if (Tools::getIsset('submitCrearUsuarioAdmin')) {
-                Admin::crearUsuario();
-                Tools::registerAlert("El usuario ha sido creado", "success");
+                $resultado = Admin::crearUsuario();
+
+                if ($resultado['success']) {
+                    Tools::registerAlert("El usuario ha sido creado satisfactoriamente", "success");
+
+                    // Redirigir a la edición del usuario recién creado
+                    if (!empty($resultado['data']['id_usuario_admin'])) {
+                        $adminPath = $_SESSION['admin_vars']['entorno'] ?? 'admin/';
+                        $redirectUrl = _DOMINIO_ . $adminPath . "usuario-admin/" . $resultado['data']['id_usuario_admin'] . "/";
+                        header("Location: {$redirectUrl}");
+                        exit;
+                    }
+                } else {
+                    // Mostrar errores específicos
+                    if (!empty($resultado['errors'])) {
+                        foreach ($resultado['errors'] as $error) {
+                            Tools::registerAlert($error, "error");
+                        }
+                    } else {
+                        Tools::registerAlert($resultado['message'] ?? "Error al crear el usuario", "error");
+                    }
+                }
             }
         }
 
@@ -1006,6 +1067,14 @@ class AdminController
             Tools::registerStylesheet(_ASSETS_ . _ADMIN_ . 'select2/css/select2.min.css');
             Tools::registerJavascript(_ASSETS_ . _ADMIN_ . 'select2/js/select2.min.js');
         }
+        // Si es un súper admin obtenemos el listado de perfiles para mostrar el select en el front
+        if(!$usuario && self::isSuperAdmin()) {
+            $data['perfiles'] = class_exists('Permisos') ? Permisos::getTodosLosPerfiles() : [];
+            $data['cuidadores'] = class_exists('Cuidador') ? Cuidador::getCuidadorWithFiltros(0, 0, false)['listado'] : [];
+        } else {
+            $data['perfiles'] = [];
+            $data['cuidadores'] = [];
+        }
 
         if (class_exists('Render')) {
             Render::adminPage('usuario_admin', $data);
@@ -1023,13 +1092,33 @@ class AdminController
     {
         $this->requireAuth();
 
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Mascotas',
+                'url' => '',
+                'icon' => 'fas fa-paw',
+                'active' => true
+            ]
+        ];
+
         $data = [
             'comienzo' => $this->comienzo,
             'pagina' => $this->pagina,
-            'limite' => $this->limite
+            'limite' => $this->limite,
+            'breadcrumb' => $breadcrumb
         ];
 
         if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
             Render::adminPage('mascotas', $data);
         }
 
@@ -1063,16 +1152,49 @@ class AdminController
         $idMascota = $data[1] ?? 0;
 
         $mascota = class_exists('Mascotas') ? Mascotas::getMascotaById($idMascota) : null;
-        $mascotaCaracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicasByMascota($idMascota) : [];
+        $mascotaCaracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicasByMascotaGrouped($idMascota) : [];
         $caracteristicas = class_exists('Caracteristicas') ? Caracteristicas::getCaracteristicas() : [];
+        $tutores = class_exists('Tutores') ? Tutores::getTutoresByMascota($idMascota) : [];
+        $reportes = class_exists('Mascotas') ? Mascotas::getReportesByMascota($idMascota) : [];
+
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Mascotas',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'mascotas/',
+                'icon' => 'fas fa-paw'
+            ],
+            [
+                'title' => 'Ficha de '.$mascota->nombre,
+                'url' => '',
+                'icon' => 'fa fa-dog',
+                'active' => true
+            ]
+        ];
 
         $data = [
             'mascota' => $mascota,
             'caracteristicas' => $caracteristicas,
             'mascotaCaracteristicas' => $mascotaCaracteristicas,
+            'tutores' => $tutores,
+            'reportes' => $reportes,
+            'breadcrumb' => $breadcrumb
         ];
 
         if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['title' => 'Ficha de '.$mascota->nombre]
+            );
             Render::adminPage('mascota', $data);
         }
 
@@ -1099,6 +1221,15 @@ class AdminController
         Tools::registerStylesheet('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css');
         Tools::registerJavascript('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js');
 
+        $idTutor = 0;
+        $requestData = Tools::getValue('data');
+        if ($requestData) {
+            $data = explode('-', $requestData);
+            if($data[0] == 'for'){// vamos a crear una nueva mascota y asignarla al ID de tutor que está en data[1]
+                $idTutor = $data[1] ?? 0;
+            }
+        }
+
         // Procesar formulario de creación
         if (class_exists('Tools') && Tools::getIsset('submitCrearMascota')) {
             $this->handleCreateMascota();
@@ -1107,7 +1238,6 @@ class AdminController
         // Obtener datos necesarios para el formulario
         $tipos = class_exists('Mascotas') ? $this->getTiposMascota() : [];
         $generos = class_exists('Mascotas') ? $this->getGenerosMascota() : [];
-        $razas = class_exists('Razas') ? Razas::getRazas() : [];
 
         // Crear breadcrumb dinámico
         $breadcrumb = [
@@ -1132,7 +1262,7 @@ class AdminController
         $data = [
             'tipos' => $tipos,
             'generos' => $generos,
-            'razas' => $razas,
+            'idtutor' => $idTutor,
             'breadcrumb' => $breadcrumb
         ];
 
@@ -1255,6 +1385,12 @@ class AdminController
 
                 if (empty($_SESSION['alerts'])) {
                     Tools::registerAlert("Mascota creada correctamente.", "success");
+                }
+
+                // Si hay un ID de tutor, asignamos la mascota creada recientemente
+                $idtutor = Tools::getValue('idtutor');
+                if($idtutor){
+                    Tutores::asignarMascota($mascotaId, $idtutor);
                 }
 
                 // Redirigir a la página de edición de la mascota recién creada
@@ -1425,49 +1561,253 @@ class AdminController
         return $db->fetchAllSafe("SELECT * FROM mascotas_genero ORDER BY nombre", [], PDO::FETCH_OBJ);
     }
 
+
+
     /**
-     * Carga las traducciones para el panel de administración
+     * Acción para gestión de tutores
      *
      * @return void
      */
-    protected function loadTraduccionesAdmin()
+    public function tutoresAction()
     {
-        if (!class_exists('Idiomas') || !class_exists('Traducciones')) {
-            return;
+        $this->requireAuth();
+
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Tutores',
+                'url' => '',
+                'icon' => 'fas fa-users',
+                'active' => true
+            ]
+        ];
+
+        $data = [
+            'comienzo' => $this->comienzo,
+            'pagina' => $this->pagina,
+            'limite' => $this->limite,
+            'breadcrumb' => $breadcrumb
+        ];
+
+        if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
+            Render::adminPage('tutores', $data);
         }
 
-        if (!isset($_SESSION['admin_id_lang']) || empty($_SESSION['admin_id_lang'])) {
-            $this->setAdminLanguage();
-        }
-
-        Traducciones::loadTraducciones($_SESSION['admin_id_lang']);
+        $this->setRendered(true);
     }
 
     /**
-     * Establece el idioma para el panel de administración
+     * Acción para administrar un tutor específico
      *
      * @return void
      */
-    protected function setAdminLanguage()
+    public function tutorAction()
     {
-        if (!class_exists('Idiomas')) {
+        $this->requireAuth();
+
+        if (!class_exists('Tools')) {
+            $this->show404();
+            return;
+        }
+        $idMascota = 0;
+        $idTutor = 'new';
+        $requestData = Tools::getValue('data');
+        if ($requestData) {
+            $data = explode('-', $requestData);
+            if($data[0] == 'for'){// vamos a crear un nuevo tutor y asignarlo al ID de mascota que está en data[1]
+                $idMascota = $data[1] ?? 0;
+            }
+            else{
+                $idTutor = end($data);
+            }
+        }
+
+        // Procesar formulario de actualización
+        if (class_exists('Tools') && Tools::getIsset('submitCreateTutor')) {
+            $this->handleCreateTutor();
+        }
+
+        // Procesar formulario de actualización
+        if (class_exists('Tools') && Tools::getIsset('submitUpdateTutor')) {
+            $this->handleUpdateTutor();
+        }
+
+        $tutor = class_exists('Tutores') ? Tutores::getTutorById($idTutor) : false;
+        $mascotasAsignadas = class_exists('Tutores') ? Tutores::getMascotasByTutor($idTutor) : [];
+        $title = isset($tutor->nombre) ? 'Ficha de '.$tutor->nombre : 'Nuevo Tutor';
+        $icon = isset($tutor->nombre) ? 'fas fa-user' : 'fas fa-plus';
+
+        // Crear breadcrumb dinámico
+        $breadcrumb = [
+            [
+                'title' => 'Inicio',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'],
+                'icon' => 'fas fa-home'
+            ],
+            [
+                'title' => 'Tutores',
+                'url' => _DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'tutores/',
+                'icon' => 'fas fa-users'
+            ],
+            [
+                'title' => $title,
+                'url' => '',
+                'icon' => $icon,
+                'active' => true
+            ]
+        ];
+
+        $data = [
+            'tutor' => $tutor,
+            'mascotasAsignadas' => $mascotasAsignadas,
+            'idmascota' => $idMascota,
+            'breadcrumb' => $breadcrumb
+        ];
+
+        if (class_exists('Render')) {
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['breadcrumb' => $breadcrumb]
+            );
+            Render::$layout_data = array_merge(
+                Render::$layout_data ?? [],
+                ['title' => $title]
+            );
+        }
+
+        if (class_exists('Metas')) {
+            Metas::$title = isset($tutor->nombre) ? 'Ficha de '.$tutor->nombre : 'Nuevo Tutor';
+        }
+
+        if (class_exists('Render')) {
+            Render::adminPage('tutor', $data);
+        }
+
+        $this->setRendered(true);
+    }
+
+    /**
+     * Maneja la creación de un nuevo tutor
+     *
+     * @return void
+     */
+    protected function handleCreateTutor()
+    {
+        if (!class_exists('Tools') || !class_exists('Tutores')) {
+            Tools::registerAlert("Error interno: clases requeridas no encontradas.", "error");
             return;
         }
 
-        $iso_code = defined('_DEFAULT_LANGUAGE_') ? _DEFAULT_LANGUAGE_ : 'es';
+        try {
+            // Preparar los datos para crear el tutor
+            $datosCreacion = [
+                'id_cuidador' => $_SESSION['admin_panel']->cuidador_id ?? 0,
+                'nombre' => Tools::getValue('nombre'),
+                'telefono_1' => Tools::getValue('telefono_1'),
+                'telefono_2' => Tools::getValue('telefono_2'),
+                'email' => Tools::getValue('email'),
+                'notas' => Tools::getValue('notas')
+            ];
 
-        // Detectar idioma del navegador si está disponible
-        if (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-            $langNavegador = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-            $idiomasDisponibles = Idiomas::getLanguagesVisiblesArray();
-            $iso_code = in_array($langNavegador, $idiomasDisponibles) ? $langNavegador : $iso_code;
+            // Crear el tutor usando la clase Tutores
+            $resultado = Tutores::crearTutor($datosCreacion);
+
+            if ($resultado['success']) {
+                Tools::registerAlert("Tutor creado correctamente.", "success");
+
+                // Si hay un ID de mascota, vamos a asociarlo al tutor recientemente creado
+                $idmascota = Tools::getValue('idmascota');
+                if($idmascota){
+                    Tutores::asignarMascota($idmascota, $resultado['data']['id']);
+                }
+
+                // Redirigir a la página de edición del tutor recién creado
+                $adminPath = $_SESSION['admin_vars']['entorno'] ?? 'admin/';
+                $redirectUrl = _DOMINIO_ . $adminPath . "tutor/{$resultado['data']['slug']}-{$resultado['data']['id']}/";
+
+                header("Location: {$redirectUrl}");
+                exit;
+            } else {
+                // Mostrar errores específicos
+                if (!empty($resultado['errors'])) {
+                    foreach ($resultado['errors'] as $error) {
+                        Tools::registerAlert($error, "error");
+                    }
+                } else {
+                    Tools::registerAlert("Error al crear el tutor. Inténtalo de nuevo.", "error");
+                }
+            }
+
+        } catch (Exception $e) {
+            debug_log([
+                'error' => 'Exception in handleCreateTutor',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 'CREATE_TUTOR_EXCEPTION', 'admin');
+
+            Tools::registerAlert("Error al crear el tutor: " . $e->getMessage(), "error");
+        }
+    }
+
+    /**
+     * Maneja la actualización de un tutor existente
+     *
+     * @return void
+     */
+    protected function handleUpdateTutor()
+    {
+        if (!class_exists('Tools') || !class_exists('Tutores')) {
+            Tools::registerAlert("Error interno: clases requeridas no encontradas.", "error");
+            return;
         }
 
-        $lang = Idiomas::getLangBySlug($iso_code);
-        if (!empty($lang)) {
-            $_SESSION['admin_id_lang'] = $lang->id;
-        } else {
-            debug_log("Invalid language: {$iso_code}", 'ERROR', 'admin');
+        try {
+            $tutorId = (int)Tools::getValue('id');
+
+            // Preparar los datos para actualizar el tutor
+            $datosActualizacion = [
+                'nombre' => Tools::getValue('nombre'),
+                'telefono_1' => Tools::getValue('telefono_1'),
+                'telefono_2' => Tools::getValue('telefono_2'),
+                'email' => Tools::getValue('email'),
+                'notas' => Tools::getValue('notas')
+            ];
+
+            // Actualizar el tutor usando la clase Tutores
+            $resultado = Tutores::actualizarTutor($tutorId, $datosActualizacion);
+
+            if ($resultado['success']) {
+                Tools::registerAlert("Tutor actualizado correctamente.", "success");
+            } else {
+                // Mostrar errores específicos
+                if (!empty($resultado['errors'])) {
+                    foreach ($resultado['errors'] as $error) {
+                        Tools::registerAlert($error, "error");
+                    }
+                } else {
+                    Tools::registerAlert("Error al actualizar el tutor.", "error");
+                }
+            }
+
+        } catch (Exception $e) {
+            debug_log([
+                'error' => 'Exception in handleUpdateTutor',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 'UPDATE_TUTOR_EXCEPTION', 'admin');
+
+            Tools::registerAlert("Error al actualizar el tutor: " . $e->getMessage(), "error");
         }
     }
 }

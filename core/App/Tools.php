@@ -17,7 +17,7 @@ class Tools
         'upload_max_size' => 10485760, // 10MB
         'allowed_extensions' => ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'txt'],
         'password_min_length' => 8,
-        'pagination_default_limit' => 10
+        'pagination_default_limit' => 12
     ];
 
     // ==========================================
@@ -457,63 +457,6 @@ class Tools
         }
 
         return $password;
-    }
-
-    /**
-     * Valida fortaleza de contraseña
-     *
-     * @param string $password Contraseña a validar
-     * @param int $minLength Longitud mínima
-     * @return array Resultado de validación
-     */
-    public static function validatePassword($password, $minLength = null)
-    {
-        $minLength = $minLength ?: self::$config['password_min_length'];
-
-        $result = [
-            'valid' => true,
-            'score' => 0,
-            'errors' => [],
-            'suggestions' => []
-        ];
-
-        // Verificar longitud
-        if (strlen($password) < $minLength) {
-            $result['valid'] = false;
-            $result['errors'][] = "La contraseña debe tener al menos {$minLength} caracteres";
-        } else {
-            $result['score'] += 1;
-        }
-
-        // Verificar mayúsculas
-        if (!preg_match('/[A-Z]/', $password)) {
-            $result['suggestions'][] = 'Incluir al menos una letra mayúscula';
-        } else {
-            $result['score'] += 1;
-        }
-
-        // Verificar minúsculas
-        if (!preg_match('/[a-z]/', $password)) {
-            $result['suggestions'][] = 'Incluir al menos una letra minúscula';
-        } else {
-            $result['score'] += 1;
-        }
-
-        // Verificar números
-        if (!preg_match('/[0-9]/', $password)) {
-            $result['suggestions'][] = 'Incluir al menos un número';
-        } else {
-            $result['score'] += 1;
-        }
-
-        // Verificar símbolos
-        if (!preg_match('/[^A-Za-z0-9]/', $password)) {
-            $result['suggestions'][] = 'Incluir al menos un símbolo especial';
-        } else {
-            $result['score'] += 1;
-        }
-
-        return $result;
     }
 
     // ==========================================
@@ -1184,18 +1127,13 @@ class Tools
      */
     public static function registerAlert($msg, $type = "error", $timer = 3000, $bgColor = false){
         $types = ["success", "error", "warning", "info"];
-        if(in_array($type, $types)){
+        if(in_array($type, $types) && !empty($msg)) {
             $alert = [
                 'message' => $msg,
                 'type' => $type,
                 'timer' => $timer,
                 'background' => $bgColor
             ];
-
-            // Si no existe el array de alertas, crearlo
-            if (!isset($_SESSION['alerts'])) {
-                $_SESSION['alerts'] = [];
-            }
 
             // Agregar la nueva alerta al array
             $_SESSION['alerts'][] = $alert;
@@ -1280,7 +1218,7 @@ class Tools
                 return $headers['X-Forwarded-For'];
             }
         }
-        
+
         // Verificar variables de servidor comunes para proxies
         $ipKeys = [
             'HTTP_CLIENT_IP',
@@ -1291,7 +1229,7 @@ class Tools
             'HTTP_FORWARDED',
             'REMOTE_ADDR'
         ];
-        
+
         foreach ($ipKeys as $key) {
             if (isset($_SERVER[$key])) {
                 // Si contiene múltiples IPs, tomar la primera
@@ -1302,7 +1240,7 @@ class Tools
                 return $_SERVER[$key];
             }
         }
-        
+
         // Si no se encuentra ninguna IP, devolver una predeterminada
         return '0.0.0.0';
     }
@@ -1317,11 +1255,11 @@ class Tools
     public static function isValidIP($ip, $allowPrivate = true)
     {
         $flags = FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6;
-        
+
         if (!$allowPrivate) {
             $flags |= FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
         }
-        
+
         return filter_var($ip, FILTER_VALIDATE_IP, $flags) !== false;
     }
 
@@ -1339,14 +1277,14 @@ class Tools
             '127.0.0.1',
             '::1'
         ];
-        
+
         $whitelist = array_merge($defaultWhitelist, $whitelist);
-        
+
         // Verificar coincidencia exacta
         if (in_array($ip, $whitelist)) {
             return true;
         }
-        
+
         // Verificar rangos CIDR
         foreach ($whitelist as $range) {
             if (strpos($range, '/') !== false) {
@@ -1355,10 +1293,10 @@ class Tools
                 }
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Verifica si una IP está en un rango CIDR
      *
@@ -1369,14 +1307,721 @@ class Tools
     public static function isIPInCIDR($ip, $cidr)
     {
         list($subnet, $bits) = explode('/', $cidr);
-        
+
         // Convertir IP y subred a binario
         $ipBinary = ip2long($ip);
         $subnetBinary = ip2long($subnet);
         $mask = -1 << (32 - $bits);
-        
+
         // Comparar usando la máscara
         return ($ipBinary & $mask) === ($subnetBinary & $mask);
     }
 
+    // ==========================================
+    // FUNCIONES DE VALIDACIÓN
+    // ==========================================
+
+    /**
+     * Valida un nombre completo
+     *
+     * @param string $nombre Nombre a validar
+     * @param int $minLength Longitud mínima
+     * @param int $maxLength Longitud máxima
+     * @return array Resultado de validación
+     */
+    public static function validateNombre($nombre, $minLength = 3, $maxLength = 100)
+    {
+        $result = [
+            'valid' => true,
+            'errors' => []
+        ];
+
+        $nombre = trim($nombre);
+
+        // Verificar que no esté vacío
+        if (empty($nombre)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El nombre es obligatorio';
+            return $result;
+        }
+
+        // Verificar longitud mínima
+        if (strlen($nombre) < $minLength) {
+            $result['valid'] = false;
+            $result['errors'][] = "El nombre debe tener al menos {$minLength} caracteres";
+        }
+
+        // Verificar longitud máxima
+        if (strlen($nombre) > $maxLength) {
+            $result['valid'] = false;
+            $result['errors'][] = "El nombre no puede tener más de {$maxLength} caracteres";
+        }
+
+        // Verificar que solo contenga letras, espacios, acentos y algunos caracteres especiales
+        if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-\'\.]+$/', $nombre)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El nombre solo puede contener letras, espacios, guiones y apostrofes';
+        }
+
+        // Verificar que no tenga espacios múltiples
+        if (preg_match('/\s{2,}/', $nombre)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El nombre no puede tener espacios múltiples';
+        }
+
+        return $result;
+    }
+
+    /**
+     * Valida formato y disponibilidad de email
+     *
+     * @param string $email Email a validar
+     * @param int $excludeUserId ID de usuario a excluir (para actualizaciones)
+     * @param string $table Tabla donde verificar duplicados
+     * @param string $emailField Campo de email en la tabla
+     * @param string $idField Campo ID en la tabla
+     * @return array Resultado de validación
+     */
+    public static function validateEmail($email, $excludeUserId = 0, $table = 'usuarios_admin', $emailField = 'email', $idField = 'id_usuario_admin')
+    {
+        $result = [
+            'valid' => true,
+            'errors' => []
+        ];
+
+        $email = trim(strtolower($email));
+
+        // Verificar que no esté vacío
+        if (empty($email)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El email es obligatorio';
+            return $result;
+        }
+
+        // Verificar formato
+        if (!self::isEmail($email)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El formato del email no es válido';
+            return $result;
+        }
+
+        // Verificar longitud máxima
+        if (strlen($email) > 100) {
+            $result['valid'] = false;
+            $result['errors'][] = 'El email no puede tener más de 100 caracteres';
+        }
+
+        // Verificar disponibilidad en base de datos
+        if ($result['valid']) {
+            $db = Bd::getInstance();
+            $params = [$email];
+            $sql = "SELECT COUNT(*) FROM {$table} WHERE {$emailField} = ?";
+
+            if ($excludeUserId > 0) {
+                $sql .= " AND {$idField} != ?";
+                $params[] = (int)$excludeUserId;
+            }
+
+            $count = (int)$db->fetchValueSafe($sql, $params);
+            if ($count > 0) {
+                $result['valid'] = false;
+                $result['errors'][] = 'Este email ya está registrado en el sistema';
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Valida fortaleza de contraseña (versión mejorada)
+     *
+     * @param string $password Contraseña a validar
+     * @param int $minLength Longitud mínima
+     * @param bool $requireUppercase Requerir mayúsculas
+     * @param bool $requireLowercase Requerir minúsculas
+     * @param bool $requireNumbers Requerir números
+     * @param bool $requireSymbols Requerir símbolos
+     * @return array Resultado de validación
+     */
+    public static function validatePasswordStrength($password, $minLength = null, $requireUppercase = true, $requireLowercase = true, $requireNumbers = true, $requireSymbols = true)
+    {
+        $minLength = $minLength ?: self::$config['password_min_length'];
+
+        $result = [
+            'valid' => true,
+            'score' => 0,
+            'strength' => 'weak',
+            'errors' => [],
+            'suggestions' => []
+        ];
+
+        // Verificar que no esté vacía
+        if (empty($password)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña es obligatoria';
+            return $result;
+        }
+
+        // Verificar longitud mínima
+        if (strlen($password) < $minLength) {
+            $result['valid'] = false;
+            $result['errors'][] = "La contraseña debe tener al menos {$minLength} caracteres";
+        } else {
+            $result['score'] += 1;
+        }
+
+        // Verificar mayúsculas
+        if ($requireUppercase && !preg_match('/[A-Z]/', $password)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña debe incluir al menos una letra mayúscula';
+        } elseif (preg_match('/[A-Z]/', $password)) {
+            $result['score'] += 1;
+        }
+
+        // Verificar minúsculas
+        if ($requireLowercase && !preg_match('/[a-z]/', $password)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña debe incluir al menos una letra minúscula';
+        } elseif (preg_match('/[a-z]/', $password)) {
+            $result['score'] += 1;
+        }
+
+        // Verificar números
+        if ($requireNumbers && !preg_match('/[0-9]/', $password)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña debe incluir al menos un número';
+        } elseif (preg_match('/[0-9]/', $password)) {
+            $result['score'] += 1;
+        }
+
+        // Verificar símbolos
+        if ($requireSymbols && !preg_match('/[^A-Za-z0-9]/', $password)) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña debe incluir al menos un símbolo especial';
+        } elseif (preg_match('/[^A-Za-z0-9]/', $password)) {
+            $result['score'] += 1;
+        }
+
+        // Verificar patrones comunes débiles
+        $weakPatterns = [
+            '/^123+/',
+            '/^abc+/i',
+            '/^qwe+/i',
+            '/password/i',
+            '/admin/i',
+            '/^(.)\1{2,}/', // Caracteres repetidos
+        ];
+
+        foreach ($weakPatterns as $pattern) {
+            if (preg_match($pattern, $password)) {
+                $result['suggestions'][] = 'Evita usar patrones comunes o secuencias obvias';
+                break;
+            }
+        }
+
+        // Calcular fortaleza
+        if ($result['score'] >= 4) {
+            $result['strength'] = 'strong';
+        } elseif ($result['score'] >= 3) {
+            $result['strength'] = 'medium';
+        }
+
+        // Verificar longitud máxima
+        if (strlen($password) > 255) {
+            $result['valid'] = false;
+            $result['errors'][] = 'La contraseña no puede tener más de 255 caracteres';
+        }
+
+        return $result;
+    }
+
+    /**
+     * Valida múltiples campos de un formulario
+     *
+     * @param array $fields Array de campos a validar
+     * @param array $rules Reglas de validación
+     * @return array Resultado de validación
+     */
+    public static function validateFields($fields, $rules)
+    {
+        $result = [
+            'valid' => true,
+            'errors' => [],
+            'field_errors' => []
+        ];
+
+        foreach ($rules as $fieldName => $fieldRules) {
+            $value = $fields[$fieldName] ?? '';
+            $fieldErrors = [];
+
+            foreach ($fieldRules as $rule => $params) {
+                switch ($rule) {
+                    case 'required':
+                        if (empty(trim($value))) {
+                            $fieldErrors[] = $params['message'] ?? "El campo {$fieldName} es obligatorio";
+                        }
+                        break;
+
+                    case 'min_length':
+                        if (strlen(trim($value)) < $params['value']) {
+                            $fieldErrors[] = $params['message'] ?? "El campo {$fieldName} debe tener al menos {$params['value']} caracteres";
+                        }
+                        break;
+
+                    case 'max_length':
+                        if (strlen(trim($value)) > $params['value']) {
+                            $fieldErrors[] = $params['message'] ?? "El campo {$fieldName} no puede tener más de {$params['value']} caracteres";
+                        }
+                        break;
+
+                    case 'email':
+                        if (!empty($value) && !self::isEmail($value)) {
+                            $fieldErrors[] = $params['message'] ?? "El formato del email no es válido";
+                        }
+                        break;
+
+                    case 'numeric':
+                        if (!empty($value) && !is_numeric($value)) {
+                            $fieldErrors[] = $params['message'] ?? "El campo {$fieldName} debe ser numérico";
+                        }
+                        break;
+
+                    case 'regex':
+                        if (!empty($value) && !preg_match($params['pattern'], $value)) {
+                            $fieldErrors[] = $params['message'] ?? "El formato del campo {$fieldName} no es válido";
+                        }
+                        break;
+                }
+            }
+        }
+
+        if (!empty($fieldErrors)) {
+            $result['valid'] = false;
+            $result['field_errors'][$fieldName] = $fieldErrors;
+            $result['errors'] = array_merge($result['errors'], $fieldErrors);
+        }
+    }
+
+    /**
+     * Sanitiza una cadena para prevenir XSS
+     *
+     * @param string $input Cadena a sanitizar
+     * @param bool $allowHtml Permitir HTML básico
+     * @return string Cadena sanitizada
+     */
+    public static function sanitizeInput($input, $allowHtml = false)
+    {
+        if (empty($input)) {
+            return '';
+        }
+
+        // Eliminar espacios en blanco al inicio y final
+        $input = trim($input);
+
+        if ($allowHtml) {
+            // Permitir solo HTML básico y seguro
+            $allowedTags = '<p><br><strong><b><em><i><u><ul><ol><li><a>';
+            $input = strip_tags($input, $allowedTags);
+
+            // Sanitizar atributos peligrosos
+            $input = preg_replace('/(<[^>]+)(on\w+\s*=\s*["\'][^"\']*["\'])/i', '$1', $input);
+            $input = preg_replace('/(<[^>]+)(javascript\s*:)/i', '$1', $input);
+        } else {
+            // Eliminar todas las etiquetas HTML
+            $input = strip_tags($input);
+        }
+
+        // Convertir caracteres especiales
+        $input = htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+
+        return $input;
+    }
+
+
+ /**
+ * Valida un número de teléfono internacional
+ *
+ * @param string $phone Teléfono a validar
+ * @param string $defaultCountry Código de país por defecto (ES, US, FR, etc.)
+ * @return array Resultado de validación
+ */
+    public static function validatePhone($phone, $defaultCountry = 'ES')
+    {
+        $result = [
+            'valid' => true,
+            'errors' => [],
+            'formatted' => '',
+            'country' => '',
+            'type' => ''
+        ];
+
+        $phone = trim($phone);
+
+        if (empty($phone)) {
+            return $result; // Teléfono opcional
+        }
+
+        // Eliminar espacios, guiones, paréntesis y puntos
+        $cleanPhone = preg_replace('/[\s\-().]/', '', $phone);
+
+        // Patrones de teléfonos por país
+        $phonePatterns = [
+            'ES' => [
+                'patterns' => [
+                    '/^(\+34|0034)?[6789]\d{8}$/', // Móviles y fijos españoles
+                    '/^(\+34|0034)?\d{9}$/' // Formato general español
+                ],
+                'prefix' => '+34',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+34|0034)/', '', $clean);
+                    if (strlen($clean) === 9) {
+                        return '+34 ' . substr($clean, 0, 3) . ' ' . substr($clean, 3, 3) . ' ' . substr($clean, 6, 3);
+                    }
+                    return '+34 ' . $clean;
+                }
+            ],
+            'US' => [
+                'patterns' => [
+                    '/^(\+1|001)?[2-9]\d{2}[2-9]\d{2}\d{4}$/', // Teléfonos estadounidenses
+                ],
+                'prefix' => '+1',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+1|001)/', '', $clean);
+                    if (strlen($clean) === 10) {
+                        return '+1 (' . substr($clean, 0, 3) . ') ' . substr($clean, 3, 3) . '-' . substr($clean, 6, 4);
+                    }
+                    return '+1 ' . $clean;
+                }
+            ],
+            'FR' => [
+                'patterns' => [
+                    '/^(\+33|0033)?[1-9]\d{8}$/', // Teléfonos franceses
+                ],
+                'prefix' => '+33',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+33|0033)/', '', $clean);
+                    if (strlen($clean) === 9) {
+                        return '+33 ' . substr($clean, 0, 1) . ' ' . substr($clean, 1, 2) . ' ' . substr($clean, 3, 2) . ' ' . substr($clean, 5, 2) . ' ' . substr($clean, 7, 2);
+                    }
+                    return '+33 ' . $clean;
+                }
+            ],
+            'DE' => [
+                'patterns' => [
+                    '/^(\+49|0049)?[1-9]\d{9,10}$/', // Teléfonos alemanes
+                ],
+                'prefix' => '+49',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+49|0049)/', '', $clean);
+                    if (strlen($clean) === 10) {
+                        return '+49 ' . substr($clean, 0, 3) . ' ' . substr($clean, 3);
+                    } elseif (strlen($clean) === 11) {
+                        return '+49 ' . substr($clean, 0, 4) . ' ' . substr($clean, 4);
+                    }
+                    return '+49 ' . $clean;
+                }
+            ],
+            'IT' => [
+                'patterns' => [
+                    '/^(\+39|0039)?[0-9]\d{8,10}$/', // Teléfonos italianos
+                ],
+                'prefix' => '+39',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+39|0039)/', '', $clean);
+                    return '+39 ' . $clean;
+                }
+            ],
+            'UK' => [
+                'patterns' => [
+                    '/^(\+44|0044)?[1-9]\d{8,9}$/', // Teléfonos británicos (9-10 dígitos)
+                ],
+                'prefix' => '+44',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+44|0044)/', '', $clean);
+                    return '+44 ' . $clean;
+                }
+            ],
+            'MX' => [
+                'patterns' => [
+                    '/^(\+52|0052)?[1-9]\d{9}$/', // Teléfonos mexicanos
+                ],
+                'prefix' => '+52',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+52|0052)/', '', $clean);
+                    if (strlen($clean) === 10) {
+                        return '+52 ' . substr($clean, 0, 3) . ' ' . substr($clean, 3, 3) . ' ' . substr($clean, 6, 4);
+                    }
+                    return '+52 ' . $clean;
+                }
+            ],
+            'AR' => [
+                'patterns' => [
+                    '/^(\+54|0054)?[1-9]\d{8,9}$/', // Teléfonos argentinos (9-10 dígitos)
+                ],
+                'prefix' => '+54',
+                'format' => function($clean) {
+                    $clean = preg_replace('/^(\+54|0054)/', '', $clean);
+                    return '+54 ' . $clean;
+                }
+            ]
+        ];
+
+        // Detectar país automáticamente si el teléfono tiene prefijo internacional
+        $detectedCountry = null;
+        if (preg_match('/^\+/', $cleanPhone)) {
+            foreach ($phonePatterns as $countryCode => $config) {
+                foreach ($config['patterns'] as $pattern) {
+                    if (preg_match($pattern, $cleanPhone)) {
+                        $detectedCountry = $countryCode;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        // Usar país detectado o país por defecto
+        $country = $detectedCountry ?: $defaultCountry;
+
+        // Validar según el país
+        if (isset($phonePatterns[$country])) {
+            $config = $phonePatterns[$country];
+            $isValid = false;
+
+            foreach ($config['patterns'] as $pattern) {
+                if (preg_match($pattern, $cleanPhone)) {
+                    $isValid = true;
+                    break;
+                }
+            }
+
+            if ($isValid) {
+                $result['country'] = $country;
+                $result['formatted'] = $config['format']($cleanPhone);
+
+                // Determinar tipo de teléfono (móvil/fijo) para España
+                if ($country === 'ES') {
+                    $cleanForType = preg_replace('/^(\+34|0034)/', '', $cleanPhone);
+                    if (preg_match('/^[67]/', $cleanForType)) {
+                        $result['type'] = 'mobile';
+                    } elseif (preg_match('/^[89]/', $cleanForType)) {
+                        $result['type'] = 'landline';
+                    } else {
+                        $result['type'] = 'unknown';
+                    }
+                }
+            } else {
+                $result['valid'] = false;
+                $result['errors'][] = "El formato del teléfono no es válido para {$country}";
+            }
+        } else {
+            // Validación genérica para países no específicos
+            if (preg_match('/^\+?[1-9]\d{7,14}$/', $cleanPhone)) {
+                $result['country'] = 'UNKNOWN';
+                $result['formatted'] = $cleanPhone;
+                $result['type'] = 'unknown';
+            } else {
+                $result['valid'] = false;
+                $result['errors'][] = 'El formato del teléfono no es válido';
+            }
+        }
+
+        return $result;
+    }
+
+
+
+    // ==========================================
+    // FUNCIONES PARA DATOS COMUNES DEL SISTEMA
+    // ==========================================
+
+    /**
+     * Caché estático para datos comunes
+     */
+    protected static $commonDataCache = [];
+
+    /**
+     * Obtiene los géneros de mascotas indexados por ID
+     *
+     * @param bool $forceReload Forzar recarga desde BD
+     * @return array Array indexado por ID
+     */
+    public static function getGeneros($forceReload = false)
+    {
+        if (!$forceReload && isset(self::$commonDataCache['generos'])) {
+            return self::$commonDataCache['generos'];
+        }
+
+        try {
+            if (!class_exists('Bd')) {
+                return [];
+            }
+
+            $db = Bd::getInstance();
+            $generos = $db->fetchAllSafe("SELECT * FROM mascotas_genero ORDER BY nombre", [], PDO::FETCH_OBJ);
+
+            // Indexar por ID para acceso rápido
+            $indexedGeneros = [];
+            foreach ($generos as $genero) {
+                $indexedGeneros[$genero->id] = $genero;
+            }
+
+            // Guardar en caché
+            self::$commonDataCache['generos'] = $indexedGeneros;
+
+            return $indexedGeneros;
+
+        } catch (Exception $e) {
+            self::logError([
+                'error' => 'Error loading generos',
+                'message' => $e->getMessage()
+            ], 0, 'common_data');
+
+            return [];
+        }
+    }
+
+    /**
+     * Obtiene los tipos de mascotas indexados por ID
+     *
+     * @param bool $forceReload Forzar recarga desde BD
+     * @return array Array indexado por ID
+     */
+    public static function getTipos($forceReload = false)
+    {
+        if (!$forceReload && isset(self::$commonDataCache['tipos'])) {
+            return self::$commonDataCache['tipos'];
+        }
+
+        try {
+            if (!class_exists('Bd')) {
+                return [];
+            }
+
+            $db = Bd::getInstance();
+            $tipos = $db->fetchAllSafe("SELECT * FROM mascotas_tipo ORDER BY nombre", [], PDO::FETCH_OBJ);
+
+            // Indexar por ID para acceso rápido
+            $indexedTipos = [];
+            foreach ($tipos as $tipo) {
+                $indexedTipos[$tipo->id] = $tipo;
+            }
+
+            // Guardar en caché
+            self::$commonDataCache['tipos'] = $indexedTipos;
+
+            return $indexedTipos;
+
+        } catch (Exception $e) {
+            self::logError([
+                'error' => 'Error loading tipos',
+                'message' => $e->getMessage()
+            ], 0, 'common_data');
+
+            return [];
+        }
+    }
+
+
+    /**
+     * Obtiene el nombre de un género por su ID
+     *
+     * @param int $id ID del género
+     * @return string Nombre del género o cadena vacía
+     */
+    public static function getGeneroNombre($id)
+    {
+        $generos = self::getGeneros();
+        return isset($generos[$id]) ? $generos[$id]->nombre : '';
+    }
+
+    /**
+     * Obtiene el nombre de un tipo por su ID
+     *
+     * @param int $id ID del tipo
+     * @return string Nombre del tipo o cadena vacía
+     */
+    public static function getTipoNombre($id)
+    {
+        $tipos = self::getTipos();
+        return isset($tipos[$id]) ? $tipos[$id]->nombre : '';
+    }
+
+    /**
+     * Obtiene todos los datos comunes del sistema
+     *
+     * @param bool $forceReload Forzar recarga desde BD
+     * @return array Array con todos los datos comunes
+     */
+    public static function getAllCommonData($forceReload = false)
+    {
+        return [
+            'generos' => self::getGeneros($forceReload),
+            'tipos' => self::getTipos($forceReload)
+        ];
+    }
+
+    /**
+     * Limpia el caché de datos comunes
+     *
+     * @param string $type Tipo específico a limpiar (generos, tipos) o null para todo
+     * @return void
+     */
+    public static function clearCommonDataCache($type = null)
+    {
+        if ($type === null) {
+            self::$commonDataCache = [];
+        } elseif (isset(self::$commonDataCache[$type])) {
+            unset(self::$commonDataCache[$type]);
+        }
+    }
+
+    /**
+     * Genera opciones HTML para un select de géneros
+     *
+     * @param int $selectedId ID seleccionado
+     * @param bool $includeEmpty Incluir opción vacía
+     * @param string $emptyText Texto para opción vacía
+     * @return string HTML de opciones
+     */
+    public static function getGenerosSelectOptions($selectedId = 0, $includeEmpty = true, $emptyText = 'Seleccionar género')
+    {
+        $html = '';
+
+        if ($includeEmpty) {
+            $html .= '<option value="">' . htmlspecialchars($emptyText) . '</option>';
+        }
+
+        $generos = self::getGeneros();
+        foreach ($generos as $id => $genero) {
+            $selected = ($selectedId == $id) ? 'selected' : '';
+            $html .= '<option value="' . $id . '" ' . $selected . '>' . htmlspecialchars($genero->nombre) . '</option>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * Genera opciones HTML para un select de tipos
+     *
+     * @param int $selectedId ID seleccionado
+     * @param bool $includeEmpty Incluir opción vacía
+     * @param string $emptyText Texto para opción vacía
+     * @return string HTML de opciones
+     */
+    public static function getTiposSelectOptions($selectedId = 0, $includeEmpty = true, $emptyText = 'Seleccionar tipo')
+    {
+        $html = '';
+
+        if ($includeEmpty) {
+            $html .= '<option value="">' . htmlspecialchars($emptyText) . '</option>';
+        }
+
+        $tipos = self::getTipos();
+        foreach ($tipos as $id => $tipo) {
+            $selected = ($selectedId == $id) ? 'selected' : '';
+            $html .= '<option value="' . $id . '" ' . $selected . '>' . htmlspecialchars($tipo->nombre) . '</option>';
+        }
+
+        return $html;
+    }
 }

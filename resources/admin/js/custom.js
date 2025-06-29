@@ -46,10 +46,79 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
     limite = parseInt(limite) || 12;
     pagina = parseInt(pagina) || 1;
 
+    let campo = $("#busqueda");
+    let listado = 'admin_mascotas_list';
+    let idtutor = '';
+    let ifempty = '';
+    if (campo.data('listado') !== undefined) {
+        listado = campo.data('listado');
+    }
+    if (campo.data('idtutor') !== undefined) {
+        idtutor = campo.data('idtutor');
+    }
+    if (campo.data('ifempty') !== undefined) {
+        ifempty = campo.data('ifempty');
+    }
+
     $(".loadingscr").removeClass("d-none")
 
     ajax_call(
         dominio + "adminajax/ajax-get-mascotas-admin/",
+        {
+            comienzo: comienzo,
+            limite: limite,
+            pagina: pagina,
+            busqueda: campo.val() || "",
+            listado: listado,
+            idtutor: idtutor,
+            ifempty: ifempty,
+        },
+        (response) => {
+            // Si la respuesta es un string, intentar parsearlo
+            if (typeof response === "string") {
+                try {
+                    response = JSON.parse(response)
+                } catch (e) {
+                    if (typeof toastr !== "undefined") {
+                        toastr.error("Error en el formato de respuesta del servidor")
+                    }
+                    $(".loadingscr").addClass("d-none")
+                    return
+                }
+            }
+
+            if (response && response.type === "success") {
+                $("#page-content").html(response.html);
+                let total = response.total || 0;
+                $(".totalfound").empty().html(total+' resultado'+(total !== 1 ? 's' : ''))
+                // Generar paginador si hay información de paginación
+                if (response.pagination) {
+                  generarPaginador(response.pagination, limite, 'ajax_get_mascotas_admin')
+                }
+                else{
+                    $(".paginador").html("") // Limpiar paginador si no hay paginación
+                }
+            } else {
+                if (typeof toastr !== "undefined") {
+                    toastr.error(response.error || response.html || "Error al cargar las mascotas")
+                }
+            }
+            $(".loadingscr").addClass("d-none")
+        },
+    )
+}
+
+// Función para cargar usuarios con valores por defecto y paginación
+function ajax_get_usuarios_admin(comienzo = 0, limite = 20, pagina = 1) {
+    // Validar y convertir a números si es necesario
+    comienzo = parseInt(comienzo) || 0;
+    limite = parseInt(limite) || 20;
+    pagina = parseInt(pagina) || 1;
+
+    $(".loadingscr").removeClass("d-none")
+
+    ajax_call(
+        dominio + "adminajax/ajax-get-usuarios-admin/",
         {
             comienzo: comienzo,
             limite: limite,
@@ -76,14 +145,84 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
                 $(".totalfound").empty().html(total+' resultado'+(total !== 1 ? 's' : ''))
                 // Generar paginador si hay información de paginación
                 if (response.pagination) {
-                  generarPaginador(response.pagination)
+                    generarPaginador(response.pagination, limite, 'ajax_get_usuarios_admin')
                 }
                 else{
                     $(".paginador").html("") // Limpiar paginador si no hay paginación
                 }
             } else {
                 if (typeof toastr !== "undefined") {
-                    toastr.error(response.error || response.html || "Error al cargar las mascotas")
+                    toastr.error(response.error || response.html || "Error al cargar los usuarios")
+                }
+            }
+            $(".loadingscr").addClass("d-none")
+        },
+    )
+}
+
+// Función para cargar tutores con valores por defecto y paginación
+function ajax_get_tutores(comienzo = 0, limite = 20, pagina = 1) {
+    // Validar y convertir a números si es necesario
+    comienzo = parseInt(comienzo) || 0;
+    limite = parseInt(limite) || 20;
+    pagina = parseInt(pagina) || 1;
+
+    $(".loadingscr").removeClass("d-none")
+
+    let campo = $("#busqueda");
+    let listado = 'admin_tutores_list';
+    let idmascota = '';
+    let ifempty = '';
+
+    if (campo.data('listado') !== undefined) {
+        listado = campo.data('listado');
+    }
+    if (campo.data('idmascota') !== undefined) {
+        idmascota = campo.data('idmascota');
+    }
+    if (campo.data('ifempty') !== undefined) {
+        ifempty = campo.data('ifempty');
+    }
+
+    ajax_call(
+        dominio + "adminajax/ajax-get-tutores/",
+        {
+            comienzo: comienzo,
+            limite: limite,
+            pagina: pagina,
+            listado: listado,
+            idmascota: idmascota,
+            ifempty: ifempty,
+            busqueda: $("#busqueda").val() || "",
+        },
+        (response) => {
+            // Si la respuesta es un string, intentar parsearlo
+            if (typeof response === "string") {
+                try {
+                    response = JSON.parse(response)
+                } catch (e) {
+                    if (typeof toastr !== "undefined") {
+                        toastr.error("Error en el formato de respuesta del servidor")
+                    }
+                    $(".loadingscr").addClass("d-none")
+                    return
+                }
+            }
+
+            if (response && response.type === "success") {
+                $("#page-content").html(response.html);
+                let total = response.total || 0;
+                $(".totalfound").empty().html(total+' resultado'+(total !== 1 ? 's' : ''))
+                // Generar paginador si hay información de paginación
+                if (response.pagination) {
+                    generarPaginador(response.pagination, limite, 'ajax_get_tutores')
+                }
+                else{
+                    $(".paginador").html("") // Limpiar paginador si no hay paginación
+                }
+            } else {
+                if (typeof toastr !== "undefined") {
+                    toastr.error(response.error || response.html || "Error al cargar los tutores")
                 }
             }
             $(".loadingscr").addClass("d-none")
@@ -94,7 +233,7 @@ function ajax_get_mascotas_admin(comienzo = 0, limite = 12, pagina = 1) {
 /**
  * Genera el HTML del paginador
  */
-function generarPaginador(paginacion) {
+function generarPaginador(paginacion, limite, funcion) {
     // No mostrar paginador si no hay paginación o solo hay una página
     if (!paginacion || paginacion.total_paginas <= 1) {
         $(".paginador").html("")
@@ -106,7 +245,7 @@ function generarPaginador(paginacion) {
     // Botón anterior - solo mostrar si no estamos en la primera página
     if (paginacion.tiene_anterior) {
         html += `<li class="page-item">
-                    <a class="page-link" href="#" onclick="cambiarPagina(${paginacion.pagina_anterior}); return false;" title="Página anterior">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${paginacion.pagina_anterior}, ${limite}, ${funcion}); return false;" title="Página anterior">
                         <i class="fas fa-chevron-left"></i>
                     </a>
                  </li>`
@@ -126,7 +265,7 @@ function generarPaginador(paginacion) {
                      </li>`
         } else {
             html += `<li class="page-item">
-                        <a class="page-link" href="#" onclick="cambiarPagina(${pagina.numero}); return false;" title="Ir a página ${pagina.numero}">
+                        <a class="page-link" href="#" onclick="cambiarPagina(${pagina.numero}, ${limite}, ${funcion}); return false;" title="Ir a página ${pagina.numero}">
                             ${pagina.numero}
                         </a>
                      </li>`
@@ -136,7 +275,7 @@ function generarPaginador(paginacion) {
     // Botón siguiente - solo mostrar si no estamos en la última página
     if (paginacion.tiene_siguiente) {
         html += `<li class="page-item">
-                    <a class="page-link" href="#" onclick="cambiarPagina(${paginacion.pagina_siguiente}); return false;" title="Página siguiente">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${paginacion.pagina_siguiente}, ${limite}, ${funcion}); return false;" title="Página siguiente">
                         <i class="fas fa-chevron-right"></i>
                     </a>
                  </li>`
@@ -161,9 +300,9 @@ function generarPaginador(paginacion) {
 /**
  * Cambia a una página específica
  */
-function cambiarPagina(pagina) {
-    const comienzo = (pagina - 1) * 12 // 12 es el límite por defecto
-    ajax_get_mascotas_admin(comienzo, 12, pagina)
+function cambiarPagina(pagina, limite, funcion) {
+    const comienzo = (pagina - 1) * limite
+    funcion(comienzo, limite, pagina)
 }
 
 // Función para abrir modal general
@@ -1050,10 +1189,67 @@ function initNuevaMascotaEvents() {
     }
 }
 
-// Función simple para mostrar alertas desde PHP
+/**
+ * Función mejorada para mostrar múltiples alertas desde PHP
+ * Ahora maneja un array de alertas en lugar de una sola
+ */
 function mostrarAlertasPHP() {
-    // Si existe una alerta en la variable global
-    if (typeof window.alerta_php !== "undefined" && window.alerta_php) {
+    // Verificar si existen alertas en la variable global
+    if (typeof window.alertas_php !== "undefined" && window.alertas_php && Array.isArray(window.alertas_php)) {
+        // Configurar toastr si está disponible
+        if (typeof toastr !== "undefined") {
+            toastr.options = {
+                closeButton: true,
+                timeOut: 5000,
+                extendedTimeOut: 2000,
+                positionClass: "toast-top-right",
+                preventDuplicates: false,
+                newestOnTop: true,
+                progressBar: true,
+                showDuration: 300,
+                hideDuration: 1000,
+                showEasing: "swing",
+                hideEasing: "linear",
+                showMethod: "fadeIn",
+                hideMethod: "fadeOut",
+            }
+
+            // Mostrar cada alerta con un pequeño delay para que se vean todas
+            window.alertas_php.forEach((alerta, index) => {
+                setTimeout(() => {
+                    // Mostrar según el tipo
+                    switch (alerta.type) {
+                        case "success":
+                            toastr.success(alerta.message)
+                            break
+                        case "warning":
+                            toastr.warning(alerta.message)
+                            break
+                        case "info":
+                            toastr.info(alerta.message)
+                            break
+                        case "error":
+                        default:
+                            toastr.error(alerta.message)
+                            break
+                    }
+                }, index * 200) // Delay de 200ms entre cada alerta
+            })
+        } else {
+            // Fallback si no hay toastr - mostrar todas las alertas concatenadas
+            const mensajes = window.alertas_php
+                .map((alerta) => `${alerta.type.toUpperCase()}: ${alerta.message}`)
+                .join("\n\n")
+            alert(mensajes)
+        }
+
+        // Limpiar las alertas después de mostrarlas para evitar que se muestren de nuevo
+        window.alertas_php = null
+        delete window.alertas_php
+    }
+
+    // Mantener compatibilidad con el sistema anterior (una sola alerta)
+    else if (typeof window.alerta_php !== "undefined" && window.alerta_php) {
         const alerta = window.alerta_php
 
         if (typeof toastr !== "undefined") {
@@ -1078,5 +1274,106 @@ function mostrarAlertasPHP() {
             // Fallback si no hay toastr
             alert(alerta.message)
         }
+
+        // Limpiar la alerta
+        window.alerta_php = null
+        delete window.alerta_php
     }
+}
+
+function asignarMascota(este){
+    let idmascota = $(este).data("idmascota");
+    let idtutor = $(este).data("idtutor");
+    let action = $(este).data("add");
+    if ($(este).data('action') !== undefined) {
+        action = $(este).data('action');
+    }
+    $(".loadingscr").removeClass("d-none");
+    ajax_call(dominio + "adminajax/ajax-asignar-mascota/", { idmascota: idmascota, idtutor: idtutor, action: action },
+        (response) => {
+            // Si la respuesta es un string, intentar parsearlo
+            if (typeof response === "string") {
+                try {
+                    response = JSON.parse(response)
+                } catch (e) {
+                    if (typeof toastr !== "undefined") {
+                        toastr.error("Error en el formato de respuesta del servidor")
+                    }
+                    $(".loadingscr").addClass("d-none")
+                    return
+                }
+            }
+
+            if (response && response.type === "success") {
+                if (typeof toastr !== "undefined") {
+                    toastr.success(response.message || "Mascota asignada correctamente")
+                }
+                // Recargar la lista de mascotas asignadas
+                ajax_get_mascotas_asignadas(idtutor);
+                // Recargar la lista de tutores asignados
+                ajax_get_tutores_asignados(idmascota);
+            } else {
+                if (typeof toastr !== "undefined") {
+                    toastr.error(response.error || response.html || "Error al asignar la mascota")
+                }
+            }
+            $(".loadingscr").addClass("d-none")
+        },
+    )
+}
+
+function ajax_get_mascotas_asignadas(idtutor){
+    $(".loadingscr").removeClass("d-none");
+
+    ajax_call(dominio + "adminajax/ajax-get-mascotas-asignadas/", { idtutor: idtutor }, (response) => {
+        // Si la respuesta es un string, intentar parsearlo
+        if (typeof response === "string") {
+            try {
+                response = JSON.parse(response)
+            } catch (e) {
+                if (typeof toastr !== "undefined") {
+                    toastr.error("Error en el formato de respuesta del servidor")
+                }
+                $(".loadingscr").addClass("d-none")
+                return
+            }
+        }
+
+        if (response && response.type === "success") {
+            $("#mascotasAsignadas").html(response.html);
+        } else {
+            if (typeof toastr !== "undefined") {
+                toastr.error(response.error || response.html || "Error al cargar las mascotas asignadas")
+            }
+        }
+        $(".loadingscr").addClass("d-none");
+    });
+}
+
+function ajax_get_tutores_asignados(idmascota){
+    $(".loadingscr").removeClass("d-none");
+
+    ajax_call(dominio + "adminajax/ajax-get-tutores-asignados/", { idmascota: idmascota }, (response) => {
+        // Si la respuesta es un string, intentar parsearlo
+        if (typeof response === "string") {
+            try {
+                response = JSON.parse(response)
+            } catch (e) {
+                if (typeof toastr !== "undefined") {
+                    toastr.error("Error en el formato de respuesta del servidor")
+                }
+                $(".loadingscr").addClass("d-none")
+                return
+            }
+        }
+
+        if (response && response.type === "success") {
+            $("#tutoresAsignados").html(response.html);
+        } else {
+            if (typeof toastr !== "undefined") {
+                toastr.error(response.error || response.html || "Error al cargar los tutores asignados")
+            }
+        }
+        $(".loadingscr").addClass("d-none");
+    });
 }

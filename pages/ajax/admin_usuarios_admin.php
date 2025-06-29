@@ -1,18 +1,21 @@
 <?php
+/**
+ * @var $total
+ * @var $usuarios
+ */
 if($total > 0)
 {?>
-	<table id="tablaUsuarios" class="footable table table-striped bg-default table-primary">
+	<table id="tablaUsuarios" class="table table-striped bg-default table-bordered table-hover">
 		<thead>
 			<tr>
 				<th>Nombre</th>
 				<th>Email</th>
-				<th data-breakpoints="xs" class="text-center">Desde</th>
+				<th data-breakpoints="xs" class="text-center">Alta</th>
 				<th data-breakpoints="xs sm md" class="text-right">Acciones</th>
 			</tr>
 		</thead>
 		<tbody>
 			<?php
-			if($total > 0){
 				foreach( $usuarios as $key => $usuario ){
 					?>
 					
@@ -24,7 +27,7 @@ if($total > 0)
 							<a href="<?= _DOMINIO_ . _ADMIN_ . 'usuario-admin/' . $usuario->id_usuario_admin . '/' ?>" type="button" class="btn btn-primary waves-effect waves-light"  data-toggle="tooltip" title="Editar usuario">
 								<i class="fas fa-pencil-alt text-light"></i>
 							</a>
-							<button type="button" class="btn btn-danger waves-effect waves-light" onClick="confirmarEliminacion( <?= $usuario->id_usuario_admin ?>, 'Admin', () => ajax_get_usuarios_admin(<?= $comienzo ?>, <?= $limite ?>, <?= $pagina ?>) )"   data-toggle="tooltip" title="Eliminar usuario">
+							<button type="button" class="btn btn-danger waves-effect waves-light" onClick="confirmarEliminacion( <?= $usuario->id_usuario_admin ?>, 'Admin', () => ajax_get_usuarios_admin() )"   data-toggle="tooltip" title="Eliminar usuario">
 								<i class="far fa-trash-alt"></i>
 							</button>
 						</td>
@@ -32,14 +35,6 @@ if($total > 0)
 
 					<?php
 				}
-			}
-			else{
-				?>
-				<tr class="gradeX">
-					<td class="text-center" colspan="6"><strong><i class="fa fa-warning"></i> &nbsp; No se han encontrado usuarios</strong></td>
-				</tr>
-				<?php
-			}
 			?>
 		</tbody>
 	</table>
@@ -53,22 +48,3 @@ else
 	<?php
 }
 ?>
-<div class="row">
-	<div class="col-sm-6">
-		<div class="dataTables_info">
-			<?=($total > 1 || $total == '0') ? $total.' usuarios encontrados' : '1 usuario encontrado'?>
-		</div>
-	</div>
-	<div class="col-sm-6">
-		<div class="dataTables_paginate paging_bootstrap">
-			<?php Tools::getPaginador($pagina, $limite, 'Admin', 'getUsuariosWithFiltros', 'ajax_get_usuarios_admin', '', '', 'end'); ?>
-		</div>
-	</div>
-</div>
-
-<script>
-	$(function()
-	{
-		$('.footable').footable();
-	});
-</script>

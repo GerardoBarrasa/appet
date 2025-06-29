@@ -1,5 +1,265 @@
 # ApPet 1.0.0
 
+## **Funcionalidades implementadas:**
+
+### **1. Contact Picker API integrada:**
+
+- **Botón de agenda** junto al campo de nombre
+- **Detección automática** de compatibilidad del navegador
+- **Importación automática** de nombre, teléfono(s) y email
+
+
+### **2. Experiencia de usuario mejorada:**
+
+- **Alertas informativas** sobre disponibilidad de la función
+- **Loading spinner** durante la selección de contactos
+- **Notificaciones** de éxito/error con toastr
+- **Validación mejorada** del formulario
+
+
+### **3. Compatibilidad y fallbacks:**
+
+- **Detección de dispositivos móviles** para mensajes específicos
+- **Mensajes informativos** cuando la API no está disponible
+- **Funcionamiento normal** del formulario sin la API
+
+
+### **4. Características adicionales:**
+
+- **Formateo automático** de números de teléfono
+- **Importación de múltiples teléfonos** (si el contacto tiene más de uno)
+- **Manejo de errores** específicos (permisos, seguridad, etc.)
+- **Estilos responsive** y accesibles
+
+
+### **5. Manejo de errores específicos:**
+
+- **NotAllowedError**: Permiso denegado
+- **NotSupportedError**: Función no soportada
+- **SecurityError**: Problemas de HTTPS
+- **InvalidStateError**: Estado inválido
+
+
+## **Cómo funciona:**
+
+1. **Al cargar la página**: Se detecta si Contact Picker API está disponible
+2. **Si está disponible**: Se muestra el botón y la alerta informativa
+3. **Al hacer clic**: Se abre el selector nativo de contactos del dispositivo
+4. **Al seleccionar**: Los datos se importan automáticamente a los campos
+5. **Si no está disponible**: Se oculta el botón y se muestra mensaje informativo
+
+
+La implementación mantiene **toda la funcionalidad original** del formulario y añade la nueva característica de forma **progresiva** y **no intrusiva**.
+
+## **Cómo usar los datos comunes:**
+
+### **Uso en los controladores:**
+
+```php
+// En AdminController.php
+public function mascotaAction()
+{
+    $this->requireAuth();
+    
+    // Usar los datos desde Tools
+    $generos = Tools::getGeneros();
+    $tipos = Tools::getTipos();
+    
+    // O obtener nombre específico
+    $nombreGenero = Tools::getGeneroNombre($mascota->genero);
+    
+    $data = [
+        'mascota' => $mascota,
+        'generos' => $generos,
+        'tipos' => $tipos
+    ];
+    
+    Render::adminPage('mascota', $data);
+}
+
+// En AdminajaxController.php
+public function getMascotasAjax()
+{
+    // Mismos datos disponibles sin duplicar código
+    $generos = Tools::getGeneros();
+    $tipos = Tools::getTipos();
+    
+    // Procesar datos...
+}
+```
+
+### **Uso en las vistas:**
+
+```php
+<!-- Usando los helpers HTML -->
+<select name="genero" class="form-control">
+    <?= Tools::getGenerosSelectOptions($mascota->genero ?? 0) ?>
+</select>
+
+<select name="tipo" class="form-control">
+    <?= Tools::getTiposSelectOptions($mascota->tipo ?? 0) ?>
+</select>
+
+<!-- O usando los arrays directamente -->
+<?php foreach (Tools::getGeneros() as $id => $genero): ?>
+    <option value="<?= $id ?>"><?= htmlspecialchars($genero->nombre) ?></option>
+<?php endforeach; ?>
+```
+
+## Resumen de la clase Tutores creada:
+
+### **Funcionalidades principales:**
+
+1. **CRUD completo**: Crear, leer, actualizar y eliminar tutores
+2. **Filtros y búsquedas**: Por nombre, teléfono, email
+3. **Gestión de permisos**: Según el perfil del usuario logueado
+4. **Relaciones con mascotas**: Asignar/desasignar mascotas a tutores
+5. **Validaciones**: Nombre, email, teléfonos españoles
+
+
+### **Características específicas:**
+
+- ✅ **Sin imágenes**: No maneja imágenes ni directorios como las mascotas
+- ✅ **Slugs únicos**: Generación automática de slugs URL-friendly
+- ✅ **Validación de teléfonos**: Formato español
+- ✅ **Control de acceso**: Según perfil (superadmin, cuidador, tutor)
+- ✅ **Auditoría**: Logs de todas las operaciones
+- ✅ **Relaciones**: Gestión de asignación de mascotas
+
+
+### **Métodos principales:**
+
+- `getTutoresFiltered()` - Lista con filtros y paginación
+- `getTutorById()` / `getTutorBySlug()` - Obtener tutor específico
+- `crearTutor()` / `actualizarTutor()` / `eliminarTutor()` - CRUD
+- `asignarMascota()` / `desasignarMascota()` - Gestión de mascotas
+- `searchByName()` - Búsqueda por nombre
+- `getEstadisticas()` - Estadísticas de tutores
+
+
+### **Validaciones implementadas:**
+
+- **Nombre**: Mínimo 3 caracteres, solo letras y espacios
+- **Email**: Formato válido y único (opcional)
+- **Teléfonos**: Formato español (opcional)
+- **Cuidador**: Debe existir y estar activo
+- **Permisos**: Según perfil del usuario
+
+
+### **Control de permisos:**
+
+- **Superadmin**: Puede gestionar todos los tutores
+- **Cuidador**: Solo tutores de su cuidador
+- **Tutor**: No puede gestionar otros tutores
+
+
+La clase sigue el mismo patrón que Mascotas pero adaptada a las necesidades específicas de los tutores y sin gestión de imágenes.
+
+### **Backend PHP:**
+
+- Cambié `window.alerta_php` por `window.alertas_php` (plural)
+- Uso `json_encode()` para pasar todo el array de alertas de una vez
+- Esto evita la sobrescritura en el bucle
+
+
+### **JavaScript:**
+
+- **Nueva función `mostrarAlertasPHP()`** que maneja múltiples alertas
+- **Soporte para arrays**: Detecta si hay múltiples alertas y las muestra todas
+- **Delay entre alertas**: 200ms entre cada notificación para que se vean todas
+- **Compatibilidad**: Mantiene soporte para el sistema anterior (una sola alerta)
+- **Configuración mejorada de toastr**: Mejor configuración para múltiples notificaciones
+- **Limpieza automática**: Elimina las alertas después de mostrarlas
+
+
+### **Características adicionales:**
+
+- ✅ **Múltiples alertas**: Muestra todas las alertas, no solo la última
+- ✅ **Diferentes tipos**: Soporte para success, warning, info, error
+- ✅ **Delay progresivo**: Las alertas aparecen con un pequeño retraso entre ellas
+- ✅ **Fallback**: Si no hay toastr, muestra todas en un alert() concatenado
+- ✅ **Limpieza**: Evita que las alertas se muestren múltiples veces
+
+
+### **Nuevas funciones en Tools.php:**
+
+1. **`validateNombre()`** - Valida nombres con longitud y caracteres permitidos
+2. **`validateEmail()`** - Valida formato y disponibilidad de email
+3. **`validatePasswordStrength()`** - Validación avanzada de contraseñas
+4. **`validateFields()`** - Validador genérico para múltiples campos
+5. **`sanitizeInput()`** - Sanitización contra XSS
+6. **`validateSpanishPhone()`** - Validación de teléfonos españoles
+
+
+### **Mejoras en Admin.php:**
+
+1. **Validación completa** antes de crear/actualizar usuarios
+2. **Manejo de errores** estructurado con arrays de respuesta
+3. **Sanitización** de datos de entrada
+4. **Verificación de permisos** según el perfil del usuario
+5. **Logging de errores** para debugging
+6. **Formateo de errores** para mostrar en frontend
+
+
+### **Características de seguridad:**
+
+- ✅ Prevención de SQL injection (consultas preparadas)
+- ✅ Sanitización contra XSS
+- ✅ Validación de fortaleza de contraseñas
+- ✅ Verificación de emails duplicados
+- ✅ Control de permisos por perfil
+- ✅ Logging de errores de seguridad
+
+
+### **Validaciones implementadas:**
+
+- **Nombre**: Mínimo 3 caracteres, solo letras y espacios
+- **Email**: Formato válido y único en la base de datos
+- **Contraseña**: Longitud mínima, mayúsculas, minúsculas, números
+- **Permisos**: Verificación según perfil del usuario logueado
+- 
+## He creado una clase `Permisos` completa que:
+
+### **Funcionalidades principales:**
+
+1. **Verificación de permisos**: `tienePermiso()`, `tieneAlgunPermiso()`, `tieneTodosLosPermisos()`
+2. **Control de acceso**: `requierePermiso()`, `requiereAlgunPermiso()`
+3. **Gestión de permisos**: Crear, actualizar, eliminar permisos y asignarlos a perfiles
+4. **Control específico**: Verificar acceso a mascotas y cuidadores según el perfil del usuario
+5. **Cache**: Sistema de cache para optimizar consultas repetitivas
+
+
+### **Integración con el sistema existente:**
+
+- Se integra con la estructura de base de datos existente
+- Utiliza las mismas clases (`Bd`, `Tools`) que el resto del sistema
+- Mantiene la compatibilidad con el sistema de sesiones actual
+
+
+### **Niveles de acceso:**
+
+- **Superadmin (perfil 1)**: Acceso completo a todo
+- **Cuidador (perfil 2)**: Acceso limitado a sus propias mascotas y datos
+- **Tutor (perfil 3)**: Acceso solo a las mascotas que tiene asignadas
+
+
+### **Uso en controladores y vistas:**
+
+```php
+// En controladores
+Permisos::requierePermiso('ACCESS_USUARIOS_ADMIN');
+
+// En vistas
+if (Permisos::tienePermiso('ACCESS_IDIOMAS')): 
+    // Mostrar contenido
+endif;
+
+// Verificaciones específicas
+if (Permisos::puedeAccederMascota($idMascota)):
+    // Permitir acceso
+endif;
+```
+
 ## Implementación de Cropper.js
 
 ### Ventajas de esta implementación:

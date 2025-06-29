@@ -782,4 +782,78 @@ class Mascotas
         $db = Bd::getInstance();
         return (int)$db->fetchValueSafe("SELECT COUNT(*) FROM mascotas");
     }
+
+    /**
+     * Verifica si el usuario actual puede gestionar una mascota del cuidador indicado
+     *
+     * @param int $cuidadorId ID del cuidador
+     * @return bool
+     */
+    public static function canManageMascota($cuidadorId)
+    {
+        if (!isset($_SESSION['admin_panel'])) {
+            return false;
+        }
+
+        // Superadmin puede gestionar cualquier tutor
+        if ($_SESSION['admin_panel']->idperfil == 1) {
+            return true;
+        }
+
+        // Cuidadores solo pueden gestionar mascotas de su cuidador
+        if ($_SESSION['admin_panel']->idperfil == 2) {
+            return $_SESSION['admin_panel']->cuidador_id == $cuidadorId;
+        }
+
+        // Tutores no pueden gestionar otros tutores
+        // TODO accesoTutores
+        return false;
+    }
+
+    /**
+     * Obtiene las anotaciones de la mascota ordenadas por más reciente, puede filtrar por usuario actual
+     *
+     * @param int $mascotaId ID de la mascota
+     * @param bool $showall si es false, se obtendrán solo las anotaciones realizadas por el usuario registrado
+     * @return bool
+     */
+    public static function getReportesByMascota($mascotaId, $showall = true)
+    {
+        $db = Bd::getInstance();
+        $params = [$mascotaId];
+        $filtro_usuario = '';
+
+        if (!$showall) {
+            // Solo mostrar anotaciones del usuario actual
+            $filtro_usuario = " AND r.id_usuario = ?";
+            $params[] = $_SESSION['admin_panel']->idusuario;
+        }
+
+        $sql = "SELECT r.*, u.nombre AS usuario_nombre 
+                FROM reportes r 
+                INNER JOIN usuarios u ON r.id_usuario = u.id 
+                WHERE r.id_mascota = ? {$filtro_usuario} 
+                ORDER BY r.fecha DESC";
+
+        return $db->fetchAllSafe($sql, $params, PDO::FETCH_OBJ);
+    }
+
+    /**
+     * Obtiene los tutores asignados a una mascota
+     *
+     * @param int $mascotaId ID de la mascota
+     * @return array
+     */
+    public static function getTutoresByMascota($mascotaId)
+    {
+        $db = Bd::getInstance();
+
+        $sql = "SELECT t.*, mt.id_mascota 
+                FROM tutores t 
+                INNER JOIN mascotas_tutores mt ON t.id = mt.id_tutor 
+                WHERE mt.id_mascota = ? 
+                ORDER BY t.nombre";
+
+        return $db->fetchAllSafe($sql, [(int)$mascotaId]);
+    }
 }

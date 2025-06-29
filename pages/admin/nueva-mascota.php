@@ -25,6 +25,7 @@ if (class_exists('Metas')) {
             </div>
 
             <form method="post" action="" enctype="multipart/form-data" id="formNuevaMascota">
+                <input type="hidden" id="idtutor" name="idtutor" value="<?=$idtutor ?? 0?>">
                 <div class="card-body">
 
                     <!-- Información básica -->
