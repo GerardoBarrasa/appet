@@ -17,7 +17,7 @@
         </div>
         <div class="form-group row">
             <div class="col-12 text-center">
-                <div class="btn btn-outline-secondary" onclick="saveData('<?=$body?>')">Guardar datos</div>
+                <a href="<?=_DOMINIO_ . $_SESSION['admin_vars']['entorno'] . 'nuevo-tutor/for-' . $mascota->id . '/'?>" class="btn btn-outline-secondary">O haz click aquí para crear uno nuevo</a>
             </div>
         </div>
     </div>

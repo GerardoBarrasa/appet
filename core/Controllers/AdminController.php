@@ -1229,7 +1229,6 @@ class AdminController
         // Obtener datos necesarios para el formulario
         $tipos = class_exists('Mascotas') ? $this->getTiposMascota() : [];
         $generos = class_exists('Mascotas') ? $this->getGenerosMascota() : [];
-        $razas = class_exists('Razas') ? Razas::getRazas() : [];
 
         // Crear breadcrumb dinámico
         $breadcrumb = [
@@ -1254,7 +1253,6 @@ class AdminController
         $data = [
             'tipos' => $tipos,
             'generos' => $generos,
-            'razas' => $razas,
             'breadcrumb' => $breadcrumb
         ];
 
@@ -1604,13 +1602,17 @@ class AdminController
             $this->show404();
             return;
         }
+        $idMascota = 0;
+        $idTutor = 'new';
         $requestData = Tools::getValue('data');
-        if (!$requestData) {
-            $idTutor = 'new';
-        }
-        else{
+        if ($requestData) {
             $data = explode('-', $requestData);
-            $idTutor = $data[1] ?? 0;
+            if($data[0] == 'for'){// vamos a crear un nuevo tutor y asignarlo al ID de mascota que está en data[1]
+                $idMascota = $data[1] ?? 0;
+            }
+            else{
+                $idTutor = end($data);
+            }
         }
 
         // Procesar formulario de actualización
@@ -1651,6 +1653,7 @@ class AdminController
         $data = [
             'tutor' => $tutor,
             'mascotasAsignadas' => $mascotasAsignadas,
+            'idmascota' => $idMascota,
             'breadcrumb' => $breadcrumb
         ];
 
@@ -1704,6 +1707,12 @@ class AdminController
 
             if ($resultado['success']) {
                 Tools::registerAlert("Tutor creado correctamente.", "success");
+
+                // Si hay un ID de mascota, vamos a asociarlo al tutor recientemente creado
+                $idmascota = Tools::getValue('idmascota');
+                if($idmascota){
+                    Tutores::asignarMascota($idmascota, $resultado['data']['id']);
+                }
 
                 // Redirigir a la página de edición del tutor recién creado
                 $adminPath = $_SESSION['admin_vars']['entorno'] ?? 'admin/';

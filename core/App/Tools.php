@@ -1638,13 +1638,13 @@ class Tools
     }
 
 
-    /**
-     * Valida un número de teléfono internacional
-     *
-     * @param string $phone Teléfono a validar
-     * @param string $defaultCountry Código de país por defecto (ES, US, FR, etc.)
-     * @return array Resultado de validación
-     */
+ /**
+ * Valida un número de teléfono internacional
+ *
+ * @param string $phone Teléfono a validar
+ * @param string $defaultCountry Código de país por defecto (ES, US, FR, etc.)
+ * @return array Resultado de validación
+ */
     public static function validatePhone($phone, $defaultCountry = 'ES')
     {
         $result = [
@@ -1708,11 +1708,16 @@ class Tools
             ],
             'DE' => [
                 'patterns' => [
-                    '/^(\+49|0049)?[1-9]\d{10,11}$/', // Teléfonos alemanes
+                    '/^(\+49|0049)?[1-9]\d{9,10}$/', // Teléfonos alemanes
                 ],
                 'prefix' => '+49',
                 'format' => function($clean) {
                     $clean = preg_replace('/^(\+49|0049)/', '', $clean);
+                    if (strlen($clean) === 10) {
+                        return '+49 ' . substr($clean, 0, 3) . ' ' . substr($clean, 3);
+                    } elseif (strlen($clean) === 11) {
+                        return '+49 ' . substr($clean, 0, 4) . ' ' . substr($clean, 4);
+                    }
                     return '+49 ' . $clean;
                 }
             ],
@@ -1728,7 +1733,7 @@ class Tools
             ],
             'UK' => [
                 'patterns' => [
-                    '/^(\+44|0044)?[1-9]\d{9,10}$/', // Teléfonos británicos
+                    '/^(\+44|0044)?[1-9]\d{8,9}$/', // Teléfonos británicos (9-10 dígitos)
                 ],
                 'prefix' => '+44',
                 'format' => function($clean) {
@@ -1751,7 +1756,7 @@ class Tools
             ],
             'AR' => [
                 'patterns' => [
-                    '/^(\+54|0054)?[1-9]\d{9,10}$/', // Teléfonos argentinos
+                    '/^(\+54|0054)?[1-9]\d{8,9}$/', // Teléfonos argentinos (9-10 dígitos)
                 ],
                 'prefix' => '+54',
                 'format' => function($clean) {
@@ -1916,46 +1921,6 @@ class Tools
         }
     }
 
-    /**
-     * Obtiene las razas indexadas por ID
-     *
-     * @param bool $forceReload Forzar recarga desde BD
-     * @return array Array indexado por ID
-     */
-    public static function getRazas($forceReload = false)
-    {
-        if (!$forceReload && isset(self::$commonDataCache['razas'])) {
-            return self::$commonDataCache['razas'];
-        }
-
-        try {
-            if (!class_exists('Bd')) {
-                return [];
-            }
-
-            $db = Bd::getInstance();
-            $razas = $db->fetchAllSafe("SELECT * FROM mascotas_raza ORDER BY nombre", [], PDO::FETCH_OBJ);
-
-            // Indexar por ID para acceso rápido
-            $indexedRazas = [];
-            foreach ($razas as $raza) {
-                $indexedRazas[$raza->id] = $raza;
-            }
-
-            // Guardar en caché
-            self::$commonDataCache['razas'] = $indexedRazas;
-
-            return $indexedRazas;
-
-        } catch (Exception $e) {
-            self::logError([
-                'error' => 'Error loading razas',
-                'message' => $e->getMessage()
-            ], 0, 'common_data');
-
-            return [];
-        }
-    }
 
     /**
      * Obtiene el nombre de un género por su ID
@@ -1982,18 +1947,6 @@ class Tools
     }
 
     /**
-     * Obtiene el nombre de una raza por su ID
-     *
-     * @param int $id ID de la raza
-     * @return string Nombre de la raza o cadena vacía
-     */
-    public static function getRazaNombre($id)
-    {
-        $razas = self::getRazas();
-        return isset($razas[$id]) ? $razas[$id]->nombre : '';
-    }
-
-    /**
      * Obtiene todos los datos comunes del sistema
      *
      * @param bool $forceReload Forzar recarga desde BD
@@ -2003,15 +1956,14 @@ class Tools
     {
         return [
             'generos' => self::getGeneros($forceReload),
-            'tipos' => self::getTipos($forceReload),
-            'razas' => self::getRazas($forceReload)
+            'tipos' => self::getTipos($forceReload)
         ];
     }
 
     /**
      * Limpia el caché de datos comunes
      *
-     * @param string $type Tipo específico a limpiar (generos, tipos, razas) o null para todo
+     * @param string $type Tipo específico a limpiar (generos, tipos) o null para todo
      * @return void
      */
     public static function clearCommonDataCache($type = null)
@@ -2068,31 +2020,6 @@ class Tools
         foreach ($tipos as $id => $tipo) {
             $selected = ($selectedId == $id) ? 'selected' : '';
             $html .= '<option value="' . $id . '" ' . $selected . '>' . htmlspecialchars($tipo->nombre) . '</option>';
-        }
-
-        return $html;
-    }
-
-    /**
-     * Genera opciones HTML para un select de razas
-     *
-     * @param int $selectedId ID seleccionado
-     * @param bool $includeEmpty Incluir opción vacía
-     * @param string $emptyText Texto para opción vacía
-     * @return string HTML de opciones
-     */
-    public static function getRazasSelectOptions($selectedId = 0, $includeEmpty = true, $emptyText = 'Seleccionar raza')
-    {
-        $html = '';
-
-        if ($includeEmpty) {
-            $html .= '<option value="">' . htmlspecialchars($emptyText) . '</option>';
-        }
-
-        $razas = self::getRazas();
-        foreach ($razas as $id => $raza) {
-            $selected = ($selectedId == $id) ? 'selected' : '';
-            $html .= '<option value="' . $id . '" ' . $selected . '>' . htmlspecialchars($raza->nombre) . '</option>';
         }
 
         return $html;

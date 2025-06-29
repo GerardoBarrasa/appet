@@ -13,8 +13,8 @@
                         <!-- Form principal -->
                         <div class="col-12">
                             <div class="row">
-                                <input type="hidden" name="id" id="id"
-                                       value="<?= !empty($tutor) ? $tutor->id : '' ?>">
+                                <input type="hidden" name="id" id="id" value="<?= !empty($tutor) ? $tutor->id : '' ?>">
+                                <input type="hidden" name="idmascota" id="idmascota" value="<?= !empty($idmascota) ? $idmascota : '0' ?>">
 
                                 <div class="col-12 col-md-6 col-xl-4">
                                     <div class="form-group">
@@ -99,7 +99,7 @@
                     </div>
                 </div>
             </div>
+            <script> ajax_get_mascotas_asignadas('<?=$tutor ? $tutor->id : ''?>'); </script>
         <?php } ?>
     </div>
 </section>
-<script> ajax_get_mascotas_asignadas('<?=$tutor ? $tutor->id : ''?>'); </script>
